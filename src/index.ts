@@ -1,6 +1,10 @@
 import { web3FromAddress } from "@polkadot/extension-dapp";
-import { ISubmittableResult } from "@polkadot/types/types";
-import { GenerateMultisigParams, GetMultisigParams, Multisig } from "./types";
+import type { ISubmittableResult } from "@polkadot/types/types";
+import type {
+  GenerateMultisigParams,
+  GetMultisigParams,
+  Multisig,
+} from "./types";
 
 const generateMultisig = async ({
   id,
