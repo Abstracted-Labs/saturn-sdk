@@ -19,7 +19,7 @@
   resolved "https://registry.yarnpkg.com/@noble/secp256k1/-/secp256k1-1.7.0.tgz#d15357f7c227e751d90aa06b05a0e5cf993ba8c1"
   integrity sha512-kbacwGSsH/CTout0ZnZWxnW1B+jH/7r/WAAKLBtrRJ/+CUH7lgmQzl3GTrQua3SGKWNSDsS6lmjnDpIJ5Dxyaw==
 
-"@polkadot/api-augment@9.10.1":
+"@polkadot/api-augment@9.10.1", "@polkadot/api-augment@^9.10.1":
   version "9.10.1"
   resolved "https://registry.yarnpkg.com/@polkadot/api-augment/-/api-augment-9.10.1.tgz#b4391796662d168c00e44515f0b0fba742271276"
   integrity sha512-MNHz12YnoIVSAoLOtKIgeimi3ZeFiFdV6bC5rUOF1e09zzLZayd0x6/Hb/WaqTbyy1p12djiqRWSlWOJPrgMjA==
