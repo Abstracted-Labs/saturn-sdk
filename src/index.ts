@@ -1,11 +1,6 @@
 import { web3FromAddress } from "@polkadot/extension-dapp";
 import { ISubmittableResult } from "@polkadot/types/types";
-import {
-  GenerateMultisigParams,
-  GetMultisigParams,
-  Multisig,
-  MultisigStatus,
-} from "./types";
+import { GenerateMultisigParams, GetMultisigParams, Multisig } from "./types";
 
 const generateMultisig = async ({
   id,
@@ -80,8 +75,6 @@ const getMultisig = async ({
   id,
   api,
 }: GetMultisigParams): Promise<Multisig> => {
-  let status: MultisigStatus = "OPEN";
-
   const addVote = async (address: string) => {};
 
   const removeVote = async (address: string) => {};
@@ -108,7 +101,7 @@ const getMultisig = async ({
   };
 
   return {
-    status,
+    id,
     addVote,
     removeVote,
     listOpenCalls,

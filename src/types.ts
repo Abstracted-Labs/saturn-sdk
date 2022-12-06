@@ -40,10 +40,8 @@ type MultisigBalance = {
   total: number;
 };
 
-type MultisigStatus = "OPEN" | "EXECUTED" | "CANCELLED";
-
 type Multisig = {
-  status: MultisigStatus;
+  id: string;
   addVote: (address: string) => Promise<void>;
   removeVote: (address: string) => Promise<void>;
   listOpenCalls: () => Promise<MultisigCall[]>;
@@ -56,9 +54,4 @@ type Multisig = {
   getVoteWeight: (address: string) => Promise<number>;
 };
 
-export type {
-  GenerateMultisigParams,
-  GetMultisigParams,
-  Multisig,
-  MultisigStatus,
-};
+export type { GenerateMultisigParams, GetMultisigParams, Multisig };
