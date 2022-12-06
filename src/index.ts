@@ -1,5 +1,5 @@
 import { web3FromAddress } from "@polkadot/extension-dapp";
-
+import { ISubmittableResult } from "@polkadot/types/types";
 import {
   GenerateMultisigParams,
   GetMultisigParams,
@@ -8,63 +8,43 @@ import {
 } from "./types";
 
 const generateMultisig = async ({
+  id,
   signer,
   threshold,
   defaultAssetWeight,
   defaultPermission,
+  includeCaller = true,
+  calls,
+  metadata,
+  api,
   onInvalid,
   onExecuted,
   onCancelled,
   onSuccess,
+  onLoading,
   onDropped,
   onError,
-  api,
 }: GenerateMultisigParams): Promise<Multisig> => {
   const injector = await web3FromAddress(signer);
 
-  const id = "123";
-
-  /* await api.tx.inv4
+  await api.tx.inv4
     .operateMultisig(
-      true,
+      includeCaller,
       [id, null],
-      JSON.stringify({
-        protocol: "inv4-git",
-        type: "merge",
-        from: fromBranch,
-        to: toBranch,
-        newHead,
-      }),
-      api.tx.utility.batchAll([
-        api.tx.inv4.remove(
-          id,
-          signer,
-          [[api.createType("AnyId", { IpfId: oldRepoDataId }), signer]],
-          null
-        ),
-        api.tx.inv4.append(
-          id,
-          signer,
-          [
-            api.createType("AnyId", { IpfId: newMultiobjectId }),
-            api.createType("AnyId", { IpfId: newRepoDataId }),
-          ],
-          null
-        ),
-      ])
+      JSON.stringify(metadata),
+      api.tx.utility.batchAll(calls)
     )
     .signAndSend(
       signer,
       { signer: injector.signer },
       ({ events, status }: ISubmittableResult) => {
         if (status.isInvalid) {
-          if(onInvalid) onInvalid();
+          if (onInvalid) onInvalid();
         } else if (status.isReady) {
-          toast.loading("Merging branch...");
+          if (onLoading) onLoading();
         } else if (status.isDropped) {
-          toast.error("Transaction dropped");
+          if (onDropped) onDropped();
         } else if (status.isInBlock || status.isFinalized) {
-          toast.dismiss();
           const multisigVoteStarted = events.find(
             ({ event }) => event.method === "MultisigVoteStarted"
           );
@@ -78,21 +58,17 @@ const generateMultisig = async ({
           );
 
           if (multisigExecuted) {
-            toast.success("Merge performed!");
+            if (onSuccess) onSuccess();
           } else if (multisigVoteStarted) {
-            toast.success("Merge request opened!");
-
-            const call_hash = (
-              multisigVoteStarted.event.toPrimitive() as { call_hash: string }
-            ).call_hash;
+            if (onSuccess) onSuccess();
           } else if (failed) {
-            toast.error("Merge failed.");
+            if (onError) onError();
 
             console.error(failed.toHuman(true));
           } else throw new Error("UNKNOWN_RESULT");
         }
       }
-    ); */
+    );
 
   return getMultisig({
     api,

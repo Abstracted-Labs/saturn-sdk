@@ -1,18 +1,24 @@
 import type { ApiPromise } from "@polkadot/api";
+import { SubmittableExtrinsicFunction } from "@polkadot/api/types";
+import { AnyTuple } from "@polkadot/types/types";
 
 type GenerateMultisigParams = {
-  name: string;
+  id: string;
   signer: string;
   threshold: number;
   defaultAssetWeight: number;
   defaultPermission: boolean;
   api: ApiPromise;
-  onInvalid?: (callback: () => void) => void;
-  onExecuted?: (callback: () => void) => void;
-  onCancelled?: (callback: () => void) => void;
-  onSuccess?: (callback: () => void) => void;
-  onDropped?: (callback: () => void) => void;
-  onError?: (callback: () => void) => void;
+  includeCaller?: boolean;
+  calls: SubmittableExtrinsicFunction<"promise", AnyTuple>[];
+  metadata: any;
+  onInvalid?: () => void;
+  onExecuted?: () => void;
+  onCancelled?: () => void;
+  onSuccess?: () => void;
+  onLoading?: () => void;
+  onDropped?: () => void;
+  onError?: () => void;
 };
 
 type GetMultisigParams = {
