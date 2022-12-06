@@ -60,6 +60,7 @@ const generateMultisig = async ({
   defaultAssetWeight,
   defaultPermission,
   executionThreshold,
+  allowReplica,
   license,
   metadata,
   api,
@@ -76,7 +77,7 @@ const generateMultisig = async ({
     .createIps(
       JSON.stringify(metadata),
       metadata?.fork?.data ? metadata.fork.data : [],
-      false,
+      allowReplica,
       api.createType("Licenses", license),
       api.createType("OneOrPercent", { Percent: executionThreshold }),
       api.createType("OneOrPercent", { Percent: defaultAssetWeight }),

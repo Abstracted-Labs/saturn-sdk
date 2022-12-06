@@ -7,6 +7,7 @@ type GenerateMultisigParams = {
   defaultAssetWeight: number;
   defaultPermission: boolean;
   executionThreshold: number;
+  allowReplica: boolean;
   license: typeof licenses[number];
   api: ApiPromise;
   metadata: any;
