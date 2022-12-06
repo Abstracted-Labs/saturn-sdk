@@ -1,14 +1,12 @@
 import type { ApiPromise } from "@polkadot/api";
 
-import { licenses } from "./utils";
-
 type GenerateMultisigParams = {
   signer: string;
   defaultAssetWeight: number;
   defaultPermission: boolean;
   executionThreshold: number;
   allowReplica: boolean;
-  license: typeof licenses[number];
+  license: string;
   api: ApiPromise;
   metadata: any;
   onInvalid?: () => void;
