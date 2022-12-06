@@ -55,13 +55,12 @@ const getSignAndSendCallback = ({
   };
 };
 
-const generateMultisig = async ({
+const createMultisig = async ({
   signer,
   defaultAssetWeight,
   defaultPermission,
   executionThreshold,
   allowReplica,
-  license,
   metadata,
   api,
   onInvalid,
@@ -78,7 +77,7 @@ const generateMultisig = async ({
       JSON.stringify(metadata),
       metadata?.fork?.data ? metadata.fork.data : [],
       allowReplica,
-      api.createType("Licenses", license),
+      "Apache2",
       api.createType("OneOrPercent", { Percent: executionThreshold }),
       api.createType("OneOrPercent", { Percent: defaultAssetWeight }),
       defaultPermission
@@ -97,4 +96,4 @@ const generateMultisig = async ({
     );
 };
 
-export { generateMultisig };
+export { createMultisig };
