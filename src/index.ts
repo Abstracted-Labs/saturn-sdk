@@ -1,10 +1,17 @@
-import { MultisigParams, Multisig } from "./types";
+import { GenerateMultisigParams, GetMultisigParams, Multisig } from "./types";
 
-const generateMultisig = ({
+const generateMultisig = async ({
   threshold,
   defaultAssetWeight,
   defaultPermission,
   api,
-}: MultisigParams): Multisig => {
+}: GenerateMultisigParams): Promise<Multisig> => {
+  return () => ({});
+};
+
+const getMultisig = async ({
+  address,
+  api,
+}: GetMultisigParams): Promise<Multisig> => {
   return () => ({});
 };
