@@ -1,7 +1,7 @@
 import "@polkadot/api-augment";
 
 import { web3FromAddress } from "@polkadot/extension-dapp";
-import type { ISubmittableResult } from "@polkadot/types/types";
+import type { ISubmittableResult, SubmittableExtrinsic } from "@polkadot/types/types";
 import type { GenerateMultisigParams } from "./types";
 
 const getSignAndSendCallback = ({
@@ -56,23 +56,16 @@ const getSignAndSendCallback = ({
 };
 
 const createMultisig = async ({
-  signer,
+  api,
   defaultAssetWeight,
   defaultPermission,
   executionThreshold,
   allowReplica,
   metadata,
-  api,
-  onInvalid,
-  onExecuted,
-  onSuccess,
-  onLoading,
-  onDropped,
-  onError,
-}: GenerateMultisigParams): Promise<void> => {
+}: GenerateMultisigParams): Promise<SubmittableExtrinsic> => {
   const injector = await web3FromAddress(signer);
 
-  await api.tx.inv4
+ return await api.tx.inv4
     .createIps(
       JSON.stringify(metadata),
       metadata?.fork?.data ? metadata.fork.data : [],
@@ -82,18 +75,6 @@ const createMultisig = async ({
       api.createType("OneOrPercent", { Percent: defaultAssetWeight }),
       defaultPermission
     )
-    .signAndSend(
-      signer,
-      { signer: injector.signer },
-      getSignAndSendCallback({
-        onDropped,
-        onError,
-        onExecuted,
-        onInvalid,
-        onLoading,
-        onSuccess,
-      })
-    );
 };
 
 export { createMultisig };
