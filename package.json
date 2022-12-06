@@ -4,11 +4,18 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": "tsc"
+    "build": "tsc --outDir ./dist"
   },
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@types/node": "^18.11.11",
     "typescript": "^4.9.3"
+  },
+  "dependencies": {
+    "@polkadot/api": "^9.10.1",
+    "@polkadot/api-augment": "^9.10.1",
+    "@polkadot/extension-dapp": "^0.44.6",
+    "@polkadot/types": "^9.10.1"
   }
 }
