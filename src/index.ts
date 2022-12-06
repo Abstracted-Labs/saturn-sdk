@@ -1,4 +1,10 @@
 import {
+  web3Accounts,
+  web3Enable,
+  web3FromAddress,
+} from "@polkadot/extension-dapp";
+
+import {
   GenerateMultisigParams,
   GetMultisigParams,
   Multisig,
@@ -6,11 +12,25 @@ import {
 } from "./types";
 
 const generateMultisig = async ({
+  name,
+  signer,
   threshold,
   defaultAssetWeight,
   defaultPermission,
+  onInvalid,
+  onExecuted,
+  onCancelled,
+  onSuccess,
+  onDropped,
+  onError,
   api,
 }: GenerateMultisigParams): Promise<Multisig> => {
+  await web3Enable(name);
+
+  await web3Accounts();
+
+  const injector = await web3FromAddress(signer);
+
   const id = "123";
 
   return getMultisig({

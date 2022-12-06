@@ -1,10 +1,18 @@
 import type { ApiPromise } from "@polkadot/api";
 
 type GenerateMultisigParams = {
+  name: string;
+  signer: string;
   threshold: number;
   defaultAssetWeight: number;
   defaultPermission: boolean;
   api: ApiPromise;
+  onInvalid?: (callback: () => void) => void;
+  onExecuted?: (callback: () => void) => void;
+  onCancelled?: (callback: () => void) => void;
+  onSuccess?: (callback: () => void) => void;
+  onDropped?: (callback: () => void) => void;
+  onError?: (callback: () => void) => void;
 };
 
 type GetMultisigParams = {
@@ -38,8 +46,8 @@ type Multisig = {
     call: () => Promise<void>;
   }) => Promise<void>;
   removeCall: (id: string) => Promise<void>;
-  getBalance(): Promise<MultisigBalance>;
-  getVoteWeight(address: string): Promise<number>;
+  getBalance: () => Promise<MultisigBalance>;
+  getVoteWeight: (address: string) => Promise<number>;
 };
 
 export type {
