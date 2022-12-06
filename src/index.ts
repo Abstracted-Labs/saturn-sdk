@@ -1,117 +1,69 @@
 import { web3FromAddress } from "@polkadot/extension-dapp";
 import type { ISubmittableResult } from "@polkadot/types/types";
-import type {
-  GenerateMultisigParams,
-  GetMultisigParams,
-  Multisig,
-} from "./types";
+import type { GenerateMultisigParams } from "./types";
 
 const generateMultisig = async ({
-  id,
   signer,
-  threshold,
   defaultAssetWeight,
   defaultPermission,
-  includeCaller = true,
-  calls,
+  executionThreshold,
+  license,
   metadata,
   api,
   onInvalid,
   onExecuted,
-  onCancelled,
   onSuccess,
   onLoading,
   onDropped,
   onError,
-}: GenerateMultisigParams): Promise<Multisig> => {
+}: GenerateMultisigParams): Promise<void> => {
   const injector = await web3FromAddress(signer);
 
-  await api.tx.inv4
-    .operateMultisig(
-      includeCaller,
-      [id, null],
-      JSON.stringify(metadata),
-      api.tx.utility.batchAll(calls)
-    )
-    .signAndSend(
-      signer,
-      { signer: injector.signer },
-      ({ events, status }: ISubmittableResult) => {
-        if (status.isInvalid) {
-          if (onInvalid) onInvalid();
-        } else if (status.isReady) {
-          if (onLoading) onLoading();
-        } else if (status.isDropped) {
-          if (onDropped) onDropped();
-        } else if (status.isInBlock || status.isFinalized) {
-          const multisigVoteStarted = events.find(
-            ({ event }) => event.method === "MultisigVoteStarted"
-          );
+  const getSignAndSendCallback = () => {
+    return ({ events, status }: ISubmittableResult) => {
+      if (status.isInvalid) {
+        if (onInvalid) onInvalid();
+      } else if (status.isReady) {
+        if (onLoading) onLoading();
+      } else if (status.isDropped) {
+        if (onDropped) onDropped();
+      } else if (status.isInBlock || status.isFinalized) {
+        const multisigVoteStarted = events.find(
+          ({ event }) => event.method === "MultisigVoteStarted"
+        );
 
-          const multisigExecuted = events.find(
-            ({ event }) => event.method === "MultisigExecuted"
-          );
+        const multisigExecuted = events.find(
+          ({ event }) => event.method === "MultisigExecuted"
+        );
 
-          const failed = events.find(
-            ({ event }) => event.method === "ExtrinsicFailed"
-          );
+        const failed = events.find(
+          ({ event }) => event.method === "ExtrinsicFailed"
+        );
 
-          if (multisigExecuted) {
-            if (onSuccess) onSuccess();
-          } else if (multisigVoteStarted) {
-            if (onSuccess) onSuccess();
-          } else if (failed) {
-            if (onError) onError();
+        if (multisigExecuted) {
+          if (onSuccess) onSuccess();
+        } else if (multisigVoteStarted) {
+          if (onSuccess) onSuccess();
+        } else if (failed) {
+          if (onError) onError();
 
-            console.error(failed.toHuman(true));
-          } else throw new Error("UNKNOWN_RESULT");
-        }
+          console.error(failed.toHuman(true));
+        } else throw new Error("UNKNOWN_RESULT");
       }
-    );
 
-  return getMultisig({
-    api,
-    id,
-  });
-};
-
-const getMultisig = async ({
-  id,
-  api,
-}: GetMultisigParams): Promise<Multisig> => {
-  const addVote = async (address: string) => {};
-
-  const removeVote = async (address: string) => {};
-
-  const listOpenCalls = async () => [];
-
-  const addNewCall = async (payload: {
-    id: string;
-    call: () => Promise<void>;
-  }) => {};
-
-  const removeCall = async (id: string) => {};
-
-  const getBalance = async () => {
-    return {
-      limit: 100,
-      filled: 50,
-      total: 150,
+      if (onExecuted) onExecuted();
     };
   };
 
-  const getVoteWeight = async (address: string) => {
-    return 100;
-  };
-
-  return {
-    id,
-    addVote,
-    removeVote,
-    listOpenCalls,
-    addNewCall,
-    removeCall,
-    getBalance,
-    getVoteWeight,
-  };
+  await api.tx.inv4
+    .createIps(
+      JSON.stringify(metadata),
+      metadata?.fork?.data ? metadata.fork.data : [],
+      false,
+      api.createType("Licenses", license),
+      api.createType("OneOrPercent", { Percent: executionThreshold }),
+      api.createType("OneOrPercent", { Percent: defaultAssetWeight }),
+      defaultPermission
+    )
+    .signAndSend(signer, { signer: injector.signer }, getSignAndSendCallback());
 };
