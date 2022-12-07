@@ -1,14 +1,16 @@
 import type { ApiPromise } from "@polkadot/api";
 
-type GenerateMultisigParams = {
-  signer: string;
+type CreateMultisigParams = {
+  api: ApiPromise;
   defaultAssetWeight: number;
   defaultPermission: boolean;
   executionThreshold: number;
   allowReplica: boolean;
-  license: string;
-  api: ApiPromise;
   metadata: any;
+  assets?: string[];
+};
+
+type GetSignAndSendCallbackParams = {
   onInvalid?: () => void;
   onExecuted?: () => void;
   onSuccess?: () => void;
@@ -50,4 +52,9 @@ type Multisig = {
   getVoteWeight: (address: string) => Promise<number>;
 };
 
-export type { GenerateMultisigParams, GetMultisigParams, Multisig };
+export type {
+  CreateMultisigParams,
+  GetSignAndSendCallbackParams,
+  GetMultisigParams,
+  Multisig,
+};

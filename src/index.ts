@@ -1,8 +1,11 @@
 import "@polkadot/api-augment";
 
-import { web3FromAddress } from "@polkadot/extension-dapp";
-import type { ISubmittableResult, SubmittableExtrinsic } from "@polkadot/types/types";
-import type { GenerateMultisigParams } from "./types";
+import { SubmittableExtrinsic } from "@polkadot/api/types";
+import type { ISubmittableResult } from "@polkadot/types/types";
+import type {
+  CreateMultisigParams,
+  GetSignAndSendCallbackParams,
+} from "./types";
 
 const getSignAndSendCallback = ({
   onDropped,
@@ -11,15 +14,7 @@ const getSignAndSendCallback = ({
   onInvalid,
   onLoading,
   onSuccess,
-}: Pick<
-  GenerateMultisigParams,
-  | "onDropped"
-  | "onError"
-  | "onExecuted"
-  | "onInvalid"
-  | "onLoading"
-  | "onSuccess"
->) => {
+}: GetSignAndSendCallbackParams) => {
   return ({ events, status }: ISubmittableResult) => {
     if (status.isInvalid) {
       if (onInvalid) onInvalid();
@@ -62,19 +57,19 @@ const createMultisig = async ({
   executionThreshold,
   allowReplica,
   metadata,
-}: GenerateMultisigParams): Promise<SubmittableExtrinsic> => {
-  const injector = await web3FromAddress(signer);
-
- return await api.tx.inv4
-    .createIps(
-      JSON.stringify(metadata),
-      metadata?.fork?.data ? metadata.fork.data : [],
-      allowReplica,
-      "Apache2",
-      api.createType("OneOrPercent", { Percent: executionThreshold }),
-      api.createType("OneOrPercent", { Percent: defaultAssetWeight }),
-      defaultPermission
-    )
+  assets = [],
+}: CreateMultisigParams): Promise<
+  SubmittableExtrinsic<"promise", ISubmittableResult>
+> => {
+  return api.tx.inv4.createIps(
+    JSON.stringify(metadata),
+    assets,
+    allowReplica,
+    "Apache2",
+    api.createType("OneOrPercent", { Percent: executionThreshold }),
+    api.createType("OneOrPercent", { Percent: defaultAssetWeight }),
+    defaultPermission
+  );
 };
 
-export { createMultisig };
+export { createMultisig, getSignAndSendCallback };
