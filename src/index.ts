@@ -50,15 +50,16 @@ const getSignAndSendCallback = ({
   };
 };
 
-const createMultisig = async ({
+const createMultisig = ({
   api,
   defaultAssetWeight,
   defaultPermission,
   executionThreshold,
   metadata,
   assets = [],
-}: CreateMultisigParams): Promise<
-  SubmittableExtrinsic<"promise", ISubmittableResult>
+}: CreateMultisigParams): SubmittableExtrinsic<
+  "promise",
+  ISubmittableResult
 > => {
   return api.tx.inv4.createIps(
     JSON.stringify(metadata),
