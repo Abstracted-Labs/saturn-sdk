@@ -4,6 +4,8 @@ import { SubmittableExtrinsic } from "@polkadot/api/types";
 import type { ISubmittableResult } from "@polkadot/types/types";
 import type {
   CreateMultisigParams,
+  GetMultisigParams,
+  GetPendingMultisigCallsParams,
   GetSignAndSendCallbackParams,
 } from "./types";
 
@@ -72,4 +74,20 @@ const createMultisig = ({
   );
 };
 
-export { createMultisig, getSignAndSendCallback };
+const getPendingMultisigCalls = ({
+  api,
+  id,
+}: GetPendingMultisigCallsParams) => {
+  return api.query.multisig.multisigs.entries(parseInt(id));
+};
+
+const getMultisig = ({ api, id }: GetMultisigParams) => {
+  return api.query.inv4.ipStorage(parseInt(id));
+};
+
+export {
+  getSignAndSendCallback,
+  getPendingMultisigCalls,
+  createMultisig,
+  getMultisig,
+};
