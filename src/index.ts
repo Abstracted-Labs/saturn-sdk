@@ -55,7 +55,6 @@ const createMultisig = async ({
   defaultAssetWeight,
   defaultPermission,
   executionThreshold,
-  allowReplica,
   metadata,
   assets = [],
 }: CreateMultisigParams): Promise<
@@ -64,7 +63,7 @@ const createMultisig = async ({
   return api.tx.inv4.createIps(
     JSON.stringify(metadata),
     assets,
-    allowReplica,
+    false,
     "Apache2",
     api.createType("OneOrPercent", { Percent: executionThreshold }),
     api.createType("OneOrPercent", { Percent: defaultAssetWeight }),

@@ -5,7 +5,6 @@ type CreateMultisigParams = {
   defaultAssetWeight: number;
   defaultPermission: boolean;
   executionThreshold: number;
-  allowReplica: boolean;
   metadata: any;
   assets?: string[];
 };
