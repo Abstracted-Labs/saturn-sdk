@@ -2,15 +2,6 @@ import type { ApiPromise } from "@polkadot/api";
 import { SubmittableExtrinsic } from "@polkadot/api/types";
 import { ISubmittableResult } from "@polkadot/types/types";
 
-type CreateMultisigParams = {
-  api: ApiPromise;
-  defaultAssetWeight: number;
-  defaultPermission: boolean;
-  executionThreshold: number;
-  metadata: any;
-  assets?: string[];
-};
-
 type GetSignAndSendCallbackParams = {
   onInvalid?: () => void;
   onExecuted?: () => void;
@@ -18,6 +9,15 @@ type GetSignAndSendCallbackParams = {
   onLoading?: () => void;
   onDropped?: () => void;
   onError?: () => void;
+};
+
+type CreateMultisigParams = {
+  api: ApiPromise;
+  defaultAssetWeight: number;
+  defaultPermission: boolean;
+  executionThreshold: number;
+  metadata: any;
+  assets?: string[];
 };
 
 type GetPendingMultisigCallsParams = {
