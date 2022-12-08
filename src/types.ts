@@ -3,12 +3,12 @@ import { SubmittableExtrinsic } from "@polkadot/api/types";
 import { ISubmittableResult } from "@polkadot/types/types";
 
 type GetSignAndSendCallbackParams = {
-  onInvalid?: () => void;
-  onExecuted?: () => void;
-  onSuccess?: () => void;
-  onLoading?: () => void;
-  onDropped?: () => void;
-  onError?: () => void;
+  onInvalid?: (payload: ISubmittableResult) => void;
+  onExecuted?: (payload: ISubmittableResult) => void;
+  onSuccess?: (payload: ISubmittableResult) => void;
+  onLoading?: (payload: ISubmittableResult) => void;
+  onDropped?: (payload: ISubmittableResult) => void;
+  onError?: (payload: ISubmittableResult) => void;
 };
 
 type CreateMultisigParams = {
@@ -26,26 +26,26 @@ type GetPendingMultisigCallsParams = {
 };
 
 type GetMultisigParams = {
-  id: string;
   api: ApiPromise;
+  id: string;
 };
 
 type CreateMultisigCallParams = {
-  id: string;
   api: ApiPromise;
+  id: string;
   metadata: any;
   calls: SubmittableExtrinsic<"promise", ISubmittableResult>[];
 };
 
 type VoteMultisigCallParams = {
-  id: string;
   api: ApiPromise;
+  id: string;
   callHash: string;
 };
 
 type WithdrawMultisigCallParams = {
-  id: string;
   api: ApiPromise;
+  id: string;
   callHash: string;
 };
 

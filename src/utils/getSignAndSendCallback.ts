@@ -10,38 +10,36 @@ const getSignAndSendCallback = ({
   onLoading,
   onSuccess,
 }: GetSignAndSendCallbackParams) => {
-  return ({ events, status }: ISubmittableResult) => {
-    if (status.isInvalid) {
-      if (onInvalid) onInvalid();
-    } else if (status.isReady) {
-      if (onLoading) onLoading();
-    } else if (status.isDropped) {
-      if (onDropped) onDropped();
-    } else if (status.isInBlock || status.isFinalized) {
-      const multisigVoteStarted = events.find(
+  return (result: ISubmittableResult) => {
+    if (result.status.isInvalid) {
+      if (onInvalid) onInvalid(result);
+    } else if (result.status.isReady) {
+      if (onLoading) onLoading(result);
+    } else if (result.status.isDropped) {
+      if (onDropped) onDropped(result);
+    } else if (result.status.isInBlock || result.status.isFinalized) {
+      const hasVoteStarted = result.events.find(
         ({ event }) => event.method === "MultisigVoteStarted"
       );
 
-      const multisigExecuted = events.find(
+      const hasExecuted = result.events.find(
         ({ event }) => event.method === "MultisigExecuted"
       );
 
-      const failed = events.find(
+      const hasFailed = result.events.find(
         ({ event }) => event.method === "ExtrinsicFailed"
       );
 
-      if (multisigExecuted) {
-        if (onSuccess) onSuccess();
-      } else if (multisigVoteStarted) {
-        if (onSuccess) onSuccess();
-      } else if (failed) {
-        if (onError) onError();
-
-        console.error(failed.toHuman(true));
+      if (hasExecuted) {
+        if (onSuccess) onSuccess(result);
+      } else if (hasVoteStarted) {
+        if (onSuccess) onSuccess(result);
+      } else if (hasFailed) {
+        if (onError) onError(result);
       } else throw new Error("UNKNOWN_RESULT");
     }
 
-    if (onExecuted) onExecuted();
+    if (onExecuted) onExecuted(result);
   };
 };
 
