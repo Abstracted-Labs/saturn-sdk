@@ -37,10 +37,24 @@ type CreateMultisigCallParams = {
   calls: SubmittableExtrinsic<"promise", ISubmittableResult>[];
 };
 
+type VoteMultisigCallParams = {
+  id: string;
+  api: ApiPromise;
+  callHash: string;
+};
+
+type WithdrawMultisigCallParams = {
+  id: string;
+  api: ApiPromise;
+  callHash: string;
+};
+
 export type {
   CreateMultisigParams,
   GetSignAndSendCallbackParams,
   GetPendingMultisigCallsParams,
   GetMultisigParams,
   CreateMultisigCallParams,
+  VoteMultisigCallParams,
+  WithdrawMultisigCallParams,
 };

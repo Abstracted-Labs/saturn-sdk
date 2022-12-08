@@ -7,6 +7,8 @@ import type {
   GetMultisigParams,
   GetPendingMultisigCallsParams,
   GetSignAndSendCallbackParams,
+  VoteMultisigCallParams,
+  WithdrawMultisigCallParams,
 } from "./types";
 
 const getSignAndSendCallback = ({
@@ -96,10 +98,24 @@ const createMultisigCall = ({
   );
 };
 
+const voteMultisigCall = ({ api, id, callHash }: VoteMultisigCallParams) => {
+  return api.tx.inv4.voteMultisig([parseInt(id), null], callHash);
+};
+
+const withdrawVoteMultisigCall = ({
+  api,
+  id,
+  callHash,
+}: WithdrawMultisigCallParams) => {
+  return api.tx.inv4.voteMultisig([parseInt(id), null], callHash);
+};
+
 export {
   getSignAndSendCallback,
   getPendingMultisigCalls,
   createMultisig,
   getMultisig,
   createMultisigCall,
+  voteMultisigCall,
+  withdrawVoteMultisigCall,
 };
