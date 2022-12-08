@@ -1,8 +1,8 @@
 import "@polkadot/api-augment";
 
-import { SubmittableExtrinsic } from "@polkadot/api/types";
 import type { ISubmittableResult } from "@polkadot/types/types";
 import type {
+  CreateMultisigCallParams,
   CreateMultisigParams,
   GetMultisigParams,
   GetPendingMultisigCallsParams,
@@ -59,10 +59,7 @@ const createMultisig = ({
   executionThreshold,
   metadata,
   assets = [],
-}: CreateMultisigParams): SubmittableExtrinsic<
-  "promise",
-  ISubmittableResult
-> => {
+}: CreateMultisigParams) => {
   return api.tx.inv4.createIps(
     JSON.stringify(metadata),
     assets,
@@ -85,9 +82,24 @@ const getMultisig = ({ api, id }: GetMultisigParams) => {
   return api.query.inv4.ipStorage(parseInt(id));
 };
 
+const createMultisigCall = ({
+  api,
+  id,
+  metadata,
+  calls,
+}: CreateMultisigCallParams) => {
+  return api.tx.inv4.operateMultisig(
+    true,
+    [parseInt(id), null],
+    JSON.stringify(metadata),
+    api.tx.utility.batchAll(calls)
+  );
+};
+
 export {
   getSignAndSendCallback,
   getPendingMultisigCalls,
   createMultisig,
   getMultisig,
+  createMultisigCall,
 };

@@ -1,4 +1,6 @@
 import type { ApiPromise } from "@polkadot/api";
+import { SubmittableExtrinsic } from "@polkadot/api/types";
+import { ISubmittableResult } from "@polkadot/types/types";
 
 type CreateMultisigParams = {
   api: ApiPromise;
@@ -28,9 +30,17 @@ type GetMultisigParams = {
   api: ApiPromise;
 };
 
+type CreateMultisigCallParams = {
+  id: string;
+  api: ApiPromise;
+  metadata: any;
+  calls: SubmittableExtrinsic<"promise", ISubmittableResult>[];
+};
+
 export type {
   CreateMultisigParams,
   GetSignAndSendCallbackParams,
   GetPendingMultisigCallsParams,
   GetMultisigParams,
+  CreateMultisigCallParams,
 };
