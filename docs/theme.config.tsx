@@ -13,6 +13,11 @@ const config: DocsThemeConfig = {
   footer: {
     text: "InvArch Corporation",
   },
+  useNextSeoProps() {
+    return {
+      titleTemplate: '%s - Saturn SDK'
+    }
+  },
 };
 
 export default config;
