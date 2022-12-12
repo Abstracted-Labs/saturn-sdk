@@ -1,0 +1,44 @@
+# Getting Started
+
+import { Tab, Tabs } from "nextra-theme-docs";
+
+The Saturn SDK is a set of tools that allow you to build apps with Multisigs on chain.
+
+## Quick Start
+
+<div className="steps-container">
+
+### Install
+
+To install the SDK it's pretty simple, you can just install the package with your favorite package manager:
+
+<Tabs items={["pnpm", "npm", "yarn"]}>
+    <Tab>
+```bash 
+pnpm i @invarch/saturn-sdk
+```
+    </Tab>
+    <Tab>
+```bash
+npm i @invarch/saturn-sdk
+```
+    </Tab>
+    <Tab>
+```bash
+yarn add @invarch/saturn-sdk
+```
+    </Tab>
+</Tabs>
+
+### Multisig
+
+A multisig is basically a piece of code, that you can change with different calls. One implementation of it was used on GitArch, where each multisig is a repository, and to make changes you would need to create a `multisig call`.
+
+The Saturn SDK allows you to create multisigs, make calls to them, vote on them, and more.
+
+
+### Ready to Go!
+
+Now, you can create your first Multisig and start using it! 🎉
+
+</div>
