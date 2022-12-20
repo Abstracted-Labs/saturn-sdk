@@ -14,4 +14,4 @@ const createMultisigCall = ({
   );
 };
 
-export default createMultisigCall;
+export { createMultisigCall };

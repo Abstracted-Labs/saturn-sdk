@@ -19,4 +19,4 @@ const createMultisig = ({
   );
 };
 
-export default createMultisig;
+export { createMultisig };

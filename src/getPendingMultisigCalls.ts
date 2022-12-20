@@ -7,4 +7,4 @@ const getPendingMultisigCalls = ({
   return api.query.inv4.multisigs.entries(parseInt(id));
 };
 
-export default getPendingMultisigCalls;
+export { getPendingMultisigCalls };

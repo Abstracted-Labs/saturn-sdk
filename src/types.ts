@@ -43,7 +43,7 @@ type VoteMultisigCallParams = {
   callHash: string;
 };
 
-type WithdrawMultisigCallParams = {
+type WithdrawVoteMultisigCallParams = {
   api: ApiPromise;
   id: string;
   callHash: string;
@@ -56,5 +56,5 @@ export type {
   GetMultisigParams,
   CreateMultisigCallParams,
   VoteMultisigCallParams,
-  WithdrawMultisigCallParams,
+  WithdrawVoteMultisigCallParams,
 };
