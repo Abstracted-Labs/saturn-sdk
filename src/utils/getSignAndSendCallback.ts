@@ -1,6 +1,6 @@
 import { ISubmittableResult } from "@polkadot/types/types";
 
-import { GetSignAndSendCallbackParams } from "../rpc/types";
+import { GetSignAndSendCallbackParams } from "../types";
 
 const getSignAndSendCallback = ({
   onDropped,
