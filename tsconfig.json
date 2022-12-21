@@ -4,6 +4,8 @@
     "module": "ESNext",
     "outDir": "./build",
     "moduleResolution": "Node",
+    "declaration": true,
+    "declarationMap": true,
     "allowSyntheticDefaultImports": true
   },
   "include": ["src/**/*"],
