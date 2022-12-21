@@ -1,4 +1,4 @@
-import type { CreateMultisigParams } from "./types";
+import type { CreateMultisigParams } from "../types";
 
 const createMultisig = ({
   api,

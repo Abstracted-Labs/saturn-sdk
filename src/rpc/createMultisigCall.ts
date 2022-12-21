@@ -1,4 +1,4 @@
-import { CreateMultisigCallParams } from "./types";
+import { CreateMultisigCallParams } from "../types";
 
 const createMultisigCall = ({
   api,

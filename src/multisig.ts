@@ -1,20 +1,18 @@
-// receive ApiPromise and setup the class
-// check if ApiPromise contains inv4 and all its params
-// return functions with this class inside
-// returns error if ApiPromise is not correct
-
 import { ApiPromise } from "@polkadot/api";
 
 import {
   createMultisigCall,
-  CreateMultisigCallParams,
   getPendingMultisigCalls,
-  GetPendingMultisigCallsParams,
   voteMultisigCall,
-  VoteMultisigCallParams,
   withdrawVoteMultisigCall,
+} from "./rpc";
+
+import {
+  CreateMultisigCallParams,
+  GetPendingMultisigCallsParams,
+  VoteMultisigCallParams,
   WithdrawVoteMultisigCallParams,
-} from "./";
+} from "./types";
 
 class Multisig {
   readonly api: ApiPromise;

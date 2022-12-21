@@ -1,4 +1,4 @@
-import type { WithdrawVoteMultisigCallParams } from "./types";
+import type { WithdrawVoteMultisigCallParams } from "../types";
 
 const withdrawVoteMultisigCall = ({
   api,
