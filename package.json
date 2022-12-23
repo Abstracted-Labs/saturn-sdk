@@ -2,6 +2,10 @@
   "name": "saturn-sdk",
   "version": "1.0.0",
   "description": "",
+  "type": "module",
+  "files": [
+    "dist"
+  ],
   "main": "index.js",
   "scripts": {
     "build": "tsc --outDir ./dist"
