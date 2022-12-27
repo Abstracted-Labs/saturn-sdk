@@ -71,11 +71,13 @@ class Multisig {
     return getPendingMultisigCalls({ api: this.api, ...params });
   };
 
-  vote = ({ ...params }: VoteMultisigCallParams) => {
+  vote = ({ ...params }: Omit<VoteMultisigCallParams, "api">) => {
     return voteMultisigCall({ api: this.api, ...params });
   };
 
-  withdrawVote = ({ ...params }: WithdrawVoteMultisigCallParams) => {
+  withdrawVote = ({
+    ...params
+  }: Omit<WithdrawVoteMultisigCallParams, "api">) => {
     return withdrawVoteMultisigCall({ api: this.api, ...params });
   };
 }
