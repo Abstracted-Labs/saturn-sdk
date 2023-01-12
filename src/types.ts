@@ -9,6 +9,7 @@ type GetSignAndSendCallbackParams = {
   onLoading?: (payload: ISubmittableResult) => void;
   onDropped?: (payload: ISubmittableResult) => void;
   onError?: (payload: ISubmittableResult) => void;
+  onUnknown?: (payload: ISubmittableResult) => void;
 };
 
 type CreateMultisigParams = {

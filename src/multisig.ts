@@ -1,6 +1,8 @@
 import { ApiPromise } from "@polkadot/api";
+import { Signer } from "@polkadot/types/types";
 
 import {
+  createMultisig,
   createMultisigCall,
   getPendingMultisigCalls,
   voteMultisigCall,
@@ -8,11 +10,91 @@ import {
 } from "./rpc";
 
 import {
+  CreateMultisigParams,
   CreateMultisigCallParams,
   GetPendingMultisigCallsParams,
   VoteMultisigCallParams,
   WithdrawVoteMultisigCallParams,
+  GetSignAndSendCallbackParams,
 } from "./types";
+
+import { getSignAndSendCallback } from "./utils";
+
+const generateMultisig = async ({
+  api,
+  defaultAssetWeight,
+  defaultPermission,
+  executionThreshold,
+  metadata,
+  assets,
+  onDropped,
+  onError,
+  onExecuted,
+  onInvalid,
+  onLoading,
+  onSuccess,
+  onUnknown,
+  address,
+  signer,
+}: CreateMultisigParams &
+  GetSignAndSendCallbackParams & { address: string; signer: Signer }) => {
+  try {
+    new Promise(async (resolve, reject) => {
+      await createMultisig({
+        api,
+        defaultAssetWeight,
+        defaultPermission,
+        executionThreshold,
+        metadata,
+        assets,
+      }).signAndSend(
+        address,
+        { signer },
+        getSignAndSendCallback({
+          onDropped,
+          onError,
+          onExecuted,
+          onInvalid,
+          onLoading,
+          onSuccess: async (result) => {
+            const hasVoteStarted = result.events.find(
+              ({ event }) => event.method === "MultisigVoteStarted"
+            );
+
+            const hasExecuted = result.events.find(
+              ({ event }) => event.method === "MultisigExecuted"
+            );
+
+            if (hasVoteStarted) {
+              const event = hasVoteStarted.event.toPrimitive() as {
+                data: { ipsId: string };
+              };
+
+              const id = event.data.ipsId;
+
+              if (onSuccess) onSuccess(result);
+
+              resolve(new Multisig({ api, id }));
+            } else if (hasExecuted) {
+              const event = hasExecuted.event.toPrimitive() as {
+                data: { ipsId: string };
+              };
+
+              const id = event.data.ipsId;
+
+              if (onSuccess) onSuccess(result);
+
+              resolve(new Multisig({ api, id }));
+            }
+          },
+          onUnknown,
+        })
+      );
+    });
+  } catch (e) {
+    throw new Error("Error creating multisig", e);
+  }
+};
 
 class Multisig {
   readonly api: ApiPromise;
@@ -82,4 +164,4 @@ class Multisig {
   };
 }
 
-export { Multisig };
+export { Multisig, generateMultisig };

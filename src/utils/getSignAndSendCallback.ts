@@ -9,6 +9,7 @@ const getSignAndSendCallback = ({
   onInvalid,
   onLoading,
   onSuccess,
+  onUnknown,
 }: GetSignAndSendCallbackParams) => {
   return (result: ISubmittableResult) => {
     if (result.status.isInvalid) {
@@ -36,11 +37,13 @@ const getSignAndSendCallback = ({
         if (onSuccess) onSuccess(result);
       } else if (hasFailed) {
         if (onError) onError(result);
-      } else throw new Error("UNKNOWN_RESULT");
+      } else {
+        if (onUnknown) onUnknown(result);
+      }
     }
 
     if (onExecuted) onExecuted(result);
   };
 };
 
-export default getSignAndSendCallback;
+export { getSignAndSendCallback };
