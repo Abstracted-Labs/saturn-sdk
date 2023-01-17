@@ -19,27 +19,17 @@ const getSignAndSendCallback = ({
     } else if (result.status.isDropped) {
       if (onDropped) onDropped(result);
     } else if (result.status.isInBlock || result.status.isFinalized) {
-      const hasVoteStarted = result.events.find(
-        ({ event }) => event.method === "MultisigVoteStarted"
+      const isCreated = result.events.find(
+        ({ event }) => event.method === "IPSCreated"
       );
 
-      const hasExecuted = result.events.find(
-        ({ event }) => event.method === "MultisigExecuted"
-      );
-
-      const hasFailed = result.events.find(
-        ({ event }) => event.method === "ExtrinsicFailed"
-      );
-
-      if (hasExecuted) {
-        if (onSuccess) onSuccess(result);
-      } else if (hasVoteStarted) {
-        if (onSuccess) onSuccess(result);
-      } else if (hasFailed) {
+      if (!isCreated) {
         if (onError) onError(result);
-      } else {
-        if (onUnknown) onUnknown(result);
       }
+
+      if (onSuccess) onSuccess(result);
+    } else {
+      if (onUnknown) onUnknown(result);
     }
 
     if (onExecuted) onExecuted(result);

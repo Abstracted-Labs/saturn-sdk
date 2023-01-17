@@ -9,8 +9,10 @@ import { Multisig } from "../../src/multisig";
 
 const host = "wss://brainstorm.invarch.network";
 
+// const host = "ws://127.0.0.1:9944";
+
 const App = () => {
-  const [accounts, setAccounts] = useState<any[]>([]);
+  const [multisig, setMultisig] = useState<Multisig>();
 
   const handleCreateMultisig = async () => {
     const extensions = await web3Enable("GitArch");
@@ -20,8 +22,6 @@ const App = () => {
     }
 
     const accounts = await web3Accounts();
-
-    setAccounts(accounts);
 
     if (accounts.length === 0) {
       return;
@@ -43,45 +43,37 @@ const App = () => {
       },
     });
 
-    console.log(selectedAccount.address);
+    const M = new Multisig({ api });
 
     const injector = await web3FromAddress(selectedAccount.address);
 
-    const multisig = await new Multisig({ api }).create({
+    const multisig = await M.create({
       address: selectedAccount.address,
       signer: injector.signer,
-
-      onDropped: (status) => {
-        console.log("dropped", status);
-      },
-      onError: (status) => {
-        console.log("error", status);
-      },
-      onExecuted: (status) => {
-        console.log("executed", status.events.at(-1)?.toHuman());
-      },
-      onInvalid: (status) => {
-        console.log("invalid", status);
-      },
-      onLoading: (status) => {
-        console.log("loading", status);
-      },
-      onSuccess: (status) => {
-        console.log("success", status);
-      },
-      onUnknown: (status) => {
-        console.log("unknown", status);
-      },
     });
 
-    const id = await multisig.id;
-
-    console.log(id);
+    setMultisig(multisig);
   };
 
   return (
     <>
-      <button onClick={handleCreateMultisig}>Create Multisig</button>
+      <div className="flex p-8 justify-center items-center">
+        <button
+          className="shadow-sm py-2 px-4 rounded-md transition-all duration-300 bg-neutral-900 text-neutral-50 hover:shadow-lg hover:bg-neutral-800"
+          onClick={handleCreateMultisig}
+        >
+          Create Multisig
+        </button>
+      </div>
+
+      {multisig ? (
+        <div className="flex flex-col gap-4 justify-center items-center">
+          <span className="block">
+            <span className="font-bold">Multisig ID: </span>{" "}
+            <span>{multisig.id}</span>
+          </span>
+        </div>
+      ) : null}
     </>
   );
 };

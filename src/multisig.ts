@@ -58,7 +58,7 @@ class Multisig {
     GetSignAndSendCallbackParams & {
       address: string;
       signer: Signer;
-    }): Promise<Omit<Multisig, "create">> => {
+    }): Promise<Multisig> => {
     return new Promise((resolve, reject) => {
       try {
         createMultisig({
@@ -78,35 +78,27 @@ class Multisig {
             onInvalid,
             onLoading,
             onSuccess: async (result) => {
-              const hasVoteStarted = result.events.find(
-                ({ event }) => event.method === "MultisigVoteStarted"
+              const rawEvent = result.events.find(
+                ({ event }) => event.method === "IPSCreated"
               );
 
-              const hasExecuted = result.events.find(
-                ({ event }) => event.method === "MultisigExecuted"
-              );
-
-              if (hasVoteStarted) {
-                const event = hasVoteStarted.event.toPrimitive() as {
-                  data: { ipsId: string };
-                };
-
-                const id = event.data.ipsId;
-
-                if (onSuccess) onSuccess(result);
-
-                resolve(new Multisig({ api: this.api, id }));
-              } else if (hasExecuted) {
-                const event = hasExecuted.event.toPrimitive() as {
-                  data: { ipsId: string };
-                };
-
-                const id = event.data.ipsId;
-
-                if (onSuccess) onSuccess(result);
-
-                resolve(new Multisig({ api: this.api, id }));
+              if (!rawEvent) {
+                throw new Error("SOMETHING_WENT_WRONG");
               }
+
+              const { event } = rawEvent.toPrimitive();
+
+              // eslint-disable-next-line
+              // @ts-ignore
+              const ipsId = event?.data?.[1];
+
+              if (!ipsId) {
+                throw new Error("SOMETHING_WENT_SUPER_WRONG");
+              }
+
+              if (onSuccess) onSuccess(result);
+
+              resolve(new Multisig({ api: this.api, id: ipsId.toString() }));
             },
             onUnknown,
           })
@@ -135,6 +127,10 @@ class Multisig {
     ...params
   }: Omit<WithdrawVoteMultisigCallParams, "api">) => {
     return withdrawVoteMultisigCall({ api: this.api, ...params });
+  };
+
+  disconnect = () => {
+    this.api.disconnect();
   };
 }
 
