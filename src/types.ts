@@ -14,10 +14,10 @@ type GetSignAndSendCallbackParams = {
 
 type CreateMultisigParams = {
   api: ApiPromise;
-  defaultAssetWeight: number;
-  defaultPermission: boolean;
-  executionThreshold: number;
-  metadata: any;
+  defaultAssetWeight?: number;
+  defaultPermission?: boolean;
+  executionThreshold?: number;
+  metadata?: any;
   assets?: string[];
 };
 
