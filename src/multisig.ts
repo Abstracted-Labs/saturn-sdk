@@ -4,6 +4,7 @@ import { Signer } from "@polkadot/types/types";
 import {
   createMultisig,
   createMultisigCall,
+  getMultisig,
   getPendingMultisigCalls,
   voteMultisigCall,
   withdrawVoteMultisigCall,
@@ -86,11 +87,15 @@ class Multisig {
                 throw new Error("SOMETHING_WENT_WRONG");
               }
 
-              const { event } = rawEvent.toPrimitive();
+              const { event } = rawEvent.toPrimitive() as {
+                event: {
+                  data: [number, number, number];
+                };
+              };
 
-              // eslint-disable-next-line
-              // @ts-ignore
-              const ipsId = event?.data?.[1];
+              console.log(event);
+
+              const ipsId = event.data[1];
 
               if (!ipsId) {
                 throw new Error("SOMETHING_WENT_SUPER_WRONG");
@@ -107,6 +112,10 @@ class Multisig {
         reject(e);
       }
     });
+  };
+
+  info = () => {
+    return getMultisig({ api: this.api, id: this.id });
   };
 
   createCall = ({ ...params }: Omit<CreateMultisigCallParams, "api">) => {
@@ -127,6 +136,12 @@ class Multisig {
     ...params
   }: Omit<WithdrawVoteMultisigCallParams, "api">) => {
     return withdrawVoteMultisigCall({ api: this.api, ...params });
+  };
+
+  isCreated = () => {
+    if (this.id) return true;
+
+    return false;
   };
 
   disconnect = () => {
