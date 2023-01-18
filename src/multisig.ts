@@ -13,7 +13,6 @@ import {
 import {
   CreateMultisigParams,
   CreateMultisigCallParams,
-  GetPendingMultisigCallsParams,
   VoteMultisigCallParams,
   WithdrawVoteMultisigCallParams,
   GetSignAndSendCallbackParams,
@@ -89,13 +88,11 @@ class Multisig {
 
               const { event } = rawEvent.toPrimitive() as {
                 event: {
-                  data: [number, number, number];
+                  data: [string, number, []];
                 };
               };
 
-              console.log(event);
-
-              const ipsId = event.data[1];
+              const ipsId = event.data[1].toString();
 
               if (!ipsId) {
                 throw new Error("SOMETHING_WENT_SUPER_WRONG");
@@ -103,7 +100,7 @@ class Multisig {
 
               if (onSuccess) onSuccess(result);
 
-              resolve(new Multisig({ api: this.api, id: ipsId.toString() }));
+              resolve(new Multisig({ api: this.api, id: ipsId }));
             },
             onUnknown,
           })
@@ -115,27 +112,35 @@ class Multisig {
   };
 
   info = () => {
+    if (!this.isCreated()) throw new Error("NOT_CREATED_YET");
+
     return getMultisig({ api: this.api, id: this.id });
   };
 
-  createCall = ({ ...params }: Omit<CreateMultisigCallParams, "api">) => {
-    return createMultisigCall({ api: this.api, ...params });
-  };
-
-  getPendingCalls = ({
+  createCall = ({
     ...params
-  }: Omit<GetPendingMultisigCallsParams, "api">) => {
-    return getPendingMultisigCalls({ api: this.api, ...params });
+  }: Omit<CreateMultisigCallParams, "api" | "id">) => {
+    if (!this.isCreated()) throw new Error("NOT_CREATED_YET");
+
+    return createMultisigCall({ api: this.api, id: this.id, ...params });
   };
 
-  vote = ({ ...params }: Omit<VoteMultisigCallParams, "api">) => {
-    return voteMultisigCall({ api: this.api, ...params });
+  getPendingCalls = () => {
+    return getPendingMultisigCalls({ api: this.api, id: this.id });
+  };
+
+  vote = ({ ...params }: Omit<VoteMultisigCallParams, "api" | "id">) => {
+    if (!this.isCreated()) throw new Error("NOT_CREATED_YET");
+
+    return voteMultisigCall({ api: this.api, id: this.id, ...params });
   };
 
   withdrawVote = ({
     ...params
-  }: Omit<WithdrawVoteMultisigCallParams, "api">) => {
-    return withdrawVoteMultisigCall({ api: this.api, ...params });
+  }: Omit<WithdrawVoteMultisigCallParams, "api" | "id">) => {
+    if (!this.isCreated()) throw new Error("NOT_CREATED_YET");
+
+    return withdrawVoteMultisigCall({ api: this.api, id: this.id, ...params });
   };
 
   isCreated = () => {

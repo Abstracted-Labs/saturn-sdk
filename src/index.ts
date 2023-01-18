@@ -2,6 +2,8 @@ export * from "./rpc";
 
 export * from "./utils";
 
+export * from "./multisig";
+
 export type {
   CreateMultisigParams,
   GetSignAndSendCallbackParams,
