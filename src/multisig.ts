@@ -8,6 +8,7 @@ import {
   getPendingMultisigCalls,
   voteMultisigCall,
   withdrawVoteMultisigCall,
+  addNewMemberMultisig,
 } from "./rpc";
 
 import {
@@ -16,9 +17,14 @@ import {
   VoteMultisigCallParams,
   WithdrawVoteMultisigCallParams,
   GetSignAndSendCallbackParams,
+  AddNewMemberMultisigParams,
 } from "./types";
 
 import { getSignAndSendCallback } from "./utils";
+
+// add new members
+
+// resolve create multisig
 
 class Multisig {
   readonly api: ApiPromise;
@@ -26,15 +32,16 @@ class Multisig {
 
   constructor({ api, id }: { api: ApiPromise; id?: string }) {
     if (!api.tx.inv4) {
-      throw new Error("ApiPromise does not contain inv4 module for extrinsics");
+      throw new Error("API_PROMISE_DOES_NOT_CONTAIN_INV4_MODULE");
     }
 
     if (!api.query.inv4) {
-      throw new Error("ApiPromise does not contain inv4 module for queries");
+      throw new Error("API_PROMISE_DOES_NOT_CONTAIN_INV4_MODULE");
     }
+
     this.api = api;
 
-    if (id) {
+    if (id && !Number.isNaN(parseInt(id))) {
       this.id = id;
     }
   }
@@ -42,7 +49,7 @@ class Multisig {
   create = ({
     defaultAssetWeight = 0,
     defaultPermission = false,
-    executionThreshold = 1,
+    executionThreshold,
     metadata,
     assets,
     onDropped,
@@ -112,7 +119,7 @@ class Multisig {
   };
 
   info = () => {
-    if (!this.isCreated()) throw new Error("NOT_CREATED_YET");
+    if (!this.isCreated()) throw new Error("MULTISIG_NOT_CREATED_YET");
 
     return getMultisig({ api: this.api, id: this.id });
   };
@@ -120,7 +127,7 @@ class Multisig {
   createCall = ({
     ...params
   }: Omit<CreateMultisigCallParams, "api" | "id">) => {
-    if (!this.isCreated()) throw new Error("NOT_CREATED_YET");
+    if (!this.isCreated()) throw new Error("MULTISIG_NOT_CREATED_YET");
 
     return createMultisigCall({ api: this.api, id: this.id, ...params });
   };
@@ -130,15 +137,23 @@ class Multisig {
   };
 
   vote = ({ ...params }: Omit<VoteMultisigCallParams, "api" | "id">) => {
-    if (!this.isCreated()) throw new Error("NOT_CREATED_YET");
+    if (!this.isCreated()) throw new Error("MULTISIG_NOT_CREATED_YET");
 
     return voteMultisigCall({ api: this.api, id: this.id, ...params });
+  };
+
+  addNewMember = ({
+    ...params
+  }: Omit<AddNewMemberMultisigParams, "api" | "id">) => {
+    if (!this.isCreated()) throw new Error("MULTISIG_NOT_CREATED_YET");
+
+    return addNewMemberMultisig({ api: this.api, id: this.id, ...params });
   };
 
   withdrawVote = ({
     ...params
   }: Omit<WithdrawVoteMultisigCallParams, "api" | "id">) => {
-    if (!this.isCreated()) throw new Error("NOT_CREATED_YET");
+    if (!this.isCreated()) throw new Error("MULTISIG_NOT_CREATED_YET");
 
     return withdrawVoteMultisigCall({ api: this.api, id: this.id, ...params });
   };
@@ -154,4 +169,13 @@ class Multisig {
   };
 }
 
-export { Multisig };
+const MultisigTypes = {
+  OneOrPercent: {
+    _enum: {
+      One: null,
+      Percent: "Percent",
+    },
+  },
+};
+
+export { Multisig, MultisigTypes };

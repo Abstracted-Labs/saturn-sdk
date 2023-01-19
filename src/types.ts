@@ -16,8 +16,8 @@ type CreateMultisigParams = {
   api: ApiPromise;
   defaultAssetWeight?: number;
   defaultPermission?: boolean;
-  executionThreshold?: number;
-  metadata?: any;
+  executionThreshold: number;
+  metadata?: string;
   assets?: string[];
 };
 
@@ -34,20 +34,27 @@ type GetMultisigParams = {
 type CreateMultisigCallParams = {
   api: ApiPromise;
   id: string;
-  metadata: any;
+  metadata?: string;
   calls: SubmittableExtrinsic<"promise", ISubmittableResult>[];
 };
 
 type VoteMultisigCallParams = {
   api: ApiPromise;
   id: string;
-  callHash: string;
+  callHash: `0x${string}`;
 };
 
 type WithdrawVoteMultisigCallParams = {
   api: ApiPromise;
   id: string;
-  callHash: string;
+  callHash: `0x${string}`;
+};
+
+type AddNewMemberMultisigParams = {
+  api: ApiPromise;
+  id: string;
+  address: string;
+  amount: string;
 };
 
 export type {
@@ -58,4 +65,5 @@ export type {
   CreateMultisigCallParams,
   VoteMultisigCallParams,
   WithdrawVoteMultisigCallParams,
+  AddNewMemberMultisigParams,
 };

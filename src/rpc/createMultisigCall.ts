@@ -7,7 +7,7 @@ const createMultisigCall = ({
   calls,
 }: CreateMultisigCallParams) => {
   return api.tx.inv4.operateMultisig(
-    true,
+    false,
     [parseInt(id), null],
     JSON.stringify(metadata),
     api.tx.utility.batchAll(calls)
