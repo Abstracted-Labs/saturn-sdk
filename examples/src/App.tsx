@@ -201,11 +201,15 @@ const App = () => {
 
     const injector = await web3FromAddress(selectedAccount.address);
 
-    multisig
-      .addNewMember({
+    const calls = [
+      multisig.addNewMember({
         address: newMember,
         amount: UNIQUE_SUPPLY_AMOUNT,
-      })
+      }),
+    ];
+
+    multisig
+      .createCall({ calls })
       .signAndSend(
         selectedAccount.address,
         { signer: injector.signer },
