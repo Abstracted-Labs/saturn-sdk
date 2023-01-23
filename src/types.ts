@@ -50,11 +50,29 @@ type WithdrawVoteMultisigCallParams = {
   callHash: `0x${string}`;
 };
 
-type AddNewMemberMultisigParams = {
+type MintTokenMultisigParams = {
   api: ApiPromise;
   id: string;
   address: string;
   amount: string;
+};
+
+type BurnTokenMultisigParams = {
+  api: ApiPromise;
+  id: string;
+  address: string;
+  amount: string;
+};
+
+type GetTokenBalanceMultisigParams = {
+  api: ApiPromise;
+  id: string;
+  address: string;
+};
+
+type GetAllTokenBalancesMultisigParams = {
+  api: ApiPromise;
+  id: string;
 };
 
 export type {
@@ -65,5 +83,8 @@ export type {
   CreateMultisigCallParams,
   VoteMultisigCallParams,
   WithdrawVoteMultisigCallParams,
-  AddNewMemberMultisigParams,
+  MintTokenMultisigParams,
+  BurnTokenMultisigParams,
+  GetTokenBalanceMultisigParams,
+  GetAllTokenBalancesMultisigParams,
 };

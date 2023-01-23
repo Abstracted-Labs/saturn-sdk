@@ -8,7 +8,10 @@ import {
   getPendingMultisigCalls,
   voteMultisigCall,
   withdrawVoteMultisigCall,
-  addNewMemberMultisig,
+  mintToken,
+  burnToken,
+  getTokenBalanceMultisig,
+  getAllTokenBalancesMultisig,
 } from "./rpc";
 
 import {
@@ -17,14 +20,13 @@ import {
   VoteMultisigCallParams,
   WithdrawVoteMultisigCallParams,
   GetSignAndSendCallbackParams,
-  AddNewMemberMultisigParams,
+  MintTokenMultisigParams,
+  BurnTokenMultisigParams,
+  GetTokenBalanceMultisigParams,
+  GetAllTokenBalancesMultisigParams,
 } from "./types";
 
 import { getSignAndSendCallback } from "./utils";
-
-// add new members
-
-// resolve create multisig
 
 class Multisig {
   readonly api: ApiPromise;
@@ -142,20 +144,38 @@ class Multisig {
     return voteMultisigCall({ api: this.api, id: this.id, ...params });
   };
 
-  addNewMember = ({
-    ...params
-  }: Omit<AddNewMemberMultisigParams, "api" | "id">) => {
-    if (!this.isCreated()) throw new Error("MULTISIG_NOT_CREATED_YET");
-
-    return addNewMemberMultisig({ api: this.api, id: this.id, ...params });
-  };
-
   withdrawVote = ({
     ...params
   }: Omit<WithdrawVoteMultisigCallParams, "api" | "id">) => {
     if (!this.isCreated()) throw new Error("MULTISIG_NOT_CREATED_YET");
 
     return withdrawVoteMultisigCall({ api: this.api, id: this.id, ...params });
+  };
+
+  mintToken = ({ ...params }: Omit<MintTokenMultisigParams, "api" | "id">) => {
+    if (!this.isCreated()) throw new Error("MULTISIG_NOT_CREATED_YET");
+
+    return mintToken({ api: this.api, id: this.id, ...params });
+  };
+
+  burnToken = ({ ...params }: Omit<BurnTokenMultisigParams, "api" | "id">) => {
+    if (!this.isCreated()) throw new Error("MULTISIG_NOT_CREATED_YET");
+
+    return burnToken({ api: this.api, id: this.id, ...params });
+  };
+
+  getTokenBalance = ({
+    ...params
+  }: Omit<GetTokenBalanceMultisigParams, "api" | "id">) => {
+    if (!this.isCreated()) throw new Error("MULTISIG_NOT_CREATED_YET");
+
+    return getTokenBalanceMultisig({ api: this.api, id: this.id, ...params });
+  };
+
+  getAllTokenBalances = () => {
+    if (!this.isCreated()) throw new Error("MULTISIG_NOT_CREATED_YET");
+
+    return getAllTokenBalancesMultisig({ api: this.api, id: this.id });
   };
 
   isCreated = () => {
