@@ -12,6 +12,14 @@ import {
   burnToken,
   getTokenBalanceMultisig,
   getAllTokenBalancesMultisig,
+  allowReplica,
+  disallowReplica,
+  append,
+  remove,
+  createSubtoken,
+  setSubtokenWeight,
+  getAssetWeight,
+  setPermission,
 } from "./rpc";
 
 import {
@@ -23,7 +31,12 @@ import {
   MintTokenMultisigParams,
   BurnTokenMultisigParams,
   GetTokenBalanceMultisigParams,
-  GetAllTokenBalancesMultisigParams,
+  AppendToMultisigParams,
+  RemoveFromMultisigParams,
+  CreateSubtokenMultisigParams,
+  SetSubtokenWeightMultisigParams,
+  GetAssetWeightMultisigParams,
+  SetPermissionMultisigParams,
 } from "./types";
 
 import { getSignAndSendCallback } from "./utils";
@@ -47,6 +60,12 @@ class Multisig {
       this.id = id;
     }
   }
+
+  readonly isCreated = () => {
+    if (this.id) return true;
+
+    return false;
+  };
 
   create = ({
     defaultAssetWeight = 0,
@@ -135,6 +154,8 @@ class Multisig {
   };
 
   getPendingCalls = () => {
+    if (!this.isCreated()) throw new Error("MULTISIG_NOT_CREATED_YET");
+
     return getPendingMultisigCalls({ api: this.api, id: this.id });
   };
 
@@ -175,13 +196,96 @@ class Multisig {
   getAllTokenBalances = () => {
     if (!this.isCreated()) throw new Error("MULTISIG_NOT_CREATED_YET");
 
-    return getAllTokenBalancesMultisig({ api: this.api, id: this.id });
+    return getAllTokenBalancesMultisig({
+      api: this.api,
+      id: this.id,
+    });
   };
 
-  isCreated = () => {
-    if (this.id) return true;
+  allowReplica = () => {
+    if (!this.isCreated()) throw new Error("MULTISIG_NOT_CREATED_YET");
 
-    return false;
+    return allowReplica({
+      api: this.api,
+      id: this.id,
+    });
+  };
+
+  disallowReplica = () => {
+    if (!this.isCreated()) throw new Error("MULTISIG_NOT_CREATED_YET");
+
+    return disallowReplica({
+      api: this.api,
+      id: this.id,
+    });
+  };
+
+  append = ({ ...params }: Omit<AppendToMultisigParams, "id" | "api">) => {
+    if (!this.isCreated()) throw new Error("MULTISIG_NOT_CREATED_YET");
+
+    return append({
+      api: this.api,
+      id: this.id,
+      ...params,
+    });
+  };
+
+  remove = ({ ...params }: Omit<RemoveFromMultisigParams, "id" | "api">) => {
+    if (!this.isCreated()) throw new Error("MULTISIG_NOT_CREATED_YET");
+
+    return remove({
+      api: this.api,
+      id: this.id,
+      ...params,
+    });
+  };
+
+  createSubtoken = ({
+    ...params
+  }: Omit<CreateSubtokenMultisigParams, "id" | "api">) => {
+    if (!this.isCreated()) throw new Error("MULTISIG_NOT_CREATED_YET");
+
+    return createSubtoken({
+      api: this.api,
+      id: this.id,
+      ...params,
+    });
+  };
+
+  setSubTokenWeight = ({
+    ...params
+  }: Omit<SetSubtokenWeightMultisigParams, "id" | "api">) => {
+    if (!this.isCreated()) throw new Error("MULTISIG_NOT_CREATED_YET");
+
+    return setSubtokenWeight({
+      api: this.api,
+      id: this.id,
+      ...params,
+    });
+  };
+
+  getAssetWeight = ({
+    ...params
+  }: Omit<GetAssetWeightMultisigParams, "id" | "api">) => {
+    if (!this.isCreated()) throw new Error("MULTISIG_NOT_CREATED_YET");
+
+    return getAssetWeight({
+      api: this.api,
+      id: this.id,
+      ...params,
+    });
+  };
+
+  setPermission = ({
+    ...params
+  }: Omit<SetPermissionMultisigParams, "id" | "api">) => {
+    if (!this.isCreated()) throw new Error("MULTISIG_NOT_CREATED_YET");
+
+    return setPermission({
+      api: this.api,
+      id: this.id,
+      ...params,
+    });
   };
 
   disconnect = () => {

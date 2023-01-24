@@ -12,8 +12,13 @@ type GetSignAndSendCallbackParams = {
   onUnknown?: (payload: ISubmittableResult) => void;
 };
 
-type CreateMultisigParams = {
+type DefaultMultisigParams = {
   api: ApiPromise;
+  id: string;
+};
+
+type CreateMultisigParams = {
+  api: DefaultMultisigParams["api"];
   defaultAssetWeight?: number;
   defaultPermission?: boolean;
   executionThreshold: number;
@@ -21,70 +26,60 @@ type CreateMultisigParams = {
   assets?: string[];
 };
 
-type GetPendingMultisigCallsParams = {
-  api: ApiPromise;
-  id: string;
-};
-
-type GetMultisigParams = {
-  api: ApiPromise;
-  id: string;
-};
-
-type CreateMultisigCallParams = {
-  api: ApiPromise;
-  id: string;
+type CreateMultisigCallParams = DefaultMultisigParams & {
   metadata?: string;
   calls: SubmittableExtrinsic<"promise", ISubmittableResult>[];
 };
 
-type VoteMultisigCallParams = {
-  api: ApiPromise;
-  id: string;
+type VoteMultisigCallParams = DefaultMultisigParams & {
   callHash: `0x${string}`;
 };
 
-type WithdrawVoteMultisigCallParams = {
-  api: ApiPromise;
-  id: string;
+type WithdrawVoteMultisigCallParams = DefaultMultisigParams & {
   callHash: `0x${string}`;
 };
 
-type MintTokenMultisigParams = {
-  api: ApiPromise;
-  id: string;
+type MintTokenMultisigParams = DefaultMultisigParams & {
   address: string;
   amount: string;
 };
 
-type BurnTokenMultisigParams = {
-  api: ApiPromise;
-  id: string;
+type BurnTokenMultisigParams = DefaultMultisigParams & {
   address: string;
   amount: string;
 };
 
-type GetTokenBalanceMultisigParams = {
-  api: ApiPromise;
-  id: string;
+type GetTokenBalanceMultisigParams = DefaultMultisigParams & {
   address: string;
 };
 
-type GetAllTokenBalancesMultisigParams = {
-  api: ApiPromise;
-  id: string;
-};
+// TODO: Add params
+type AppendToMultisigParams = DefaultMultisigParams & {};
+
+type RemoveFromMultisigParams = DefaultMultisigParams & {};
+
+type CreateSubtokenMultisigParams = DefaultMultisigParams & {};
+
+type SetSubtokenWeightMultisigParams = DefaultMultisigParams & {};
+
+type GetAssetWeightMultisigParams = DefaultMultisigParams & {};
+
+type SetPermissionMultisigParams = DefaultMultisigParams & {};
 
 export type {
+  DefaultMultisigParams,
   CreateMultisigParams,
   GetSignAndSendCallbackParams,
-  GetPendingMultisigCallsParams,
-  GetMultisigParams,
   CreateMultisigCallParams,
   VoteMultisigCallParams,
   WithdrawVoteMultisigCallParams,
   MintTokenMultisigParams,
   BurnTokenMultisigParams,
   GetTokenBalanceMultisigParams,
-  GetAllTokenBalancesMultisigParams,
+  AppendToMultisigParams,
+  RemoveFromMultisigParams,
+  CreateSubtokenMultisigParams,
+  SetSubtokenWeightMultisigParams,
+  GetAssetWeightMultisigParams,
+  SetPermissionMultisigParams,
 };

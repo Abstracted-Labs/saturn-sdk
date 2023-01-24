@@ -1,6 +1,6 @@
-import type { GetMultisigParams } from "../types";
+import type { DefaultMultisigParams } from "../types";
 
-const getMultisig = ({ api, id }: GetMultisigParams) => {
+const getMultisig = ({ api, id }: DefaultMultisigParams) => {
   return api.query.inv4.ipStorage(parseInt(id));
 };
 

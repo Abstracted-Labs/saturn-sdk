@@ -20,9 +20,11 @@ const App = () => {
   const [multisig, setMultisig] = useState<Multisig>();
   const [info, setInfo] = useState<{
     supply: number;
+    allowReplica: boolean;
     [key: string]:
       | number
       | string
+      | boolean
       | {
           [key: string]: number | string;
         };
@@ -128,9 +130,11 @@ const App = () => {
 
     const info = (await multisig.info()).toPrimitive() as {
       supply: number;
+      allowReplica: boolean;
       [key: string]:
         | number
         | string
+        | boolean
         | {
             [key: string]: number | string;
           };
@@ -204,7 +208,11 @@ const App = () => {
 
     if (!selectedAccount) return;
 
-    const calls = [api.tx.inv4.allowReplica(multisig.id)];
+    if (!info) return;
+
+    const calls = [
+      info.allowReplica ? multisig.disallowReplica() : multisig.allowReplica(),
+    ];
 
     const injector = await web3FromAddress(selectedAccount.address);
 
@@ -727,8 +735,9 @@ const App = () => {
                   <button
                     className="shadow-sm py-2 px-4 rounded-md transition-all duration-300 bg-neutral-900 text-neutral-50 hover:shadow-lg hover:bg-neutral-800"
                     onClick={handleCreateFakeCalls}
+                    disabled={!info}
                   >
-                    Create Fake Calls
+                    Create Fake Call
                   </button>
                   <button
                     className="shadow-sm py-2 px-4 rounded-md transition-all duration-300 bg-neutral-900 text-neutral-50 hover:shadow-lg hover:bg-neutral-800"

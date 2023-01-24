@@ -10,3 +10,13 @@ export * from "./mintTokenMultisig";
 export * from "./burnTokenMultisig";
 export * from "./getTokenBalanceMultisig";
 export * from "./getAllTokenBalancesMultisig";
+export * from "./allowReplica";
+export * from "./disallowReplica";
+
+// TODO: Add params
+export * from "./append";
+export * from "./remove";
+export * from "./createSubtoken";
+export * from "./setSubtokenWeight";
+export * from "./getAssetWeight";
+export * from "./setPermission";
