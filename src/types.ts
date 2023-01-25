@@ -73,6 +73,16 @@ type GetSubAssetMultisigParams = DefaultMultisigParams & {
   subAssetId: string;
 };
 
+type OneOrPercent =
+  | {
+      zeroPoint: number;
+      one: never;
+    }
+  | {
+      zeroPoint: never;
+      one: null;
+    };
+
 export type {
   DefaultMultisigParams,
   CreateMultisigParams,
@@ -87,4 +97,5 @@ export type {
   SetSubTokenWeightMultisigParams,
   GetAssetWeightMultisigParams,
   GetSubAssetMultisigParams,
+  OneOrPercent,
 };

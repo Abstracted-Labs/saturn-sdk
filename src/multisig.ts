@@ -1,7 +1,6 @@
 import { ApiPromise } from "@polkadot/api";
 import { SubmittableExtrinsic } from "@polkadot/api/types";
 import { ISubmittableResult, Signer } from "@polkadot/types/types";
-import BN from "bn.js";
 
 import {
   createMultisig,
@@ -23,6 +22,7 @@ import {
 } from "./rpc";
 
 import {
+  OneOrPercent,
   CreateMultisigParams,
   CreateMultisigCallParams,
   VoteMultisigCallParams,
@@ -38,16 +38,6 @@ import {
 } from "./types";
 
 import { getSignAndSendCallback } from "./utils";
-
-type ZeroOrOne =
-  | {
-      zeroPoint: number;
-      one: never;
-    }
-  | {
-      zeroPoint: never;
-      one: null;
-    };
 
 class Multisig {
   readonly api: ApiPromise;
@@ -157,8 +147,8 @@ class Multisig {
       metadata: string;
       allowReplica: boolean;
       defaultPermission: boolean;
-      executionThreshold: ZeroOrOne;
-      defaultAssetWeight: ZeroOrOne;
+      executionThreshold: OneOrPercent;
+      defaultAssetWeight: OneOrPercent;
     };
 
     const details = {
