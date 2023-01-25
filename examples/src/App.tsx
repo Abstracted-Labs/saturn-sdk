@@ -93,18 +93,23 @@ const App = () => {
 
   const handleCreateMultisig = async () => {
     if (!api) return;
+
     if (!selectedAccount) return;
-    const M = new Multisig({ api });
+
     const injector = await web3FromAddress(selectedAccount.address);
+
+    const M = new Multisig({ api });
+
     if (M.isCreated()) {
       setMultisig(M);
     }
+
     const multisig = await M.create({
       address: selectedAccount.address,
       signer: injector.signer,
-      // to show the pending calls on the demo
       executionThreshold: 51,
     });
+
     setMultisig(multisig);
   };
 
