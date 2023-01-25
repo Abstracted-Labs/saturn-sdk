@@ -1,6 +1,6 @@
 import { SetSubTokenWeightMultisigParams } from "../types";
 
-const setSubTokenWeight = ({
+const setSubTokenWeightMultisig = ({
   api,
   id,
   subTokenId,
@@ -29,4 +29,4 @@ const setSubTokenWeight = ({
   );
 };
 
-export { setSubTokenWeight };
+export { setSubTokenWeightMultisig };

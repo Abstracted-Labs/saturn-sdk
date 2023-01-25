@@ -7,6 +7,7 @@ import {
 import { InjectedAccountWithMeta } from "@polkadot/extension-inject/types";
 import type { StorageKey } from "@polkadot/types/primitive";
 import type { AnyTuple, Codec } from "@polkadot/types/types";
+import BN from "bn.js";
 import { FormEvent, useEffect, useState } from "react";
 import { Multisig, MultisigTypes } from "../../src";
 
@@ -18,131 +19,100 @@ const App = () => {
   const [selectedAccount, setSelectedAccount] =
     useState<InjectedAccountWithMeta>();
   const [multisig, setMultisig] = useState<Multisig>();
-  const [info, setInfo] = useState<{
+  const [details, setDetails] = useState<{
     supply: number;
+    metadata: string;
     allowReplica: boolean;
-    [key: string]:
-      | number
-      | string
-      | boolean
-      | {
-          [key: string]: number | string;
-        };
+    defaultPermission: boolean;
+    executionThreshold: number;
+    defaultAssetWeight: number;
   }>();
-  const [pendingCalls, setPendingCalls] =
-    useState<[StorageKey<AnyTuple>, Codec][]>();
+  const [openCalls, setOpenCalls] = useState<{}[]>();
   const [api, setApi] = useState<ApiPromise>();
   const [balance, setBalance] = useState<number>();
+  const [power, setPower] = useState<number>();
   const [allBalances, setAllBalances] = useState<
     {
       address: string;
       balance: number;
     }[]
   >();
+  const [ranking, setRanking] = useState<
+    {
+      address: string;
+      amount: number;
+      position: number;
+    }[]
+  >();
 
   const setup = async () => {
     const wsProvider = new WsProvider(host);
-
     const api = await ApiPromise.create({
       provider: wsProvider,
       types: {
         ...MultisigTypes,
       },
     });
-
     const time = (await api.query.timestamp.now()).toPrimitive();
-
     console.log(time);
-
     setApi(api);
   };
 
   const handleConnectAccounts = async () => {
     const extensions = await web3Enable("GitArch");
-
     if (extensions.length === 0) {
       return;
     }
-
     const accounts = await web3Accounts();
-
     if (accounts.length === 0) {
       return;
     }
-
     console.table(
       accounts.map((account) => ({
         address: account.address,
         name: account.meta.name || "",
       }))
     );
-
     if (accounts.length === 1) {
       const selectedAccount = accounts[0];
-
       setSelectedAccount(selectedAccount);
     }
-
     setAccounts(accounts);
   };
 
   const handleSelectAccount = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-
     const address = e.currentTarget?.address.value;
-
     if (!address) return;
-
     const selectedAccount = accounts.find(
       (account) => account.address === address
     );
-
     if (!selectedAccount) return;
-
     setSelectedAccount(selectedAccount);
   };
 
   const handleCreateMultisig = async () => {
     if (!api) return;
-
     if (!selectedAccount) return;
-
     const M = new Multisig({ api });
-
     const injector = await web3FromAddress(selectedAccount.address);
-
     if (M.isCreated()) {
       setMultisig(M);
     }
-
     const multisig = await M.create({
       address: selectedAccount.address,
       signer: injector.signer,
       // to show the pending calls on the demo
       executionThreshold: 51,
     });
-
     setMultisig(multisig);
   };
 
-  const handleGetMultisigInfo = async () => {
+  const handleGetMultisigDetails = async () => {
     if (!multisig) return;
+    const details = await multisig.getDetails();
 
-    const info = (await multisig.info()).toPrimitive() as {
-      supply: number;
-      allowReplica: boolean;
-      [key: string]:
-        | number
-        | string
-        | boolean
-        | {
-            [key: string]: number | string;
-          };
-    };
-
-    if (!info) return;
-
-    setInfo(info);
+    setDetails(details);
   };
 
   const handleGetMultisigSubmit = async (e: FormEvent<HTMLFormElement>) => {
@@ -159,95 +129,36 @@ const App = () => {
     setMultisig(multisig);
   };
 
-  const handleGetPendingCalls = async () => {
-    if (!multisig) return;
-
-    const pendingCalls = await multisig.getPendingCalls();
-
-    setPendingCalls(pendingCalls);
-  };
-
   const handleGetTokenBalance = async () => {
     if (!multisig) return;
 
     if (!selectedAccount) return;
 
-    const balance = await multisig.getTokenBalance({
+    const balance = await multisig.getBalance({
       address: selectedAccount.address,
     });
 
-    const parsedBalance = balance.toPrimitive();
-
-    if (!parsedBalance) return;
-
-    if (typeof parsedBalance !== "number") return;
-
-    setBalance(parsedBalance);
+    setBalance(balance);
   };
 
-  const handleGetAllTokenBalances = async () => {
-    if (!multisig) return;
-
-    const allBalances = await multisig.getAllTokenBalances();
-
-    const parsedBalances = allBalances.map(([storage, rawBalance]) => {
-      const address = storage.args[1].toPrimitive() as string;
-
-      const balance = rawBalance.toPrimitive() as number;
-
-      return { address, balance };
-    });
-
-    setAllBalances(parsedBalances);
-  };
-
-  const handleCreateFakeCalls = async () => {
-    if (!api) return;
-
+  const handleGetPower = async () => {
     if (!multisig) return;
 
     if (!selectedAccount) return;
 
-    if (!info) return;
+    const power = await multisig.getPower({
+      address: selectedAccount.address,
+    });
 
-    const calls = [
-      info.allowReplica ? multisig.disallowReplica() : multisig.allowReplica(),
-    ];
+    setPower(power);
+  };
 
-    const injector = await web3FromAddress(selectedAccount.address);
+  const handleGetOpenCalls = async () => {
+    if (!multisig) return;
 
-    multisig
-      .createCall({
-        calls,
-        metadata: JSON.stringify({
-          name: "test",
-          description: "test",
-          url: "test",
-        }),
-      })
-      .signAndSend(
-        selectedAccount.address,
-        { signer: injector.signer },
-        ({ events }) => {
-          console.log(events.map((event) => event.toHuman()));
+    const openCalls = await multisig.getOpenCalls();
 
-          const parsedEvents = events.map(
-            (event) =>
-              event.toPrimitive() as {
-                method: string;
-                data: { result: boolean };
-              }
-          );
-
-          const success = parsedEvents.find(
-            (event) => event.method === "MultisigExecuted"
-          );
-
-          if (!success) return;
-
-          console.log("SUCCESS: ", success.data.result);
-        }
-      );
+    setOpenCalls(openCalls);
   };
 
   const handleNewMemberSubmit = async (e: FormEvent<HTMLFormElement>) => {
@@ -263,63 +174,15 @@ const App = () => {
 
     if (!newMember) return;
 
-    const UNIQUE_SUPPLY_AMOUNT = "1000000";
+    const UNIQUE_SUPPLY_AMOUNT = 1000000;
 
     const injector = await web3FromAddress(selectedAccount.address);
 
-    const calls = [
-      multisig.mintToken({
+    multisig
+      .addMember({
         address: newMember,
         amount: UNIQUE_SUPPLY_AMOUNT,
-      }),
-    ];
-
-    multisig
-      .createCall({ calls })
-      .signAndSend(
-        selectedAccount.address,
-        { signer: injector.signer },
-        ({ events }) => {
-          console.log(events.map((event) => event.toHuman()));
-
-          const parsedEvents = events.map(
-            (event) =>
-              event.toPrimitive() as {
-                method: string;
-                data: { result: boolean };
-              }
-          );
-
-          const success = parsedEvents.find(
-            (event) => event.method === "MultisigExecuted"
-          );
-
-          if (!success) return;
-
-          console.log("SUCCESS: ", success.data.result);
-        }
-      );
-  };
-
-  const handleTokensMintSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-
-    const amount = e.currentTarget?.mintTokens.value;
-
-    if (!multisig) return;
-
-    if (!selectedAccount) return;
-
-    if (!amount) return;
-
-    const injector = await web3FromAddress(selectedAccount.address);
-
-    const calls = [
-      multisig.mintToken({ amount, address: selectedAccount.address }),
-    ];
-
-    multisig
-      .createCall({ calls })
+      })
       .signAndSend(
         selectedAccount.address,
         { signer: injector.signer },
@@ -329,32 +192,32 @@ const App = () => {
       );
   };
 
-  const handleTokensBurnSubmit = async (e: FormEvent<HTMLFormElement>) => {
+  const handleRemoveMemberSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    const amount = e.currentTarget?.burnTokens.value;
+    const memberToRemove = e.currentTarget?.memberToRemove.value;
+
+    if (!api) return;
 
     if (!multisig) return;
 
     if (!selectedAccount) return;
 
-    if (!amount) return;
+    if (!memberToRemove) return;
 
     const injector = await web3FromAddress(selectedAccount.address);
 
-    const calls = [
-      multisig.burnToken({ amount, address: selectedAccount.address }),
-    ];
+    const removeMemberCall = await multisig.removeMember({
+      address: memberToRemove,
+    });
 
-    multisig
-      .createCall({ calls })
-      .signAndSend(
-        selectedAccount.address,
-        { signer: injector.signer },
-        ({ events }) => {
-          console.log(events.map((event) => event.toHuman()));
-        }
-      );
+    removeMemberCall.signAndSend(
+      selectedAccount.address,
+      { signer: injector.signer },
+      ({ events }) => {
+        console.log(events.map((event) => event.toHuman()));
+      }
+    );
   };
 
   const handleVoteSubmit = async (e: FormEvent<HTMLFormElement>) => {
@@ -368,18 +231,12 @@ const App = () => {
 
     if (!votingCallHash) return;
 
-    if (!pendingCalls) return;
-
-    const votingCall = pendingCalls.find(
-      ([key]) => key.toPrimitive() === votingCallHash
-    );
-
-    if (!votingCall) return;
+    if (!openCalls) return;
 
     const injector = await web3FromAddress(selectedAccount.address);
 
     multisig
-      .vote({ callHash: votingCall[0].args[1].toHex() })
+      .vote({ callHash: votingCallHash })
       .signAndSend(
         selectedAccount.address,
         { signer: injector.signer },
@@ -400,18 +257,12 @@ const App = () => {
 
     if (!withdrawVoteCallHash) return;
 
-    if (!pendingCalls) return;
-
-    const withdrawVoteCall = pendingCalls.find(
-      ([key]) => key.toPrimitive() === withdrawVoteCallHash
-    );
-
-    if (!withdrawVoteCall) return;
+    if (!openCalls) return;
 
     const injector = await web3FromAddress(selectedAccount.address);
 
     multisig
-      .withdrawVote({ callHash: withdrawVoteCall[0].args[1].toHex() })
+      .withdrawVote({ callHash: withdrawVoteCallHash })
       .signAndSend(
         selectedAccount.address,
         { signer: injector.signer },
@@ -421,10 +272,109 @@ const App = () => {
       );
   };
 
+  const handleGetRanking = async () => {
+    if (!multisig) return;
+
+    if (!selectedAccount) return;
+
+    const ranking = await multisig.createRanking();
+
+    setRanking(ranking);
+  };
+
+  // const handleGetAllTokenBalances = async () => {
+  //   if (!multisig) return;
+  //   const allBalances = await multisig.getAllTokenBalances();
+  //   const parsedBalances = allBalances.map(([storage, rawBalance]) => {
+  //     const address = storage.args[1].toPrimitive() as string;
+  //     const balance = rawBalance.toPrimitive() as number;
+  //     return { address, balance };
+  //   });
+  //   setAllBalances(parsedBalances);
+  // };
+  // const handleCreateFakeCalls = async () => {
+  //   if (!api) return;
+  //   if (!multisig) return;
+  //   if (!selectedAccount) return;
+  //   if (!info) return;
+  //   const calls = [
+  //     info.allowReplica ? multisig.disallowReplica() : multisig.allowReplica(),
+  //   ];
+  //   const injector = await web3FromAddress(selectedAccount.address);
+  //   multisig
+  //     .createCall({
+  //       calls,
+  //       metadata: JSON.stringify({
+  //         name: "test",
+  //         description: "test",
+  //         url: "test",
+  //       }),
+  //     })
+  //     .signAndSend(
+  //       selectedAccount.address,
+  //       { signer: injector.signer },
+  //       ({ events }) => {
+  //         console.log(events.map((event) => event.toHuman()));
+  //         const parsedEvents = events.map(
+  //           (event) =>
+  //             event.toPrimitive() as {
+  //               method: string;
+  //               data: { result: boolean };
+  //             }
+  //         );
+  //         const success = parsedEvents.find(
+  //           (event) => event.method === "MultisigExecuted"
+  //         );
+  //         if (!success) return;
+  //         console.log("SUCCESS: ", success.data.result);
+  //       }
+  //     );
+  // };
+
+  // const handleTokensMintSubmit = async (e: FormEvent<HTMLFormElement>) => {
+  //   e.preventDefault();
+  //   const amount = e.currentTarget?.mintTokens.value;
+  //   if (!multisig) return;
+  //   if (!selectedAccount) return;
+  //   if (!amount) return;
+  //   const injector = await web3FromAddress(selectedAccount.address);
+  //   const calls = [
+  //     multisig.mintToken({ amount, address: selectedAccount.address }),
+  //   ];
+  //   multisig
+  //     .createCall({ calls })
+  //     .signAndSend(
+  //       selectedAccount.address,
+  //       { signer: injector.signer },
+  //       ({ events }) => {
+  //         console.log(events.map((event) => event.toHuman()));
+  //       }
+  //     );
+  // };
+  // const handleTokensBurnSubmit = async (e: FormEvent<HTMLFormElement>) => {
+  //   e.preventDefault();
+  //   const amount = e.currentTarget?.burnTokens.value;
+  //   if (!multisig) return;
+  //   if (!selectedAccount) return;
+  //   if (!amount) return;
+  //   const injector = await web3FromAddress(selectedAccount.address);
+  //   const calls = [
+  //     multisig.burnToken({ amount, address: selectedAccount.address }),
+  //   ];
+  //   multisig
+  //     .createCall({ calls })
+  //     .signAndSend(
+  //       selectedAccount.address,
+  //       { signer: injector.signer },
+  //       ({ events }) => {
+  //         console.log(events.map((event) => event.toHuman()));
+  //       }
+  //     );
+  // };
+
   useEffect(() => {
     setup();
   }, []);
-
   return (
     <div className="flex flex-col gap-4 p-8 max-w-2xl items-center justify-center mx-auto">
       <>
@@ -439,7 +389,6 @@ const App = () => {
           </div>
         ) : null}
       </>
-
       <>
         {accounts.length > 0 && !selectedAccount ? (
           <div className="w-full flex justify-center items-center">
@@ -467,7 +416,6 @@ const App = () => {
                   </select>
                 </div>
               </div>
-
               <button className="shadow-sm py-2 px-4 rounded-md transition-all duration-300 bg-neutral-900 text-neutral-50 hover:shadow-lg hover:bg-neutral-800">
                 Select
               </button>
@@ -475,7 +423,6 @@ const App = () => {
           </div>
         ) : null}
       </>
-
       <>
         {selectedAccount ? (
           <>
@@ -489,11 +436,9 @@ const App = () => {
                     Create Multisig
                   </button>
                 </div>
-
                 <div className="flex justify-center items-center">
                   <span>or</span>
                 </div>
-
                 <div className="flex justify-center items-center">
                   <form
                     className="flex flex-col gap-4"
@@ -515,7 +460,6 @@ const App = () => {
                         />
                       </div>
                     </div>
-
                     <button className="shadow-sm py-2 px-4 rounded-md transition-all duration-300 bg-neutral-900 text-neutral-50 hover:shadow-lg hover:bg-neutral-800">
                       Get Multisig
                     </button>
@@ -523,7 +467,6 @@ const App = () => {
                 </div>
               </>
             ) : null}
-
             {multisig ? (
               <div className="w-full flex flex-col gap-4 justify-center items-center">
                 <div className="border rounded-md p-4 w-full">
@@ -532,22 +475,28 @@ const App = () => {
                 </div>
               </div>
             ) : null}
-
-            {info ? (
+            {details ? (
               <div className="w-full flex flex-col gap-4 justify-center items-center">
                 <div className="border rounded-md p-4 w-full">
                   <pre className="overflow-auto">
-                    {JSON.stringify(info, null, 2)}
+                    {JSON.stringify(details, null, 2)}
                   </pre>
                 </div>
               </div>
             ) : null}
-
             {balance ? (
               <div className="w-full flex flex-col gap-4 justify-center items-center">
                 <div className="border rounded-md p-4 w-full">
                   <span className="font-bold">User Balance: </span>{" "}
                   <span>{balance.toString()}</span>
+                </div>
+              </div>
+            ) : null}
+            {power ? (
+              <div className="w-full flex flex-col gap-4 justify-center items-center">
+                <div className="border rounded-md p-4 w-full">
+                  <span className="font-bold">User Power: </span>{" "}
+                  <span>{power.toString()}</span>
                 </div>
               </div>
             ) : null}
@@ -558,79 +507,6 @@ const App = () => {
                   <pre className="overflow-auto">
                     {JSON.stringify(allBalances, null, 2)}
                   </pre>
-                </div>
-              </div>
-            ) : null}
-
-            {balance && info ? (
-              <div className="w-full flex flex-col gap-4 justify-center items-center">
-                <div className="border rounded-md p-4 w-full">
-                  <span className="font-bold">User Voting Power: </span>{" "}
-                  <span>{(balance / info.supply) * 100}%</span>
-                </div>
-              </div>
-            ) : null}
-
-            {pendingCalls ? (
-              <div className="w-full flex flex-col gap-4 justify-center items-center">
-                <div className="border rounded-md p-4 w-full">
-                  <pre className="overflow-auto">
-                    {JSON.stringify(pendingCalls, null, 2)}
-                  </pre>
-                </div>
-
-                <div className="flex w-full gap-4 justify-center items-center p-4 border rounded-md">
-                  <form
-                    className="flex w-full flex-col gap-4"
-                    onSubmit={handleVoteSubmit}
-                  >
-                    <div>
-                      <label
-                        htmlFor="votingCallHash"
-                        className="block text-sm font-medium text-neutral-700"
-                      >
-                        Voting Call Hash
-                      </label>
-                      <div className="mt-1">
-                        <input
-                          type="text"
-                          name="text"
-                          id="votingCallHash"
-                          className="block w-full rounded-md border-neutral-300 shadow-sm focus:border-neutral-500 focus:ring-neutral-500 sm:text-sm"
-                        />
-                      </div>
-                    </div>
-
-                    <button className="shadow-sm py-2 px-4 rounded-md transition-all duration-300 bg-neutral-900 text-neutral-50 hover:shadow-lg hover:bg-neutral-800">
-                      Vote
-                    </button>
-                  </form>
-
-                  <form
-                    className="flex w-full flex-col gap-4"
-                    onSubmit={handleWithdrawVoteSubmit}
-                  >
-                    <div>
-                      <label
-                        htmlFor="withdrawVotingCallHash"
-                        className="block text-sm font-medium text-neutral-700"
-                      >
-                        Withdraw Voting Call Hash
-                      </label>
-                      <div className="mt-1">
-                        <input
-                          type="text"
-                          name="text"
-                          id="withdrawVotingCallHash"
-                          className="block w-full rounded-md border-neutral-300 shadow-sm focus:border-neutral-500 focus:ring-neutral-500 sm:text-sm"
-                        />
-                      </div>
-                    </div>
-
-                    <button className="shadow-sm py-2 px-4 rounded-md transition-all duration-300 bg-neutral-900 text-neutral-50 hover:shadow-lg hover:bg-neutral-800">
-                      Withdraw Vote
-                    </button>
-                  </form>
                 </div>
               </div>
             ) : null}
@@ -658,15 +534,108 @@ const App = () => {
                         />
                       </div>
                     </div>
-
                     <button className="shadow-sm py-2 px-4 rounded-md transition-all duration-300 bg-neutral-900 text-neutral-50 hover:shadow-lg hover:bg-neutral-800">
                       Add New Member
+                    </button>
+                  </form>
+                  <form
+                    className="flex w-full flex-col gap-4"
+                    onSubmit={handleRemoveMemberSubmit}
+                  >
+                    <div>
+                      <label
+                        htmlFor="memberToRemove"
+                        className="block text-sm font-medium text-neutral-700"
+                      >
+                        Remove Member
+                      </label>
+                      <div className="mt-1">
+                        <input
+                          type="text"
+                          name="text"
+                          id="memberToRemove"
+                          className="block w-full rounded-md border-neutral-300 shadow-sm focus:border-neutral-500 focus:ring-neutral-500 sm:text-sm"
+                        />
+                      </div>
+                    </div>
+                    <button className="shadow-sm py-2 px-4 rounded-md transition-all duration-300 bg-neutral-900 text-neutral-50 hover:shadow-lg hover:bg-neutral-800">
+                      Remove Member
                     </button>
                   </form>
                 </div>
               </div>
             ) : null}
 
+            {ranking ? (
+              <div className="w-full flex flex-col gap-4 justify-center items-center">
+                <div className="border rounded-md p-4 w-full">
+                  <pre className="overflow-auto">
+                    {JSON.stringify(ranking, null, 2)}
+                  </pre>
+                </div>
+              </div>
+            ) : null}
+
+            {openCalls ? (
+              <div className="w-full flex flex-col gap-4 justify-center items-center">
+                <div className="border rounded-md p-4 w-full">
+                  <pre className="overflow-auto">
+                    {JSON.stringify(openCalls, null, 2)}
+                  </pre>
+                </div>
+                <div className="flex w-full gap-4 justify-center items-center p-4 border rounded-md">
+                  <form
+                    className="flex w-full flex-col gap-4"
+                    onSubmit={handleVoteSubmit}
+                  >
+                    <div>
+                      <label
+                        htmlFor="votingCallHash"
+                        className="block text-sm font-medium text-neutral-700"
+                      >
+                        Voting Call Hash
+                      </label>
+                      <div className="mt-1">
+                        <input
+                          type="text"
+                          name="text"
+                          id="votingCallHash"
+                          className="block w-full rounded-md border-neutral-300 shadow-sm focus:border-neutral-500 focus:ring-neutral-500 sm:text-sm"
+                        />
+                      </div>
+                    </div>
+                    <button className="shadow-sm py-2 px-4 rounded-md transition-all duration-300 bg-neutral-900 text-neutral-50 hover:shadow-lg hover:bg-neutral-800">
+                      Vote
+                    </button>
+                  </form>
+                  <form
+                    className="flex w-full flex-col gap-4"
+                    onSubmit={handleWithdrawVoteSubmit}
+                  >
+                    <div>
+                      <label
+                        htmlFor="withdrawVotingCallHash"
+                        className="block text-sm font-medium text-neutral-700"
+                      >
+                        Withdraw Voting Call Hash
+                      </label>
+                      <div className="mt-1">
+                        <input
+                          type="text"
+                          name="text"
+                          id="withdrawVotingCallHash"
+                          className="block w-full rounded-md border-neutral-300 shadow-sm focus:border-neutral-500 focus:ring-neutral-500 sm:text-sm"
+                        />
+                      </div>
+                    </div>
+                    <button className="shadow-sm py-2 px-4 rounded-md transition-all duration-300 bg-neutral-900 text-neutral-50 hover:shadow-lg hover:bg-neutral-800">
+                      Withdraw Vote
+                    </button>
+                  </form>
+                </div>
+              </div>
+            ) : null}
+            {/* 
             {multisig ? (
               <div className="flex w-full gap-4 justify-center items-center p-4 border rounded-md">
                 <form
@@ -689,12 +658,10 @@ const App = () => {
                       />
                     </div>
                   </div>
-
                   <button className="shadow-sm py-2 px-4 rounded-md transition-all duration-300 bg-neutral-900 text-neutral-50 hover:shadow-lg hover:bg-neutral-800">
                     Mint
                   </button>
                 </form>
-
                 <form
                   className="flex w-full flex-col gap-4"
                   onSubmit={handleTokensBurnSubmit}
@@ -715,35 +682,20 @@ const App = () => {
                       />
                     </div>
                   </div>
-
                   <button className="shadow-sm py-2 px-4 rounded-md transition-all duration-300 bg-neutral-900 text-neutral-50 hover:shadow-lg hover:bg-neutral-800">
                     Burn
                   </button>
                 </form>
               </div>
-            ) : null}
-
+            ) : null} */}
             {multisig ? (
               <div className="w-full flex flex-col gap-4 justify-center items-center">
                 <div className="border rounded-md p-4 w-full flex gap-4 flex-wrap">
                   <button
                     className="shadow-sm py-2 px-4 rounded-md transition-all duration-300 bg-neutral-900 text-neutral-50 hover:shadow-lg hover:bg-neutral-800"
-                    onClick={handleGetMultisigInfo}
+                    onClick={handleGetMultisigDetails}
                   >
-                    Get Information
-                  </button>
-                  <button
-                    className="shadow-sm py-2 px-4 rounded-md transition-all duration-300 bg-neutral-900 text-neutral-50 hover:shadow-lg hover:bg-neutral-800"
-                    onClick={handleCreateFakeCalls}
-                    disabled={!info}
-                  >
-                    Create Fake Call
-                  </button>
-                  <button
-                    className="shadow-sm py-2 px-4 rounded-md transition-all duration-300 bg-neutral-900 text-neutral-50 hover:shadow-lg hover:bg-neutral-800"
-                    onClick={handleGetPendingCalls}
-                  >
-                    Get Pending Calls
+                    Get Details
                   </button>
                   <button
                     className="shadow-sm py-2 px-4 rounded-md transition-all duration-300 bg-neutral-900 text-neutral-50 hover:shadow-lg hover:bg-neutral-800"
@@ -753,10 +705,36 @@ const App = () => {
                   </button>
                   <button
                     className="shadow-sm py-2 px-4 rounded-md transition-all duration-300 bg-neutral-900 text-neutral-50 hover:shadow-lg hover:bg-neutral-800"
+                    onClick={handleGetPower}
+                  >
+                    Get User Power
+                  </button>
+                  <button
+                    className="shadow-sm py-2 px-4 rounded-md transition-all duration-300 bg-neutral-900 text-neutral-50 hover:shadow-lg hover:bg-neutral-800"
+                    onClick={handleGetOpenCalls}
+                  >
+                    Get Open Calls
+                  </button>
+                  <button
+                    className="shadow-sm py-2 px-4 rounded-md transition-all duration-300 bg-neutral-900 text-neutral-50 hover:shadow-lg hover:bg-neutral-800"
+                    onClick={handleGetRanking}
+                  >
+                    Get Ranking
+                  </button>
+                  {/* <button
+                    className="shadow-sm py-2 px-4 rounded-md transition-all duration-300 bg-neutral-900 text-neutral-50 hover:shadow-lg hover:bg-neutral-800"
+                    onClick={handleCreateFakeCalls}
+                    disabled={!info}
+                  >
+                    Create Fake Call
+                  </button>
+
+                  <button
+                    className="shadow-sm py-2 px-4 rounded-md transition-all duration-300 bg-neutral-900 text-neutral-50 hover:shadow-lg hover:bg-neutral-800"
                     onClick={handleGetAllTokenBalances}
                   >
                     Get All Balances
-                  </button>
+                  </button> */}
                 </div>
               </div>
             ) : null}

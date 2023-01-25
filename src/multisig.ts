@@ -1,5 +1,7 @@
 import { ApiPromise } from "@polkadot/api";
-import { Signer } from "@polkadot/types/types";
+import { SubmittableExtrinsic } from "@polkadot/api/types";
+import { ISubmittableResult, Signer } from "@polkadot/types/types";
+import BN from "bn.js";
 
 import {
   createMultisig,
@@ -8,16 +10,16 @@ import {
   getPendingMultisigCalls,
   voteMultisigCall,
   withdrawVoteMultisigCall,
-  mintToken,
-  burnToken,
+  mintTokenMultisig,
+  burnTokenMultisig,
   getTokenBalanceMultisig,
   getAllTokenBalancesMultisig,
-  allowReplica,
-  disallowReplica,
-  createSubToken,
-  setSubTokenWeight,
-  getAssetWeight,
-  getSubAsset,
+  allowReplicaMultisig,
+  disallowReplicaMultisig,
+  createSubTokenMultisig,
+  setSubTokenWeightMultisig,
+  getAssetWeightMultisig,
+  getSubAssetMultisig,
 } from "./rpc";
 
 import {
@@ -36,6 +38,16 @@ import {
 } from "./types";
 
 import { getSignAndSendCallback } from "./utils";
+
+type ZeroOrOne =
+  | {
+      zeroPoint: number;
+      one: never;
+    }
+  | {
+      zeroPoint: never;
+      one: null;
+    };
 
 class Multisig {
   readonly api: ApiPromise;
@@ -135,13 +147,185 @@ class Multisig {
     });
   };
 
-  info = () => {
+  disconnect = () => {
+    this.api.disconnect();
+  };
+
+  getDetails = async () => {
+    const multisig = (await this.getMultisig()).toPrimitive() as {
+      supply: number;
+      metadata: string;
+      allowReplica: boolean;
+      defaultPermission: boolean;
+      executionThreshold: ZeroOrOne;
+      defaultAssetWeight: ZeroOrOne;
+    };
+
+    const details = {
+      supply: multisig.supply,
+      metadata: multisig.metadata,
+      allowReplica: multisig.allowReplica,
+      defaultPermission: multisig.defaultPermission,
+      executionThreshold: multisig.executionThreshold.one
+        ? 100
+        : multisig.executionThreshold.zeroPoint,
+      defaultAssetWeight: multisig.defaultAssetWeight.one
+        ? 100
+        : multisig.defaultAssetWeight.zeroPoint,
+    };
+
+    return details;
+  };
+
+  getSupply = async () => {
+    const { supply } = (await this.getMultisig()).toPrimitive() as {
+      supply: number;
+    };
+
+    return supply;
+  };
+
+  getBalance = async ({ address }: { address: string }) => {
+    const balance = (
+      await getTokenBalanceMultisig({
+        api: this.api,
+        id: this.id,
+        address,
+      })
+    ).toPrimitive() as number;
+
+    return balance;
+  };
+
+  getPower = async ({ address }: { address: string }) => {
+    const balance = await this.getBalance({ address });
+
+    const supply = await this.getSupply();
+
+    const power = (balance / supply) * 100;
+
+    return power;
+  };
+
+  getOpenCalls = async () => {
+    const pendingCalls = await this.getPendingMultisigCalls();
+
+    const openCalls = pendingCalls.map((call) => {
+      const callHash = call[0].args[1].toHex() as string;
+
+      const callDetails = call[1].toPrimitive() as {
+        signers: [string, null][];
+        originalCaller: string;
+        actualCall: string;
+        callMetadata: string;
+        callWeight: number;
+        metadata?: string;
+      };
+
+      return {
+        callHash,
+        signers: callDetails.signers.map((signer) => signer[0]),
+        originalCaller: callDetails.originalCaller,
+        actualCall: callDetails.actualCall,
+        callMetadata: callDetails.callMetadata,
+        callWeight: callDetails.callWeight,
+        metadata: callDetails.metadata,
+      };
+    });
+
+    return openCalls;
+  };
+
+  addMember = ({
+    address,
+    amount,
+    metadata,
+  }: {
+    address: string;
+    amount: number;
+    metadata?: string;
+  }) => {
+    const calls = [
+      this.mintTokenMultisig({
+        address,
+        amount,
+      }),
+    ];
+
+    return this.createCall({ calls, metadata });
+  };
+
+  removeMember = async ({
+    address,
+    metadata,
+  }: {
+    address: string;
+    metadata?: string;
+  }) => {
+    const balance = await this.getBalance({ address });
+
+    const calls = [
+      this.burnTokenMultisig({
+        address,
+        amount: balance,
+      }),
+    ];
+
+    return this.createCall({ calls, metadata });
+  };
+
+  vote = ({ callHash }: { callHash: `0x${string}` }) => {
+    return this.voteMultisigCall({
+      callHash,
+    });
+  };
+
+  withdrawVote = ({ callHash }: { callHash: `0x${string}` }) => {
+    return this.withdrawVoteMultisigCall({
+      callHash,
+    });
+  };
+
+  createCall = ({
+    metadata,
+    calls,
+  }: {
+    metadata?: string;
+    calls: SubmittableExtrinsic<"promise", ISubmittableResult>[];
+  }) => {
+    return this.createMultisigCall({
+      metadata,
+      calls,
+    });
+  };
+
+  createRanking = async () => {
+    const allTokenBalances = await this.getAllTokenBalancesMultisig();
+
+    const ranking = allTokenBalances
+      .map((tokenBalance) => {
+        const amount = tokenBalance[1].toPrimitive() as number;
+
+        const address = tokenBalance[0].args[1].toPrimitive() as string;
+
+        return { address, amount };
+      })
+      .sort((a, b) => b.amount - a.amount)
+      .map((rank, index) => ({
+        ...rank,
+        position: index + 1,
+      }));
+
+    return ranking;
+  };
+
+  private getMultisig = () => {
     if (!this.isCreated()) throw new Error("MULTISIG_NOT_CREATED_YET");
 
     return getMultisig({ api: this.api, id: this.id });
   };
 
-  createCall = ({
+  private createMultisigCall = ({
     ...params
   }: Omit<CreateMultisigCallParams, "api" | "id">) => {
     if (!this.isCreated()) throw new Error("MULTISIG_NOT_CREATED_YET");
@@ -149,19 +333,21 @@ class Multisig {
     return createMultisigCall({ api: this.api, id: this.id, ...params });
   };
 
-  getPendingCalls = () => {
+  private getPendingMultisigCalls = () => {
     if (!this.isCreated()) throw new Error("MULTISIG_NOT_CREATED_YET");
 
     return getPendingMultisigCalls({ api: this.api, id: this.id });
   };
 
-  vote = ({ ...params }: Omit<VoteMultisigCallParams, "api" | "id">) => {
+  private voteMultisigCall = ({
+    ...params
+  }: Omit<VoteMultisigCallParams, "api" | "id">) => {
     if (!this.isCreated()) throw new Error("MULTISIG_NOT_CREATED_YET");
 
     return voteMultisigCall({ api: this.api, id: this.id, ...params });
   };
 
-  withdrawVote = ({
+  private withdrawVoteMultisigCall = ({
     ...params
   }: Omit<WithdrawVoteMultisigCallParams, "api" | "id">) => {
     if (!this.isCreated()) throw new Error("MULTISIG_NOT_CREATED_YET");
@@ -169,19 +355,23 @@ class Multisig {
     return withdrawVoteMultisigCall({ api: this.api, id: this.id, ...params });
   };
 
-  mintToken = ({ ...params }: Omit<MintTokenMultisigParams, "api" | "id">) => {
+  private mintTokenMultisig = ({
+    ...params
+  }: Omit<MintTokenMultisigParams, "api" | "id">) => {
     if (!this.isCreated()) throw new Error("MULTISIG_NOT_CREATED_YET");
 
-    return mintToken({ api: this.api, id: this.id, ...params });
+    return mintTokenMultisig({ api: this.api, id: this.id, ...params });
   };
 
-  burnToken = ({ ...params }: Omit<BurnTokenMultisigParams, "api" | "id">) => {
+  private burnTokenMultisig = ({
+    ...params
+  }: Omit<BurnTokenMultisigParams, "api" | "id">) => {
     if (!this.isCreated()) throw new Error("MULTISIG_NOT_CREATED_YET");
 
-    return burnToken({ api: this.api, id: this.id, ...params });
+    return burnTokenMultisig({ api: this.api, id: this.id, ...params });
   };
 
-  getTokenBalance = ({
+  private getTokenBalanceMultisig = ({
     ...params
   }: Omit<GetTokenBalanceMultisigParams, "api" | "id">) => {
     if (!this.isCreated()) throw new Error("MULTISIG_NOT_CREATED_YET");
@@ -189,7 +379,7 @@ class Multisig {
     return getTokenBalanceMultisig({ api: this.api, id: this.id, ...params });
   };
 
-  getAllTokenBalances = () => {
+  private getAllTokenBalancesMultisig = () => {
     if (!this.isCreated()) throw new Error("MULTISIG_NOT_CREATED_YET");
 
     return getAllTokenBalancesMultisig({
@@ -198,74 +388,70 @@ class Multisig {
     });
   };
 
-  allowReplica = () => {
+  private allowReplicaMultisig = () => {
     if (!this.isCreated()) throw new Error("MULTISIG_NOT_CREATED_YET");
 
-    return allowReplica({
+    return allowReplicaMultisig({
       api: this.api,
       id: this.id,
     });
   };
 
-  disallowReplica = () => {
+  private disallowReplicaMultisig = () => {
     if (!this.isCreated()) throw new Error("MULTISIG_NOT_CREATED_YET");
 
-    return disallowReplica({
+    return disallowReplicaMultisig({
       api: this.api,
       id: this.id,
     });
   };
 
-  createSubToken = ({
+  private createSubTokenMultisig = ({
     ...params
   }: Omit<CreateSubTokenMultisigParams, "id" | "api">) => {
     if (!this.isCreated()) throw new Error("MULTISIG_NOT_CREATED_YET");
 
-    return createSubToken({
+    return createSubTokenMultisig({
       api: this.api,
       id: this.id,
       ...params,
     });
   };
 
-  setSubTokenWeight = ({
+  private setSubTokenWeightMultisig = ({
     ...params
   }: Omit<SetSubTokenWeightMultisigParams, "id" | "api">) => {
     if (!this.isCreated()) throw new Error("MULTISIG_NOT_CREATED_YET");
 
-    return setSubTokenWeight({
+    return setSubTokenWeightMultisig({
       api: this.api,
       id: this.id,
       ...params,
     });
   };
 
-  getAssetWeight = ({
+  private getAssetWeightMultisig = ({
     ...params
   }: Omit<GetAssetWeightMultisigParams, "id" | "api">) => {
     if (!this.isCreated()) throw new Error("MULTISIG_NOT_CREATED_YET");
 
-    return getAssetWeight({
+    return getAssetWeightMultisig({
       api: this.api,
       id: this.id,
       ...params,
     });
   };
 
-  getSubAsset = ({
+  private getSubAssetMultisig = ({
     ...params
   }: Omit<GetSubAssetMultisigParams, "id" | "api">) => {
     if (!this.isCreated()) throw new Error("MULTISIG_NOT_CREATED_YET");
 
-    return getSubAsset({
+    return getSubAssetMultisig({
       api: this.api,
       id: this.id,
       ...params,
     });
-  };
-
-  disconnect = () => {
-    this.api.disconnect();
   };
 }
 

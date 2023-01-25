@@ -1,6 +1,10 @@
 import { CreateSubTokenMultisigParams } from "../types";
 
-const createSubToken = ({ api, id, tokens }: CreateSubTokenMultisigParams) => {
+const createSubTokenMultisig = ({
+  api,
+  id,
+  tokens,
+}: CreateSubTokenMultisigParams) => {
   return api.tx.inv4.createSubToken(
     parseInt(id),
     tokens.map((token) => {
@@ -12,4 +16,4 @@ const createSubToken = ({ api, id, tokens }: CreateSubTokenMultisigParams) => {
   );
 };
 
-export { createSubToken };
+export { createSubTokenMultisig };
