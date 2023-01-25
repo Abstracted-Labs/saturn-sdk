@@ -54,10 +54,6 @@ type GetTokenBalanceMultisigParams = DefaultMultisigParams & {
 };
 
 // TODO: Add params
-type AppendToMultisigParams = DefaultMultisigParams & {};
-
-type RemoveFromMultisigParams = DefaultMultisigParams & {};
-
 type CreateSubtokenMultisigParams = DefaultMultisigParams & {};
 
 type SetSubtokenWeightMultisigParams = DefaultMultisigParams & {};
@@ -76,8 +72,6 @@ export type {
   MintTokenMultisigParams,
   BurnTokenMultisigParams,
   GetTokenBalanceMultisigParams,
-  AppendToMultisigParams,
-  RemoveFromMultisigParams,
   CreateSubtokenMultisigParams,
   SetSubtokenWeightMultisigParams,
   GetAssetWeightMultisigParams,

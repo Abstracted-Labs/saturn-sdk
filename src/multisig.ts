@@ -14,8 +14,6 @@ import {
   getAllTokenBalancesMultisig,
   allowReplica,
   disallowReplica,
-  append,
-  remove,
   createSubtoken,
   setSubtokenWeight,
   getAssetWeight,
@@ -31,8 +29,6 @@ import {
   MintTokenMultisigParams,
   BurnTokenMultisigParams,
   GetTokenBalanceMultisigParams,
-  AppendToMultisigParams,
-  RemoveFromMultisigParams,
   CreateSubtokenMultisigParams,
   SetSubtokenWeightMultisigParams,
   GetAssetWeightMultisigParams,
@@ -217,26 +213,6 @@ class Multisig {
     return disallowReplica({
       api: this.api,
       id: this.id,
-    });
-  };
-
-  append = ({ ...params }: Omit<AppendToMultisigParams, "id" | "api">) => {
-    if (!this.isCreated()) throw new Error("MULTISIG_NOT_CREATED_YET");
-
-    return append({
-      api: this.api,
-      id: this.id,
-      ...params,
-    });
-  };
-
-  remove = ({ ...params }: Omit<RemoveFromMultisigParams, "id" | "api">) => {
-    if (!this.isCreated()) throw new Error("MULTISIG_NOT_CREATED_YET");
-
-    return remove({
-      api: this.api,
-      id: this.id,
-      ...params,
     });
   };
 
