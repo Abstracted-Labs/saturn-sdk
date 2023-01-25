@@ -272,6 +272,24 @@ const App = () => {
       );
   };
 
+  const handleComputeVotesSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    const computeVotesCallHash = e.currentTarget?.computeVotesCallHash.value;
+
+    if (!multisig) return;
+
+    if (!selectedAccount) return;
+
+    if (!computeVotesCallHash) return;
+
+    const computedVotes = await multisig.computeVotes({
+      callHash: computeVotesCallHash,
+    });
+
+    console.log(computedVotes);
+  };
+
   const handleGetRanking = async () => {
     if (!multisig) return;
 
@@ -632,6 +650,30 @@ const App = () => {
                       Withdraw Vote
                     </button>
                   </form>
+                  <form
+                    className="flex w-full flex-col gap-4"
+                    onSubmit={handleComputeVotesSubmit}
+                  >
+                    <div>
+                      <label
+                        htmlFor="computeVotesCallHash"
+                        className="block text-sm font-medium text-neutral-700"
+                      >
+                        Compute Votes Call Hash
+                      </label>
+                      <div className="mt-1">
+                        <input
+                          type="text"
+                          name="text"
+                          id="computeVotesCallHash"
+                          className="block w-full rounded-md border-neutral-300 shadow-sm focus:border-neutral-500 focus:ring-neutral-500 sm:text-sm"
+                        />
+                      </div>
+                    </div>
+                    <button className="shadow-sm py-2 px-4 rounded-md transition-all duration-300 bg-neutral-900 text-neutral-50 hover:shadow-lg hover:bg-neutral-800">
+                      Compute Votes
+                    </button>
+                  </form>
                 </div>
               </div>
             ) : null}
@@ -721,6 +763,7 @@ const App = () => {
                   >
                     Get Ranking
                   </button>
+
                   {/* <button
                     className="shadow-sm py-2 px-4 rounded-md transition-all duration-300 bg-neutral-900 text-neutral-50 hover:shadow-lg hover:bg-neutral-800"
                     onClick={handleCreateFakeCalls}

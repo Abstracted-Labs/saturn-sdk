@@ -75,6 +75,10 @@ class Multisig {
     return false;
   };
 
+  disconnect = () => {
+    this.api.disconnect();
+  };
+
   create = ({
     defaultAssetWeight = 0,
     defaultPermission = false,
@@ -145,10 +149,6 @@ class Multisig {
         reject(e);
       }
     });
-  };
-
-  disconnect = () => {
-    this.api.disconnect();
   };
 
   getDetails = async () => {
@@ -317,6 +317,33 @@ class Multisig {
       }));
 
     return ranking;
+  };
+
+  computeVotes = async ({ callHash }: { callHash: `0x${string}` }) => {
+    const pendingCalls = await this.getOpenCalls();
+
+    const call = pendingCalls.find((call) => call.callHash === callHash);
+
+    if (!call) throw new Error("CALL_NOT_FOUND_OR_ALREADY_EXECUTED");
+
+    let yes = 0;
+
+    for (const signer of call.signers) {
+      const power = await this.getPower({ address: signer });
+
+      yes += power;
+    }
+
+    const voters = call.signers;
+
+    const remaining = 100 - yes;
+
+    return {
+      total: 100,
+      yes,
+      remaining,
+      voters,
+    };
   };
 
   private getMultisig = () => {
