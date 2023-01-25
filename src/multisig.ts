@@ -14,10 +14,10 @@ import {
   getAllTokenBalancesMultisig,
   allowReplica,
   disallowReplica,
-  createSubtoken,
-  setSubtokenWeight,
+  createSubToken,
+  setSubTokenWeight,
   getAssetWeight,
-  setPermission,
+  getSubAsset,
 } from "./rpc";
 
 import {
@@ -29,10 +29,10 @@ import {
   MintTokenMultisigParams,
   BurnTokenMultisigParams,
   GetTokenBalanceMultisigParams,
-  CreateSubtokenMultisigParams,
-  SetSubtokenWeightMultisigParams,
+  CreateSubTokenMultisigParams,
+  SetSubTokenWeightMultisigParams,
   GetAssetWeightMultisigParams,
-  SetPermissionMultisigParams,
+  GetSubAssetMultisigParams,
 } from "./types";
 
 import { getSignAndSendCallback } from "./utils";
@@ -216,12 +216,12 @@ class Multisig {
     });
   };
 
-  createSubtoken = ({
+  createSubToken = ({
     ...params
-  }: Omit<CreateSubtokenMultisigParams, "id" | "api">) => {
+  }: Omit<CreateSubTokenMultisigParams, "id" | "api">) => {
     if (!this.isCreated()) throw new Error("MULTISIG_NOT_CREATED_YET");
 
-    return createSubtoken({
+    return createSubToken({
       api: this.api,
       id: this.id,
       ...params,
@@ -230,10 +230,10 @@ class Multisig {
 
   setSubTokenWeight = ({
     ...params
-  }: Omit<SetSubtokenWeightMultisigParams, "id" | "api">) => {
+  }: Omit<SetSubTokenWeightMultisigParams, "id" | "api">) => {
     if (!this.isCreated()) throw new Error("MULTISIG_NOT_CREATED_YET");
 
-    return setSubtokenWeight({
+    return setSubTokenWeight({
       api: this.api,
       id: this.id,
       ...params,
@@ -252,12 +252,12 @@ class Multisig {
     });
   };
 
-  setPermission = ({
+  getSubAsset = ({
     ...params
-  }: Omit<SetPermissionMultisigParams, "id" | "api">) => {
+  }: Omit<GetSubAssetMultisigParams, "id" | "api">) => {
     if (!this.isCreated()) throw new Error("MULTISIG_NOT_CREATED_YET");
 
-    return setPermission({
+    return getSubAsset({
       api: this.api,
       id: this.id,
       ...params,

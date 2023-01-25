@@ -53,14 +53,25 @@ type GetTokenBalanceMultisigParams = DefaultMultisigParams & {
   address: string;
 };
 
-// TODO: Add params
-type CreateSubtokenMultisigParams = DefaultMultisigParams & {};
+type CreateSubTokenMultisigParams = DefaultMultisigParams & {
+  tokens: {
+    metadata: `0x${string}`;
+    address: string;
+  }[];
+};
 
-type SetSubtokenWeightMultisigParams = DefaultMultisigParams & {};
+type SetSubTokenWeightMultisigParams = DefaultMultisigParams & {
+  subTokenId: string;
+  votingWeight: number;
+};
 
-type GetAssetWeightMultisigParams = DefaultMultisigParams & {};
+type GetAssetWeightMultisigParams = DefaultMultisigParams & {
+  assetId: string;
+};
 
-type SetPermissionMultisigParams = DefaultMultisigParams & {};
+type GetSubAssetMultisigParams = DefaultMultisigParams & {
+  subAssetId: string;
+};
 
 export type {
   DefaultMultisigParams,
@@ -72,8 +83,8 @@ export type {
   MintTokenMultisigParams,
   BurnTokenMultisigParams,
   GetTokenBalanceMultisigParams,
-  CreateSubtokenMultisigParams,
-  SetSubtokenWeightMultisigParams,
+  CreateSubTokenMultisigParams,
+  SetSubTokenWeightMultisigParams,
   GetAssetWeightMultisigParams,
-  SetPermissionMultisigParams,
+  GetSubAssetMultisigParams,
 };
