@@ -177,9 +177,7 @@ class Multisig {
 
   public getBalance = async ({ address }: { address: string }) => {
     const balance = (
-      await getTokenBalanceMultisig({
-        api: this.api,
-        id: this.id,
+      await this._getTokenBalanceMultisig({
         address,
       })
     ).toPrimitive() as number;
@@ -311,6 +309,7 @@ class Multisig {
 
   public computeVotes = async ({ callHash }: { callHash: `0x${string}` }) => {
     const pendingCalls = await this.getOpenCalls();
+    const details = await this.getDetails();
 
     const call = pendingCalls.find((call) => call.callHash === callHash);
 
@@ -326,13 +325,14 @@ class Multisig {
 
     const voters = call.signers;
 
-    const remaining = 100 - yes;
+    const remaining = details.executionThreshold - yes;
 
     return {
       total: 100,
       yes,
       remaining,
       voters,
+      executionThreshold: details.executionThreshold,
     };
   };
 
