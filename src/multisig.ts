@@ -13,8 +13,6 @@ import {
   burnTokenMultisig,
   getTokenBalanceMultisig,
   getAllTokenBalancesMultisig,
-  allowReplicaMultisig,
-  disallowReplicaMultisig,
   createSubTokenMultisig,
   setSubTokenWeightMultisig,
   getAssetWeightMultisig,
@@ -145,7 +143,6 @@ class Multisig {
     const multisig = (await this._getMultisig()).toPrimitive() as {
       supply: number;
       metadata: string;
-      allowReplica: boolean;
       defaultPermission: boolean;
       executionThreshold: OneOrPercent;
       defaultAssetWeight: OneOrPercent;
@@ -154,7 +151,6 @@ class Multisig {
     const details = {
       supply: multisig.supply,
       metadata: multisig.metadata,
-      allowReplica: multisig.allowReplica,
       defaultPermission: multisig.defaultPermission,
       executionThreshold: multisig.executionThreshold.one
         ? 100
@@ -347,13 +343,13 @@ class Multisig {
   }: Omit<CreateMultisigCallParams, "api" | "id">) => {
     if (!this.isCreated()) throw new Error("MULTISIG_NOT_CREATED_YET");
 
-    return createMultisigCall({ api: this.api, id: this.id, ...params });
+    return createMultisigCall({ api: this.api, ...params });
   };
 
   private _getPendingMultisigCalls = () => {
     if (!this.isCreated()) throw new Error("MULTISIG_NOT_CREATED_YET");
 
-    return getPendingMultisigCalls({ api: this.api, id: this.id });
+    return getPendingMultisigCalls({ api: this.api });
   };
 
   private _voteMultisigCall = ({
@@ -361,7 +357,7 @@ class Multisig {
   }: Omit<VoteMultisigCallParams, "api" | "id">) => {
     if (!this.isCreated()) throw new Error("MULTISIG_NOT_CREATED_YET");
 
-    return voteMultisigCall({ api: this.api, id: this.id, ...params });
+    return voteMultisigCall({ api: this.api, ...params });
   };
 
   private _withdrawVoteMultisigCall = ({
@@ -369,7 +365,7 @@ class Multisig {
   }: Omit<WithdrawVoteMultisigCallParams, "api" | "id">) => {
     if (!this.isCreated()) throw new Error("MULTISIG_NOT_CREATED_YET");
 
-    return withdrawVoteMultisigCall({ api: this.api, id: this.id, ...params });
+    return withdrawVoteMultisigCall({ api: this.api, ...params });
   };
 
   private _mintTokenMultisig = ({
@@ -377,7 +373,7 @@ class Multisig {
   }: Omit<MintTokenMultisigParams, "api" | "id">) => {
     if (!this.isCreated()) throw new Error("MULTISIG_NOT_CREATED_YET");
 
-    return mintTokenMultisig({ api: this.api, id: this.id, ...params });
+    return mintTokenMultisig({ api: this.api, ...params });
   };
 
   private _burnTokenMultisig = ({
@@ -385,7 +381,7 @@ class Multisig {
   }: Omit<BurnTokenMultisigParams, "api" | "id">) => {
     if (!this.isCreated()) throw new Error("MULTISIG_NOT_CREATED_YET");
 
-    return burnTokenMultisig({ api: this.api, id: this.id, ...params });
+    return burnTokenMultisig({ api: this.api, ...params });
   };
 
   private _getTokenBalanceMultisig = ({
@@ -393,7 +389,7 @@ class Multisig {
   }: Omit<GetTokenBalanceMultisigParams, "api" | "id">) => {
     if (!this.isCreated()) throw new Error("MULTISIG_NOT_CREATED_YET");
 
-    return getTokenBalanceMultisig({ api: this.api, id: this.id, ...params });
+    return getTokenBalanceMultisig({ api: this.api, ...params });
   };
 
   private _getAllTokenBalancesMultisig = () => {
@@ -401,25 +397,6 @@ class Multisig {
 
     return getAllTokenBalancesMultisig({
       api: this.api,
-      id: this.id,
-    });
-  };
-
-  private _allowReplicaMultisig = () => {
-    if (!this.isCreated()) throw new Error("MULTISIG_NOT_CREATED_YET");
-
-    return allowReplicaMultisig({
-      api: this.api,
-      id: this.id,
-    });
-  };
-
-  private _disallowReplicaMultisig = () => {
-    if (!this.isCreated()) throw new Error("MULTISIG_NOT_CREATED_YET");
-
-    return disallowReplicaMultisig({
-      api: this.api,
-      id: this.id,
     });
   };
 
@@ -430,7 +407,7 @@ class Multisig {
 
     return createSubTokenMultisig({
       api: this.api,
-      id: this.id,
+
       ...params,
     });
   };
@@ -442,7 +419,7 @@ class Multisig {
 
     return setSubTokenWeightMultisig({
       api: this.api,
-      id: this.id,
+
       ...params,
     });
   };
@@ -454,7 +431,7 @@ class Multisig {
 
     return getAssetWeightMultisig({
       api: this.api,
-      id: this.id,
+
       ...params,
     });
   };
@@ -466,19 +443,30 @@ class Multisig {
 
     return getSubAssetMultisig({
       api: this.api,
-      id: this.id,
+
       ...params,
     });
   };
 }
 
-const MultisigTypes = {
-  OneOrPercent: {
-    _enum: {
-      One: null,
-      Percent: "Percent",
+const MultisigRuntime = {
+  SaturnAccountDeriver: [
+    {
+      methods: {
+        derive_account: {
+          description: "Derive Saturn account",
+          params: [
+            {
+              name: "core_id",
+              type: "u32",
+            },
+          ],
+          type: "AccountId32",
+        },
+      },
+      version: 1,
     },
-  },
+  ],
 };
 
-export { Multisig, MultisigTypes };
+export { Multisig, MultisigRuntime };

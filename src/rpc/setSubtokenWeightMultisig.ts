@@ -2,7 +2,6 @@ import { SetSubTokenWeightMultisigParams } from "../types";
 
 const setSubTokenWeightMultisig = ({
   api,
-  id,
   subTokenId,
   votingWeight,
 }: SetSubTokenWeightMultisigParams) => {
@@ -23,7 +22,6 @@ const setSubTokenWeightMultisig = ({
   }
 
   return api.tx.inv4.setSubTokenWeight(
-    parseInt(id),
     parseInt(subTokenId),
     parsedVotingWeight
   );

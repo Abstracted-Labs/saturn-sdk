@@ -5,14 +5,10 @@ import {
   web3FromAddress,
 } from "@polkadot/extension-dapp";
 import { InjectedAccountWithMeta } from "@polkadot/extension-inject/types";
-import type { StorageKey } from "@polkadot/types/primitive";
-import type { AnyTuple, Codec } from "@polkadot/types/types";
-import BN from "bn.js";
 import { FormEvent, useEffect, useState } from "react";
-import { Multisig, MultisigTypes } from "../../src";
+import { Multisig, MultisigRuntime } from "../../src";
 
-// const host = "wss://brainstorm.invarch.network";
-const host = "ws://127.0.0.1:9944";
+const host = "ws://127.0.0.1:2125";
 
 const App = () => {
   const [accounts, setAccounts] = useState<InjectedAccountWithMeta[]>([]);
@@ -22,7 +18,6 @@ const App = () => {
   const [details, setDetails] = useState<{
     supply: number;
     metadata: string;
-    allowReplica: boolean;
     defaultPermission: boolean;
     executionThreshold: number;
     defaultAssetWeight: number;
@@ -47,47 +42,71 @@ const App = () => {
 
   const setup = async () => {
     const wsProvider = new WsProvider(host);
+
     const api = await ApiPromise.create({
       provider: wsProvider,
-      types: {
-        ...MultisigTypes,
+      runtime: {
+        ...MultisigRuntime,
       },
     });
+
     const time = (await api.query.timestamp.now()).toPrimitive();
-    console.log(time);
+
+    console.log("CONNECTED TO", host, "AT", new Date(time));
+
+    const deriveAccount2126 = await api.call.saturnAccountDeriver.deriveAccount(
+      2126
+    );
+
+    console.log(
+      "DERIVED ACCOUNT FROM CHAIN AT :2126",
+      deriveAccount2126.toPrimitive()
+    );
+
     setApi(api);
   };
 
   const handleConnectAccounts = async () => {
-    const extensions = await web3Enable("GitArch");
+    const extensions = await web3Enable("DEMO");
+
     if (extensions.length === 0) {
       return;
     }
+
     const accounts = await web3Accounts();
+
     if (accounts.length === 0) {
       return;
     }
+
     console.table(
       accounts.map((account) => ({
         address: account.address,
         name: account.meta.name || "",
       }))
     );
+
     if (accounts.length === 1) {
       const selectedAccount = accounts[0];
       setSelectedAccount(selectedAccount);
     }
+
     setAccounts(accounts);
   };
 
   const handleSelectAccount = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
     const address = e.currentTarget?.address.value;
+
     if (!address) return;
+
     const selectedAccount = accounts.find(
       (account) => account.address === address
     );
+
     if (!selectedAccount) return;
+
     setSelectedAccount(selectedAccount);
   };
 
@@ -183,11 +202,15 @@ const App = () => {
 
     const injector = await web3FromAddress(selectedAccount.address);
 
-    multisig
-      .addMember({
+    const calls = [
+      multisig.addMember({
         address: newMember,
         amount: UNIQUE_SUPPLY_AMOUNT,
-      })
+      }),
+    ];
+
+    multisig
+      .createCall({ calls })
       .signAndSend(
         selectedAccount.address,
         { signer: injector.signer },
@@ -305,99 +328,24 @@ const App = () => {
     setRanking(ranking);
   };
 
-  // const handleGetAllTokenBalances = async () => {
-  //   if (!multisig) return;
-  //   const allBalances = await multisig.getAllTokenBalances();
-  //   const parsedBalances = allBalances.map(([storage, rawBalance]) => {
-  //     const address = storage.args[1].toPrimitive() as string;
-  //     const balance = rawBalance.toPrimitive() as number;
-  //     return { address, balance };
-  //   });
-  //   setAllBalances(parsedBalances);
-  // };
-  // const handleCreateFakeCalls = async () => {
-  //   if (!api) return;
-  //   if (!multisig) return;
-  //   if (!selectedAccount) return;
-  //   if (!info) return;
-  //   const calls = [
-  //     info.allowReplica ? multisig.disallowReplica() : multisig.allowReplica(),
-  //   ];
-  //   const injector = await web3FromAddress(selectedAccount.address);
-  //   multisig
-  //     .createCall({
-  //       calls,
-  //       metadata: JSON.stringify({
-  //         name: "test",
-  //         description: "test",
-  //         url: "test",
-  //       }),
-  //     })
-  //     .signAndSend(
-  //       selectedAccount.address,
-  //       { signer: injector.signer },
-  //       ({ events }) => {
-  //         console.log(events.map((event) => event.toHuman()));
-  //         const parsedEvents = events.map(
-  //           (event) =>
-  //             event.toPrimitive() as {
-  //               method: string;
-  //               data: { result: boolean };
-  //             }
-  //         );
-  //         const success = parsedEvents.find(
-  //           (event) => event.method === "MultisigExecuted"
-  //         );
-  //         if (!success) return;
-  //         console.log("SUCCESS: ", success.data.result);
-  //       }
-  //     );
-  // };
+  const handleGetTNKRBalance = async () => {
+    if (!selectedAccount) return;
 
-  // const handleTokensMintSubmit = async (e: FormEvent<HTMLFormElement>) => {
-  //   e.preventDefault();
-  //   const amount = e.currentTarget?.mintTokens.value;
-  //   if (!multisig) return;
-  //   if (!selectedAccount) return;
-  //   if (!amount) return;
-  //   const injector = await web3FromAddress(selectedAccount.address);
-  //   const calls = [
-  //     multisig.mintToken({ amount, address: selectedAccount.address }),
-  //   ];
-  //   multisig
-  //     .createCall({ calls })
-  //     .signAndSend(
-  //       selectedAccount.address,
-  //       { signer: injector.signer },
-  //       ({ events }) => {
-  //         console.log(events.map((event) => event.toHuman()));
-  //       }
-  //     );
-  // };
-  // const handleTokensBurnSubmit = async (e: FormEvent<HTMLFormElement>) => {
-  //   e.preventDefault();
-  //   const amount = e.currentTarget?.burnTokens.value;
-  //   if (!multisig) return;
-  //   if (!selectedAccount) return;
-  //   if (!amount) return;
-  //   const injector = await web3FromAddress(selectedAccount.address);
-  //   const calls = [
-  //     multisig.burnToken({ amount, address: selectedAccount.address }),
-  //   ];
-  //   multisig
-  //     .createCall({ calls })
-  //     .signAndSend(
-  //       selectedAccount.address,
-  //       { signer: injector.signer },
-  //       ({ events }) => {
-  //         console.log(events.map((event) => event.toHuman()));
-  //       }
-  //     );
-  // };
+    if (!api) return;
+
+    const balance = await api.query.system.account(selectedAccount.address);
+
+    console.log("BALANCE", balance.data.toPrimitive());
+  };
 
   useEffect(() => {
     setup();
   }, []);
+
+  useEffect(() => {
+    handleGetTNKRBalance();
+  }, [selectedAccount, api]);
+
   return (
     <div className="flex flex-col gap-4 p-8 max-w-2xl items-center justify-center mx-auto">
       <>

@@ -14,6 +14,9 @@ type GetSignAndSendCallbackParams = {
 
 type DefaultMultisigParams = {
   api: ApiPromise;
+};
+
+type GetMultisigParams = DefaultMultisigParams & {
   id: string;
 };
 
@@ -85,6 +88,7 @@ type OneOrPercent =
 
 export type {
   DefaultMultisigParams,
+  GetMultisigParams,
   CreateMultisigParams,
   GetSignAndSendCallbackParams,
   CreateMultisigCallParams,

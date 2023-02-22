@@ -2,13 +2,12 @@ import { CreateMultisigCallParams } from "../types";
 
 const createMultisigCall = ({
   api,
-  id,
   metadata,
   calls,
 }: CreateMultisigCallParams) => {
   return api.tx.inv4.operateMultisig(
     false,
-    [parseInt(id), null],
+    null,
     JSON.stringify(metadata),
     api.tx.utility.batchAll(calls)
   );

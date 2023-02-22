@@ -44,7 +44,6 @@ const createMultisig = ({
     JSON.stringify(metadata),
     assets,
     false,
-    "Apache2",
     parsedExecutionThreshold,
     defaultAssetWeight,
     defaultPermission

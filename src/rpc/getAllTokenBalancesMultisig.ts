@@ -1,7 +1,7 @@
 import type { DefaultMultisigParams } from "../types";
 
-const getAllTokenBalancesMultisig = ({ api, id }: DefaultMultisigParams) => {
-  return api.query.inv4.balance.entries([parseInt(id), null]);
+const getAllTokenBalancesMultisig = ({ api }: DefaultMultisigParams) => {
+  return api.query.inv4.balance.entries();
 };
 
 export { getAllTokenBalancesMultisig };
