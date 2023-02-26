@@ -4,8 +4,9 @@ const mintTokenMultisig = ({
   api,
   amount,
   address,
+  token,
 }: MintTokenMultisigParams) => {
-  return api.tx.inv4.iptMint(null, amount, address);
+  return api.tx.inv4.iptMint(token, amount, address);
 };
 
 export { mintTokenMultisig };

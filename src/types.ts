@@ -45,6 +45,7 @@ type WithdrawVoteMultisigCallParams = DefaultMultisigParams & {
 type MintTokenMultisigParams = DefaultMultisigParams & {
   address: string;
   amount: number;
+  token: string | null;
 };
 
 type BurnTokenMultisigParams = DefaultMultisigParams & {

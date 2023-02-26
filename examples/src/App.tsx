@@ -6,7 +6,7 @@ import {
 } from "@polkadot/extension-dapp";
 import { InjectedAccountWithMeta } from "@polkadot/extension-inject/types";
 import { FormEvent, useEffect, useState } from "react";
-import { Multisig, MultisigRuntime } from "../../src";
+import { Multisig, MultisigTypes, MultisigRuntime } from "../../src";
 
 const host = "ws://127.0.0.1:2125";
 
@@ -36,7 +36,6 @@ const App = () => {
     {
       address: string;
       amount: number;
-      position: number;
     }[]
   >();
 
@@ -45,10 +44,23 @@ const App = () => {
 
     const api = await ApiPromise.create({
       provider: wsProvider,
+      types: {
+        ...MultisigTypes,
+      },
       runtime: {
         ...MultisigRuntime,
       },
     });
+
+    const lookup = await api.registry.lookup.getTypeDef(
+      "InkStorageCollectionsStashHeader"
+    );
+
+    // const a = await api.registry.metadata.registry.knownTypes;
+
+    console.log("LOOKUP", lookup);
+
+    // console.log("CHAIN INFO", JSON.stringify(chainInfo));
 
     const time = (await api.query.timestamp.now()).toPrimitive();
 
@@ -202,15 +214,11 @@ const App = () => {
 
     const injector = await web3FromAddress(selectedAccount.address);
 
-    const calls = [
-      multisig.addMember({
+    multisig
+      .addMember({
         address: newMember,
         amount: UNIQUE_SUPPLY_AMOUNT,
-      }),
-    ];
-
-    multisig
-      .createCall({ calls })
+      })
       .signAndSend(
         selectedAccount.address,
         { signer: injector.signer },

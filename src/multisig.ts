@@ -223,16 +223,19 @@ class Multisig {
   public addMember = ({
     address,
     amount,
+    token = null,
     metadata,
   }: {
     address: string;
     amount: number;
+    token?: string;
     metadata?: string;
   }) => {
     const calls = [
       this._mintTokenMultisig({
         address,
         amount,
+        token,
       }),
     ];
 
@@ -294,11 +297,7 @@ class Multisig {
 
         return { address, amount };
       })
-      .sort((a, b) => b.amount - a.amount)
-      .map((rank, index) => ({
-        ...rank,
-        position: index + 1,
-      }));
+      .sort((a, b) => b.amount - a.amount);
 
     return ranking;
   };
@@ -449,6 +448,15 @@ class Multisig {
   };
 }
 
+const MultisigTypes = {
+  OneOrPercent: {
+    _enum: {
+      One: null,
+      Percent: "Percent",
+    },
+  },
+};
+
 const MultisigRuntime = {
   SaturnAccountDeriver: [
     {
@@ -469,4 +477,4 @@ const MultisigRuntime = {
   ],
 };
 
-export { Multisig, MultisigRuntime };
+export { Multisig, MultisigTypes, MultisigRuntime };
