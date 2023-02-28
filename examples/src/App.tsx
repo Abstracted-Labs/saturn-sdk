@@ -52,16 +52,6 @@ const App = () => {
       },
     });
 
-    const lookup = await api.registry.lookup.getTypeDef(
-      "InkStorageCollectionsStashHeader"
-    );
-
-    // const a = await api.registry.metadata.registry.knownTypes;
-
-    console.log("LOOKUP", lookup);
-
-    // console.log("CHAIN INFO", JSON.stringify(chainInfo));
-
     const time = (await api.query.timestamp.now()).toPrimitive();
 
     console.log("CONNECTED TO", host, "AT", new Date(time));
@@ -326,6 +316,24 @@ const App = () => {
     console.log(computedVotes);
   };
 
+  const handleGetPendingCallSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    const pendingCallHash = e.currentTarget?.pendingCallHash.value;
+
+    if (!multisig) return;
+
+    if (!selectedAccount) return;
+
+    if (!pendingCallHash) return;
+
+    const pendingCall = await multisig.getPendingCall({
+      callHash: pendingCallHash,
+    });
+
+    console.log(pendingCall);
+  };
+
   const handleGetRanking = async () => {
     if (!multisig) return;
 
@@ -562,7 +570,7 @@ const App = () => {
                     {JSON.stringify(openCalls, null, 2)}
                   </pre>
                 </div>
-                <div className="flex w-full gap-4 justify-center items-center p-4 border rounded-md">
+                <div className="flex w-full gap-4 justify-center items-center p-4 border rounded-md flex-wrap">
                   <form
                     className="flex w-full flex-col gap-4"
                     onSubmit={handleVoteSubmit}
@@ -635,9 +643,34 @@ const App = () => {
                       Compute Votes
                     </button>
                   </form>
+                  <form
+                    className="flex w-full flex-col gap-4"
+                    onSubmit={handleGetPendingCallSubmit}
+                  >
+                    <div>
+                      <label
+                        htmlFor="pendingCallHash"
+                        className="block text-sm font-medium text-neutral-700"
+                      >
+                        Call Hash
+                      </label>
+                      <div className="mt-1">
+                        <input
+                          type="text"
+                          name="text"
+                          id="pendingCallHash"
+                          className="block w-full rounded-md border-neutral-300 shadow-sm focus:border-neutral-500 focus:ring-neutral-500 sm:text-sm"
+                        />
+                      </div>
+                    </div>
+                    <button className="shadow-sm py-2 px-4 rounded-md transition-all duration-300 bg-neutral-900 text-neutral-50 hover:shadow-lg hover:bg-neutral-800">
+                      Get Pending Call
+                    </button>
+                  </form>
                 </div>
               </div>
             ) : null}
+
             {/* 
             {multisig ? (
               <div className="flex w-full gap-4 justify-center items-center p-4 border rounded-md">

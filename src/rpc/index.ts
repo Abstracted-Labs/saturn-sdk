@@ -4,6 +4,7 @@ export * from "./createMultisig";
 export * from "./getMultisig";
 export * from "./createMultisigCall";
 export * from "./getPendingMultisigCalls";
+export * from "./getPendingMultisigCall";
 export * from "./voteMultisigCall";
 export * from "./withdrawVoteMultisigCall";
 export * from "./mintTokenMultisig";

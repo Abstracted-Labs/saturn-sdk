@@ -7,6 +7,7 @@ import {
   createMultisigCall,
   getMultisig,
   getPendingMultisigCalls,
+  getPendingMultisigCall,
   voteMultisigCall,
   withdrawVoteMultisigCall,
   mintTokenMultisig,
@@ -33,6 +34,7 @@ import {
   SetSubTokenWeightMultisigParams,
   GetAssetWeightMultisigParams,
   GetSubAssetMultisigParams,
+  GetPendingMultisigCallParams,
 } from "./types";
 
 import { getSignAndSendCallback } from "./utils";
@@ -220,6 +222,29 @@ class Multisig {
     return openCalls;
   };
 
+  public getPendingCall = async ({ callHash }: { callHash: `0x${string}` }) => {
+    const call = await this._getPendingMultisigCall({ callHash });
+
+    const callDetails = call.toPrimitive() as {
+      signers: [string, null][];
+      originalCaller: string;
+      actualCall: string;
+      callMetadata: string;
+      callWeight: number;
+      metadata?: string;
+    };
+
+    return {
+      callHash,
+      signers: callDetails.signers.map((signer) => signer[0]),
+      originalCaller: callDetails.originalCaller,
+      actualCall: callDetails.actualCall,
+      callMetadata: callDetails.callMetadata,
+      callWeight: callDetails.callWeight,
+      metadata: callDetails.metadata,
+    };
+  };
+
   public addMember = ({
     address,
     amount,
@@ -348,7 +373,15 @@ class Multisig {
   private _getPendingMultisigCalls = () => {
     if (!this.isCreated()) throw new Error("MULTISIG_NOT_CREATED_YET");
 
-    return getPendingMultisigCalls({ api: this.api });
+    return getPendingMultisigCalls({ api: this.api, id: this.id });
+  };
+
+  private _getPendingMultisigCall = ({
+    ...params
+  }: Omit<GetPendingMultisigCallParams, "api" | "id">) => {
+    if (!this.isCreated()) throw new Error("MULTISIG_NOT_CREATED_YET");
+
+    return getPendingMultisigCall({ api: this.api, id: this.id, ...params });
   };
 
   private _voteMultisigCall = ({
