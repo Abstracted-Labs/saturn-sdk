@@ -20,6 +20,10 @@ type GetMultisigParams = DefaultMultisigParams & {
   id: string;
 };
 
+type GetPendingMultisigCallsParams = DefaultMultisigParams & {
+  id: string;
+};
+
 type CreateMultisigParams = {
   api: DefaultMultisigParams["api"];
   defaultAssetWeight?: number;
@@ -89,6 +93,7 @@ type OneOrPercent =
 
 export type {
   DefaultMultisigParams,
+  GetPendingMultisigCallsParams,
   GetMultisigParams,
   CreateMultisigParams,
   GetSignAndSendCallbackParams,
