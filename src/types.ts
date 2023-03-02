@@ -90,6 +90,15 @@ type DeriveMultisigAccountParams = DefaultMultisigParams & {
   id: string;
 };
 
+type SendExternalMultisigCallParams = DefaultMultisigParams & {
+  // TODO change this to a less generic type
+  destination: string;
+  // TODO idk what this means
+  weight: number;
+  // TODO find way to parse this and generate the hash, not get the hash from the user
+  callHash: `0x${string}`;
+};
+
 type OneOrPercent =
   | {
       zeroPoint: number;
@@ -117,6 +126,7 @@ export type {
   SetSubTokenWeightMultisigParams,
   GetAssetWeightMultisigParams,
   GetSubAssetMultisigParams,
-  OneOrPercent,
   DeriveMultisigAccountParams,
+  SendExternalMultisigCallParams,
+  OneOrPercent,
 };

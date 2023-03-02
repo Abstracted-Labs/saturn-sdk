@@ -20,6 +20,7 @@ import {
   getSubAssetMultisig,
   deriveMultisigAccount,
 } from "./rpc";
+import { sendExternalMultisigCall } from "./rpc/sendExternalMultisigCall";
 
 import {
   OneOrPercent,
@@ -37,6 +38,7 @@ import {
   GetSubAssetMultisigParams,
   GetPendingMultisigCallParams,
   DeriveMultisigAccountParams,
+  SendExternalMultisigCallParams,
 } from "./types";
 
 import { getSignAndSendCallback } from "./utils";
@@ -151,6 +153,8 @@ class Multisig {
       executionThreshold: OneOrPercent;
       defaultAssetWeight: OneOrPercent;
     };
+
+    if (!multisig) throw new Error("MULTISIG_DOES_NOT_EXIST");
 
     const details = {
       supply: multisig.supply,
@@ -366,6 +370,28 @@ class Multisig {
     return derivedAddress;
   };
 
+  public sendExternalCall = ({
+    destination,
+    weight,
+    callHash,
+    metadata,
+  }: {
+    destination: string;
+    weight: number;
+    callHash: `0x${string}`;
+    metadata?: string;
+  }) => {
+    const calls = [
+      this._sendExternalMultisigCall({
+        destination,
+        weight,
+        callHash,
+      }),
+    ];
+
+    return this.createCall({ calls, metadata });
+  };
+
   private _getMultisig = () => {
     if (!this.isCreated()) throw new Error("MULTISIG_NOT_CREATED_YET");
 
@@ -496,6 +522,17 @@ class Multisig {
     if (!this.isCreated()) throw new Error("MULTISIG_NOT_CREATED_YET");
 
     return deriveMultisigAccount({
+      api: this.api,
+      ...params,
+    });
+  };
+
+  private _sendExternalMultisigCall = ({
+    ...params
+  }: Omit<SendExternalMultisigCallParams, "api">) => {
+    if (!this.isCreated()) throw new Error("MULTISIG_NOT_CREATED_YET");
+
+    return sendExternalMultisigCall({
       api: this.api,
       ...params,
     });

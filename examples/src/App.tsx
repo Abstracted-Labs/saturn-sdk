@@ -248,6 +248,40 @@ const App = () => {
     );
   };
 
+  const handleSendExternalCallSubmit = async (
+    e: FormEvent<HTMLFormElement>
+  ) => {
+    e.preventDefault();
+
+    const externalDestination = e.currentTarget?.externalDestination.value;
+
+    const externalWeight = e.currentTarget?.externalWeight.value;
+
+    const externalCallHash = e.currentTarget?.externalCallHash.value;
+
+    if (!api) return;
+
+    if (!multisig) return;
+
+    if (!selectedAccount) return;
+
+    const injector = await web3FromAddress(selectedAccount.address);
+
+    multisig
+      .sendExternalCall({
+        destination: externalDestination,
+        weight: externalWeight,
+        callHash: externalCallHash,
+      })
+      .signAndSend(
+        selectedAccount.address,
+        { signer: injector.signer },
+        ({ events }) => {
+          console.log(events.map((event) => event.toHuman()));
+        }
+      );
+  };
+
   const handleVoteSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
@@ -555,6 +589,71 @@ const App = () => {
               </div>
             ) : null}
 
+            {multisig ? (
+              <div className="w-full flex flex-col gap-4 justify-center items-center">
+                <div className="border rounded-md p-4 w-full flex gap-4">
+                  <form
+                    className="flex w-full flex-col gap-4"
+                    onSubmit={handleSendExternalCallSubmit}
+                  >
+                    <div className="flex gap-4">
+                      <div>
+                        <label
+                          htmlFor="externalDestination"
+                          className="block text-sm font-medium text-neutral-700"
+                        >
+                          Destination
+                        </label>
+                        <div className="mt-1">
+                          <input
+                            type="text"
+                            name="text"
+                            id="externalDestination"
+                            className="block w-full rounded-md border-neutral-300 shadow-sm focus:border-neutral-500 focus:ring-neutral-500 sm:text-sm"
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <label
+                          htmlFor="externalWeight"
+                          className="block text-sm font-medium text-neutral-700"
+                        >
+                          Weight
+                        </label>
+                        <div className="mt-1">
+                          <input
+                            type="text"
+                            name="text"
+                            id="externalWeight"
+                            className="block w-full rounded-md border-neutral-300 shadow-sm focus:border-neutral-500 focus:ring-neutral-500 sm:text-sm"
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <label
+                          htmlFor="externalCallHash"
+                          className="block text-sm font-medium text-neutral-700"
+                        >
+                          Call Hash
+                        </label>
+                        <div className="mt-1">
+                          <input
+                            type="text"
+                            name="text"
+                            id="externalCallHash"
+                            className="block w-full rounded-md border-neutral-300 shadow-sm focus:border-neutral-500 focus:ring-neutral-500 sm:text-sm"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                    <button className="shadow-sm py-2 px-4 rounded-md transition-all duration-300 bg-neutral-900 text-neutral-50 hover:shadow-lg hover:bg-neutral-800">
+                      Send External Call
+                    </button>
+                  </form>
+                </div>
+              </div>
+            ) : null}
+
             {ranking ? (
               <div className="w-full flex flex-col gap-4 justify-center items-center">
                 <div className="border rounded-md p-4 w-full">
@@ -726,6 +825,7 @@ const App = () => {
                 </form>
               </div>
             ) : null} */}
+
             {multisig ? (
               <div className="w-full flex flex-col gap-4 justify-center items-center">
                 <div className="border rounded-md p-4 w-full flex gap-4 flex-wrap">
