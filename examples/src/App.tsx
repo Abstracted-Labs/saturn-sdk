@@ -56,15 +56,6 @@ const App = () => {
 
     console.log("CONNECTED TO", host, "AT", new Date(time));
 
-    const deriveAccount2126 = await api.call.saturnAccountDeriver.deriveAccount(
-      2126
-    );
-
-    console.log(
-      "DERIVED ACCOUNT FROM CHAIN AT :2126",
-      deriveAccount2126.toPrimitive()
-    );
-
     setApi(api);
   };
 
@@ -151,6 +142,17 @@ const App = () => {
     if (!api) return;
 
     const multisig = new Multisig({ api, id });
+
+    const MOCK_MULTISIG_ID = "0";
+
+    const deriveAccount0 = await multisig.deriveAccount({
+      id: MOCK_MULTISIG_ID,
+    });
+
+    console.log(
+      `DERIVED ACCOUNT FROM MULTISIG 0: `,
+      deriveAccount0.toPrimitive()
+    );
 
     setMultisig(multisig);
   };

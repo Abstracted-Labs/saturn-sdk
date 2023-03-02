@@ -18,6 +18,7 @@ import {
   setSubTokenWeightMultisig,
   getAssetWeightMultisig,
   getSubAssetMultisig,
+  deriveMultisigAccount,
 } from "./rpc";
 
 import {
@@ -35,6 +36,7 @@ import {
   GetAssetWeightMultisigParams,
   GetSubAssetMultisigParams,
   GetPendingMultisigCallParams,
+  DeriveMultisigAccountParams,
 } from "./types";
 
 import { getSignAndSendCallback } from "./utils";
@@ -356,6 +358,14 @@ class Multisig {
     };
   };
 
+  public deriveAccount = async ({ id }: { id: string }) => {
+    const derivedAddress = await this._deriveMultisigAccount({
+      id,
+    });
+
+    return derivedAddress;
+  };
+
   private _getMultisig = () => {
     if (!this.isCreated()) throw new Error("MULTISIG_NOT_CREATED_YET");
 
@@ -364,7 +374,7 @@ class Multisig {
 
   private _createMultisigCall = ({
     ...params
-  }: Omit<CreateMultisigCallParams, "api" | "id">) => {
+  }: Omit<CreateMultisigCallParams, "api">) => {
     if (!this.isCreated()) throw new Error("MULTISIG_NOT_CREATED_YET");
 
     return createMultisigCall({ api: this.api, ...params });
@@ -386,7 +396,7 @@ class Multisig {
 
   private _voteMultisigCall = ({
     ...params
-  }: Omit<VoteMultisigCallParams, "api" | "id">) => {
+  }: Omit<VoteMultisigCallParams, "api">) => {
     if (!this.isCreated()) throw new Error("MULTISIG_NOT_CREATED_YET");
 
     return voteMultisigCall({ api: this.api, ...params });
@@ -402,7 +412,7 @@ class Multisig {
 
   private _mintTokenMultisig = ({
     ...params
-  }: Omit<MintTokenMultisigParams, "api" | "id">) => {
+  }: Omit<MintTokenMultisigParams, "api">) => {
     if (!this.isCreated()) throw new Error("MULTISIG_NOT_CREATED_YET");
 
     return mintTokenMultisig({ api: this.api, ...params });
@@ -410,7 +420,7 @@ class Multisig {
 
   private _burnTokenMultisig = ({
     ...params
-  }: Omit<BurnTokenMultisigParams, "api" | "id">) => {
+  }: Omit<BurnTokenMultisigParams, "api">) => {
     if (!this.isCreated()) throw new Error("MULTISIG_NOT_CREATED_YET");
 
     return burnTokenMultisig({ api: this.api, ...params });
@@ -418,7 +428,7 @@ class Multisig {
 
   private _getTokenBalanceMultisig = ({
     ...params
-  }: Omit<GetTokenBalanceMultisigParams, "api" | "id">) => {
+  }: Omit<GetTokenBalanceMultisigParams, "api">) => {
     if (!this.isCreated()) throw new Error("MULTISIG_NOT_CREATED_YET");
 
     return getTokenBalanceMultisig({ api: this.api, ...params });
@@ -434,7 +444,7 @@ class Multisig {
 
   private _createSubTokenMultisig = ({
     ...params
-  }: Omit<CreateSubTokenMultisigParams, "id" | "api">) => {
+  }: Omit<CreateSubTokenMultisigParams, "api">) => {
     if (!this.isCreated()) throw new Error("MULTISIG_NOT_CREATED_YET");
 
     return createSubTokenMultisig({
@@ -446,7 +456,7 @@ class Multisig {
 
   private _setSubTokenWeightMultisig = ({
     ...params
-  }: Omit<SetSubTokenWeightMultisigParams, "id" | "api">) => {
+  }: Omit<SetSubTokenWeightMultisigParams, "api">) => {
     if (!this.isCreated()) throw new Error("MULTISIG_NOT_CREATED_YET");
 
     return setSubTokenWeightMultisig({
@@ -458,7 +468,7 @@ class Multisig {
 
   private _getAssetWeightMultisig = ({
     ...params
-  }: Omit<GetAssetWeightMultisigParams, "id" | "api">) => {
+  }: Omit<GetAssetWeightMultisigParams, "api">) => {
     if (!this.isCreated()) throw new Error("MULTISIG_NOT_CREATED_YET");
 
     return getAssetWeightMultisig({
@@ -470,12 +480,23 @@ class Multisig {
 
   private _getSubAssetMultisig = ({
     ...params
-  }: Omit<GetSubAssetMultisigParams, "id" | "api">) => {
+  }: Omit<GetSubAssetMultisigParams, "api">) => {
     if (!this.isCreated()) throw new Error("MULTISIG_NOT_CREATED_YET");
 
     return getSubAssetMultisig({
       api: this.api,
 
+      ...params,
+    });
+  };
+
+  private _deriveMultisigAccount = ({
+    ...params
+  }: Omit<DeriveMultisigAccountParams, "api">) => {
+    if (!this.isCreated()) throw new Error("MULTISIG_NOT_CREATED_YET");
+
+    return deriveMultisigAccount({
+      api: this.api,
       ...params,
     });
   };

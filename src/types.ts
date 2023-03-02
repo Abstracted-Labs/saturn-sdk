@@ -86,6 +86,10 @@ type GetSubAssetMultisigParams = DefaultMultisigParams & {
   subAssetId: string;
 };
 
+type DeriveMultisigAccountParams = DefaultMultisigParams & {
+  id: string;
+};
+
 type OneOrPercent =
   | {
       zeroPoint: number;
@@ -114,4 +118,5 @@ export type {
   GetAssetWeightMultisigParams,
   GetSubAssetMultisigParams,
   OneOrPercent,
+  DeriveMultisigAccountParams,
 };
