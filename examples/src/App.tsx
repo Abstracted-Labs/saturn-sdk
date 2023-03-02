@@ -257,7 +257,7 @@ const App = () => {
 
     const externalWeight = e.currentTarget?.externalWeight.value;
 
-    const externalCallHash = e.currentTarget?.externalCallHash.value;
+    const externalCallData = e.currentTarget?.externalCallData.value;
 
     if (!api) return;
 
@@ -271,7 +271,7 @@ const App = () => {
       .sendExternalCall({
         destination: externalDestination,
         weight: externalWeight,
-        callHash: externalCallHash,
+        callData: externalCallData,
       })
       .signAndSend(
         selectedAccount.address,
@@ -631,16 +631,16 @@ const App = () => {
                       </div>
                       <div>
                         <label
-                          htmlFor="externalCallHash"
+                          htmlFor="externalCallData"
                           className="block text-sm font-medium text-neutral-700"
                         >
-                          Call Hash
+                          Call Data
                         </label>
                         <div className="mt-1">
                           <input
                             type="text"
                             name="text"
-                            id="externalCallHash"
+                            id="externalCallData"
                             className="block w-full rounded-md border-neutral-300 shadow-sm focus:border-neutral-500 focus:ring-neutral-500 sm:text-sm"
                           />
                         </div>

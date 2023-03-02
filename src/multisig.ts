@@ -373,19 +373,19 @@ class Multisig {
   public sendExternalCall = ({
     destination,
     weight,
-    callHash,
+    callData,
     metadata,
   }: {
     destination: string;
     weight: number;
-    callHash: `0x${string}`;
+    callData: `0x${string}`;
     metadata?: string;
   }) => {
     const calls = [
       this._sendExternalMultisigCall({
         destination,
         weight,
-        callHash,
+        callData,
       }),
     ];
 

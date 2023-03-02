@@ -96,7 +96,7 @@ type SendExternalMultisigCallParams = DefaultMultisigParams & {
   // TODO idk what this means
   weight: number;
   // TODO find way to parse this and generate the hash, not get the hash from the user
-  callHash: `0x${string}`;
+  callData: `0x${string}`;
 };
 
 type OneOrPercent =

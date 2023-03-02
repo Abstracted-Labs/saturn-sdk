@@ -4,9 +4,9 @@ const sendExternalMultisigCall = ({
   api,
   destination,
   weight,
-  callHash,
+  callData,
 }: SendExternalMultisigCallParams) => {
-  return api.tx.rings.sendCall(destination, weight, callHash);
+  return api.tx.rings.sendCall(destination, weight, callData);
 };
 
 export { sendExternalMultisigCall };
