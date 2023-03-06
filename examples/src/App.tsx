@@ -282,6 +282,43 @@ const App = () => {
       );
   };
 
+  const handleTransferExternalAssetCallSubmit = async (
+    e: FormEvent<HTMLFormElement>
+  ) => {
+    e.preventDefault();
+
+    const externalDestination = e.currentTarget?.externalDestination.value;
+
+    const externalAsset = e.currentTarget?.externalAsset.value;
+
+    const externalAmount = e.currentTarget?.externalAmount.value;
+
+    const externalTo = e.currentTarget?.externalTo.value;
+
+    if (!api) return;
+
+    if (!multisig) return;
+
+    if (!selectedAccount) return;
+
+    const injector = await web3FromAddress(selectedAccount.address);
+
+    multisig
+      .transferExternalAssetCall({
+        destination: externalDestination,
+        asset: externalAsset,
+        amount: externalAmount,
+        to: externalTo,
+      })
+      .signAndSend(
+        selectedAccount.address,
+        { signer: injector.signer },
+        ({ events }) => {
+          console.log(events.map((event) => event.toHuman()));
+        }
+      );
+  };
+
   const handleVoteSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
@@ -391,8 +428,10 @@ const App = () => {
   };
 
   useEffect(() => {
-    setup();
-  }, []);
+    if (!api) {
+      setup();
+    }
+  }, [api]);
 
   useEffect(() => {
     handleGetTNKRBalance();
@@ -654,6 +693,87 @@ const App = () => {
               </div>
             ) : null}
 
+            {multisig ? (
+              <div className="w-full flex flex-col gap-4 justify-center items-center">
+                <div className="border rounded-md p-4 w-full flex gap-4">
+                  <form
+                    className="flex w-full flex-col gap-4"
+                    onSubmit={handleTransferExternalAssetCallSubmit}
+                  >
+                    <div className="flex gap-4">
+                      <div>
+                        <label
+                          htmlFor="externalDestination"
+                          className="block text-sm font-medium text-neutral-700"
+                        >
+                          Destination
+                        </label>
+                        <div className="mt-1">
+                          <input
+                            type="text"
+                            name="text"
+                            id="externalDestination"
+                            className="block w-full rounded-md border-neutral-300 shadow-sm focus:border-neutral-500 focus:ring-neutral-500 sm:text-sm"
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <label
+                          htmlFor="externalAsset"
+                          className="block text-sm font-medium text-neutral-700"
+                        >
+                          Asset
+                        </label>
+                        <div className="mt-1">
+                          <input
+                            type="text"
+                            name="text"
+                            id="externalAsset"
+                            className="block w-full rounded-md border-neutral-300 shadow-sm focus:border-neutral-500 focus:ring-neutral-500 sm:text-sm"
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <label
+                          htmlFor="externalAmount"
+                          className="block text-sm font-medium text-neutral-700"
+                        >
+                          Amount
+                        </label>
+                        <div className="mt-1">
+                          <input
+                            type="text"
+                            name="text"
+                            id="externalAmount"
+                            className="block w-full rounded-md border-neutral-300 shadow-sm focus:border-neutral-500 focus:ring-neutral-500 sm:text-sm"
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <label
+                          htmlFor="externalTo"
+                          className="block text-sm font-medium text-neutral-700"
+                        >
+                          To
+                        </label>
+                        <div className="mt-1">
+                          <input
+                            type="text"
+                            name="text"
+                            id="externalTo"
+                            className="block w-full rounded-md border-neutral-300 shadow-sm focus:border-neutral-500 focus:ring-neutral-500 sm:text-sm"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                    <button className="shadow-sm py-2 px-4 rounded-md transition-all duration-300 bg-neutral-900 text-neutral-50 hover:shadow-lg hover:bg-neutral-800">
+                      Transfer External Asset
+                    </button>
+                  </form>
+                </div>
+              </div>
+            ) : null}
+
             {ranking ? (
               <div className="w-full flex flex-col gap-4 justify-center items-center">
                 <div className="border rounded-md p-4 w-full">
@@ -772,60 +892,6 @@ const App = () => {
               </div>
             ) : null}
 
-            {/* 
-            {multisig ? (
-              <div className="flex w-full gap-4 justify-center items-center p-4 border rounded-md">
-                <form
-                  className="flex w-full flex-col gap-4"
-                  onSubmit={handleTokensMintSubmit}
-                >
-                  <div>
-                    <label
-                      htmlFor="mintTokens"
-                      className="block text-sm font-medium text-neutral-700"
-                    >
-                      Quantity of Tokens to Mint
-                    </label>
-                    <div className="mt-1">
-                      <input
-                        type="text"
-                        name="text"
-                        id="mintTokens"
-                        className="block w-full rounded-md border-neutral-300 shadow-sm focus:border-neutral-500 focus:ring-neutral-500 sm:text-sm"
-                      />
-                    </div>
-                  </div>
-                  <button className="shadow-sm py-2 px-4 rounded-md transition-all duration-300 bg-neutral-900 text-neutral-50 hover:shadow-lg hover:bg-neutral-800">
-                    Mint
-                  </button>
-                </form>
-                <form
-                  className="flex w-full flex-col gap-4"
-                  onSubmit={handleTokensBurnSubmit}
-                >
-                  <div>
-                    <label
-                      htmlFor="burnTokens"
-                      className="block text-sm font-medium text-neutral-700"
-                    >
-                      Quantity of Tokens to Burn
-                    </label>
-                    <div className="mt-1">
-                      <input
-                        type="text"
-                        name="text"
-                        id="burnTokens"
-                        className="block w-full rounded-md border-neutral-300 shadow-sm focus:border-neutral-500 focus:ring-neutral-500 sm:text-sm"
-                      />
-                    </div>
-                  </div>
-                  <button className="shadow-sm py-2 px-4 rounded-md transition-all duration-300 bg-neutral-900 text-neutral-50 hover:shadow-lg hover:bg-neutral-800">
-                    Burn
-                  </button>
-                </form>
-              </div>
-            ) : null} */}
-
             {multisig ? (
               <div className="w-full flex flex-col gap-4 justify-center items-center">
                 <div className="border rounded-md p-4 w-full flex gap-4 flex-wrap">
@@ -859,21 +925,6 @@ const App = () => {
                   >
                     Get Ranking
                   </button>
-
-                  {/* <button
-                    className="shadow-sm py-2 px-4 rounded-md transition-all duration-300 bg-neutral-900 text-neutral-50 hover:shadow-lg hover:bg-neutral-800"
-                    onClick={handleCreateFakeCalls}
-                    disabled={!info}
-                  >
-                    Create Fake Call
-                  </button>
-
-                  <button
-                    className="shadow-sm py-2 px-4 rounded-md transition-all duration-300 bg-neutral-900 text-neutral-50 hover:shadow-lg hover:bg-neutral-800"
-                    onClick={handleGetAllTokenBalances}
-                  >
-                    Get All Balances
-                  </button> */}
                 </div>
               </div>
             ) : null}
