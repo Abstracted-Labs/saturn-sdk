@@ -19,6 +19,7 @@ import {
   getAssetWeightMultisig,
   getSubAssetMultisig,
   deriveMultisigAccount,
+  transferExternalAssetMultisigCall,
 } from "./rpc";
 import { sendExternalMultisigCall } from "./rpc/sendExternalMultisigCall";
 
@@ -39,6 +40,7 @@ import {
   GetPendingMultisigCallParams,
   DeriveMultisigAccountParams,
   SendExternalMultisigCallParams,
+  TransferExternalAssetMultisigCallParams,
 } from "./types";
 
 import { getSignAndSendCallback } from "./utils";
@@ -377,7 +379,7 @@ class Multisig {
     metadata,
   }: {
     destination: string;
-    weight: number;
+    weight: string;
     callData: `0x${string}`;
     metadata?: string;
   }) => {
@@ -386,6 +388,31 @@ class Multisig {
         destination,
         weight,
         callData,
+      }),
+    ];
+
+    return this.createCall({ calls, metadata });
+  };
+
+  public transferExternalAssetCall = ({
+    destination,
+    asset,
+    amount,
+    to,
+    metadata,
+  }: {
+    destination: string;
+    asset: string;
+    amount: string;
+    to: string;
+    metadata?: string;
+  }) => {
+    const calls = [
+      this._transferExternalAssetMultisigCall({
+        destination,
+        asset,
+        amount,
+        to,
       }),
     ];
 
@@ -533,6 +560,17 @@ class Multisig {
     if (!this.isCreated()) throw new Error("MULTISIG_NOT_CREATED_YET");
 
     return sendExternalMultisigCall({
+      api: this.api,
+      ...params,
+    });
+  };
+
+  private _transferExternalAssetMultisigCall = ({
+    ...params
+  }: Omit<TransferExternalAssetMultisigCallParams, "api">) => {
+    if (!this.isCreated()) throw new Error("MULTISIG_NOT_CREATED_YET");
+
+    return transferExternalAssetMultisigCall({
       api: this.api,
       ...params,
     });

@@ -16,3 +16,4 @@ export * from "./setSubTokenWeightMultisig";
 export * from "./getAssetWeightMultisig";
 export * from "./getSubAssetMultisig";
 export * from "./deriveMultisigAccount";
+export * from "./transferExternalAssetMultisigCall";
