@@ -469,11 +469,13 @@ class Multisig {
   };
 
   public getExternalAssets = () => {
-    const { types } = this.api.registry.knownTypes;
-
-    // TODO fix this
-    // @ts-ignore
-    const parachains = types.ParachainsAssets._enum;
+    const {
+      types: {
+        // TODO fix this
+        // @ts-ignore
+        ParachainsAssets: { _enum: parachains },
+      },
+    } = this.api.registry.knownTypes;
 
     let assets = {};
 
@@ -487,11 +489,13 @@ class Multisig {
   };
 
   public getParachains = () => {
-    const { types } = this.api.registry.knownTypes;
-
-    // TODO fix this
-    // @ts-ignore
-    const parachains = types.ParachainsAssets._enum;
+    const {
+      types: {
+        // TODO fix this
+        // @ts-ignore
+        ParachainsAssets: { _enum: parachains },
+      },
+    } = this.api.registry.knownTypes;
 
     const names = Object.keys(parachains);
 
@@ -645,12 +649,23 @@ class Multisig {
   };
 
   private _transferExternalAssetMultisigCall = ({
+    destination,
     ...params
   }: Omit<TransferExternalAssetMultisigCallParams, "api">) => {
     if (!this.isCreated()) throw new Error("MULTISIG_NOT_CREATED_YET");
+    const {
+      types: {
+        // TODO fix this
+        // @ts-ignore
+        ParachainsAssets: { _enum: parachains },
+      },
+    } = this.api.registry.knownTypes;
+
+    const realDestination = parachains[destination];
 
     return transferExternalAssetMultisigCall({
       api: this.api,
+      destination: realDestination,
       ...params,
     });
   };
