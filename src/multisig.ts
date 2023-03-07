@@ -486,6 +486,18 @@ class Multisig {
     return assets;
   };
 
+  public getParachains = () => {
+    const { types } = this.api.registry.knownTypes;
+
+    // TODO fix this
+    // @ts-ignore
+    const parachains = types.ParachainsAssets._enum;
+
+    const names = Object.keys(parachains);
+
+    return names;
+  };
+
   private _getMultisig = () => {
     if (!this.isCreated()) throw new Error("MULTISIG_NOT_CREATED_YET");
 

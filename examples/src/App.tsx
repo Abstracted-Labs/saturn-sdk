@@ -145,7 +145,9 @@ const App = () => {
 
     const assets = await multisig.getExternalAssets();
 
-    console.log(assets);
+    const parachains = await multisig.getParachains();
+
+    console.log({ assets, parachains });
 
     const MOCK_MULTISIG_ID = "0";
 
