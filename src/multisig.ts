@@ -45,35 +45,52 @@ import {
 
 import { getSignAndSendCallback } from "./utils";
 
-function setupTypes({ api }: { api: ApiPromise }) {
-    const parachainsTypeId = api.registry.getDefinition("TinkernetRuntimeRingsParachains");
-    const parachainsAssetsTypeId = api.registry.getDefinition("TinkernetRuntimeRingsParachainAssets");
+const PARACHAINS_KEY = "TinkernetRuntimeRingsParachains";
+const PARACHAINS_ASSETS = "TinkernetRuntimeRingsParachainAssets";
 
-    let parachainAssets = JSON.parse(api.registry.lookup.getTypeDef(parachainsAssetsTypeId).type);
+const setupTypes = ({ api }: { api: ApiPromise }) => {
+  const parachainsTypeId = api.registry.getDefinition(PARACHAINS_KEY);
+  const parachainsAssetsTypeId = api.registry.getDefinition(PARACHAINS_ASSETS);
 
-    let kt = api.registry.knownTypes;
-    kt.types = Object.assign({
-        Parachains: JSON.parse(api.registry.lookup.getTypeDef(parachainsTypeId).type),
-        ParachainsAssets: parachainAssets
-    }, kt.types);
+  const parachainAssets = JSON.parse(
+    api.registry.lookup.getTypeDef(parachainsAssetsTypeId).type
+  );
 
-    Object.keys(parachainAssets._enum).forEach((key, index) => {
-        let origValue = parachainAssets._enum[key];
+  const kt = api.registry.knownTypes;
 
-        let newValue = origValue.replace("TinkernetRuntimeRings", "");
-        parachainAssets._enum[key] = newValue;
+  kt.types = Object.assign(
+    {
+      Parachains: JSON.parse(
+        api.registry.lookup.getTypeDef(parachainsTypeId).type
+      ),
+      ParachainsAssets: parachainAssets,
+    },
+    kt.types
+  );
 
-        let typ = api.registry.lookup.getTypeDef(api.registry.getDefinition(origValue)).type;
+  for (const key in parachainAssets._enum) {
+    const origValue = parachainAssets._enum[key];
 
-        kt.types = Object.assign(JSON.parse(`{"${newValue}": ${typ}}`), kt.types);
-        });
+    const newValue = origValue.replace("TinkernetRuntimeRings", "");
 
-    kt.types = Object.assign({
-        ParachainsAssets: parachainAssets
-    }, kt.types);
+    parachainAssets._enum[key] = newValue;
 
-    api.registry.setKnownTypes(kt);
-}
+    const typ = api.registry.lookup.getTypeDef(
+      api.registry.getDefinition(origValue)
+    ).type;
+
+    kt.types = Object.assign(JSON.parse(`{"${newValue}": ${typ}}`), kt.types);
+  }
+
+  kt.types = Object.assign(
+    {
+      ParachainsAssets: parachainAssets,
+    },
+    kt.types
+  );
+
+  api.registry.setKnownTypes(kt);
+};
 
 class Multisig {
   readonly api: ApiPromise;
@@ -90,11 +107,11 @@ class Multisig {
 
     this.api = api;
 
-    setupTypes({api});
-
     if (id && !Number.isNaN(parseInt(id))) {
       this.id = id;
     }
+
+    setupTypes({ api });
   }
 
   public readonly isCreated = () => {
@@ -449,6 +466,24 @@ class Multisig {
     ];
 
     return this.createCall({ calls, metadata });
+  };
+
+  public getExternalAssets = () => {
+    const { types } = this.api.registry.knownTypes;
+
+    // TODO fix this
+    // @ts-ignore
+    const parachains = types.ParachainsAssets._enum;
+
+    let assets = {};
+
+    for (const key in parachains) {
+      // TODO fix this
+      // @ts-ignore
+      assets[key] = types[parachains[key]]._enum;
+    }
+
+    return assets;
   };
 
   private _getMultisig = () => {

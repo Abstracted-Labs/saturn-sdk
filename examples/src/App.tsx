@@ -143,6 +143,10 @@ const App = () => {
 
     const multisig = new Multisig({ api, id });
 
+    const assets = await multisig.getExternalAssets();
+
+    console.log(assets);
+
     const MOCK_MULTISIG_ID = "0";
 
     const deriveAccount0 = await multisig.deriveAccount({
