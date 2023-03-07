@@ -7,7 +7,11 @@ const transferExternalAssetMultisigCall = ({
   amount,
   to,
 }: TransferExternalAssetMultisigCallParams) => {
-  return api.tx.rings.transferAssets([destination, asset], amount, to);
+  return api.tx.rings.transferAssets(
+    { [destination]: { [asset]: null } },
+    amount,
+    to
+  );
 };
 
 export { transferExternalAssetMultisigCall };
