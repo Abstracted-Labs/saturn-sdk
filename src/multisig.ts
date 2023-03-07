@@ -45,6 +45,36 @@ import {
 
 import { getSignAndSendCallback } from "./utils";
 
+function setupTypes({ api }: { api: ApiPromise }) {
+    const parachainsTypeId = api.registry.getDefinition("TinkernetRuntimeRingsParachains");
+    const parachainsAssetsTypeId = api.registry.getDefinition("TinkernetRuntimeRingsParachainAssets");
+
+    let parachainAssets = JSON.parse(api.registry.lookup.getTypeDef(parachainsAssetsTypeId).type);
+
+    let kt = api.registry.knownTypes;
+    kt.types = Object.assign({
+        Parachains: JSON.parse(api.registry.lookup.getTypeDef(parachainsTypeId).type),
+        ParachainsAssets: parachainAssets
+    }, kt.types);
+
+    Object.keys(parachainAssets._enum).forEach((key, index) => {
+        let origValue = parachainAssets._enum[key];
+
+        let newValue = origValue.replace("TinkernetRuntimeRings", "");
+        parachainAssets._enum[key] = newValue;
+
+        let typ = api.registry.lookup.getTypeDef(api.registry.getDefinition(origValue)).type;
+
+        kt.types = Object.assign(JSON.parse(`{"${newValue}": ${typ}}`), kt.types);
+        });
+
+    kt.types = Object.assign({
+        ParachainsAssets: parachainAssets
+    }, kt.types);
+
+    api.registry.setKnownTypes(kt);
+}
+
 class Multisig {
   readonly api: ApiPromise;
   readonly id: string;
@@ -59,6 +89,8 @@ class Multisig {
     }
 
     this.api = api;
+
+    setupTypes({api});
 
     if (id && !Number.isNaN(parseInt(id))) {
       this.id = id;
