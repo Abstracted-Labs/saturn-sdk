@@ -1,4 +1,4 @@
-import { SendExternalMultisigCallParams } from "../types";
+import { SendExternalMultisigCallParams } from "../../../types";
 
 const sendExternalMultisigCall = ({
   api,

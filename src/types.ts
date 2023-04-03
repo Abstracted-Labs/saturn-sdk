@@ -44,10 +44,13 @@ type CreateMultisigCallParams = DefaultMultisigParams & {
 
 type VoteMultisigCallParams = DefaultMultisigParams & {
   callHash: `0x${string}`;
+  id: string;
+  aye: boolean;
 };
 
 type WithdrawVoteMultisigCallParams = DefaultMultisigParams & {
   callHash: `0x${string}`;
+  id: string;
 };
 
 type MintTokenMultisigParams = DefaultMultisigParams & {

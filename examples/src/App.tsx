@@ -32,12 +32,6 @@ const App = () => {
       balance: number;
     }[]
   >();
-  const [ranking, setRanking] = useState<
-    {
-      address: string;
-      amount: number;
-    }[]
-  >();
 
   const setup = async () => {
     const wsProvider = new WsProvider(host);
@@ -255,76 +249,76 @@ const App = () => {
     );
   };
 
-  const handleSendExternalCallSubmit = async (
-    e: FormEvent<HTMLFormElement>
-  ) => {
-    e.preventDefault();
+  // const handleSendExternalCallSubmit = async (
+  //   e: FormEvent<HTMLFormElement>
+  // ) => {
+  //   e.preventDefault();
 
-    const externalDestination = e.currentTarget?.externalDestination.value;
+  //   const externalDestination = e.currentTarget?.externalDestination.value;
 
-    const externalWeight = e.currentTarget?.externalWeight.value;
+  //   const externalWeight = e.currentTarget?.externalWeight.value;
 
-    const externalCallData = e.currentTarget?.externalCallData.value;
+  //   const externalCallData = e.currentTarget?.externalCallData.value;
 
-    if (!api) return;
+  //   if (!api) return;
 
-    if (!multisig) return;
+  //   if (!multisig) return;
 
-    if (!selectedAccount) return;
+  //   if (!selectedAccount) return;
 
-    const injector = await web3FromAddress(selectedAccount.address);
+  //   const injector = await web3FromAddress(selectedAccount.address);
 
-    multisig
-      .sendExternalCall({
-        destination: externalDestination,
-        weight: externalWeight,
-        callData: externalCallData,
-      })
-      .signAndSend(
-        selectedAccount.address,
-        { signer: injector.signer },
-        ({ events }) => {
-          console.log(events.map((event) => event.toHuman()));
-        }
-      );
-  };
+  //   multisig
+  //     .sendExternalCall({
+  //       destination: externalDestination,
+  //       weight: externalWeight,
+  //       callData: externalCallData,
+  //     })
+  //     .signAndSend(
+  //       selectedAccount.address,
+  //       { signer: injector.signer },
+  //       ({ events }) => {
+  //         console.log(events.map((event) => event.toHuman()));
+  //       }
+  //     );
+  // };
 
-  const handleTransferExternalAssetCallSubmit = async (
-    e: FormEvent<HTMLFormElement>
-  ) => {
-    e.preventDefault();
+  // const handleTransferExternalAssetCallSubmit = async (
+  //   e: FormEvent<HTMLFormElement>
+  // ) => {
+  //   e.preventDefault();
 
-    const externalDestination = e.currentTarget?.externalDestination.value;
+  //   const externalDestination = e.currentTarget?.externalDestination.value;
 
-    const externalAsset = e.currentTarget?.externalAsset.value;
+  //   const externalAsset = e.currentTarget?.externalAsset.value;
 
-    const externalAmount = e.currentTarget?.externalAmount.value;
+  //   const externalAmount = e.currentTarget?.externalAmount.value;
 
-    const externalTo = e.currentTarget?.externalTo.value;
+  //   const externalTo = e.currentTarget?.externalTo.value;
 
-    if (!api) return;
+  //   if (!api) return;
 
-    if (!multisig) return;
+  //   if (!multisig) return;
 
-    if (!selectedAccount) return;
+  //   if (!selectedAccount) return;
 
-    const injector = await web3FromAddress(selectedAccount.address);
+  //   const injector = await web3FromAddress(selectedAccount.address);
 
-    multisig
-      .transferExternalAssetCall({
-        destination: externalDestination,
-        asset: externalAsset,
-        amount: externalAmount,
-        to: externalTo,
-      })
-      .signAndSend(
-        selectedAccount.address,
-        { signer: injector.signer },
-        ({ events }) => {
-          console.log(events.map((event) => event.toHuman()));
-        }
-      );
-  };
+  //   multisig
+  //     .transferExternalAssetCall({
+  //       destination: externalDestination,
+  //       asset: externalAsset,
+  //       amount: externalAmount,
+  //       to: externalTo,
+  //     })
+  //     .signAndSend(
+  //       selectedAccount.address,
+  //       { signer: injector.signer },
+  //       ({ events }) => {
+  //         console.log(events.map((event) => event.toHuman()));
+  //       }
+  //     );
+  // };
 
   const handleVoteSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -342,7 +336,7 @@ const App = () => {
     const injector = await web3FromAddress(selectedAccount.address);
 
     multisig
-      .vote({ callHash: votingCallHash })
+      .vote({ callHash: votingCallHash, aye: true })
       .signAndSend(
         selectedAccount.address,
         { signer: injector.signer },
@@ -412,16 +406,6 @@ const App = () => {
     });
 
     console.log(pendingCall);
-  };
-
-  const handleGetRanking = async () => {
-    if (!multisig) return;
-
-    if (!selectedAccount) return;
-
-    const ranking = await multisig.createRanking();
-
-    setRanking(ranking);
   };
 
   const handleGetTNKRBalance = async () => {
@@ -635,7 +619,7 @@ const App = () => {
               </div>
             ) : null}
 
-            {multisig ? (
+            {/* {multisig ? (
               <div className="w-full flex flex-col gap-4 justify-center items-center">
                 <div className="border rounded-md p-4 w-full flex gap-4">
                   <form
@@ -698,9 +682,9 @@ const App = () => {
                   </form>
                 </div>
               </div>
-            ) : null}
+            ) : null} */}
 
-            {multisig ? (
+            {/* {multisig ? (
               <div className="w-full flex flex-col gap-4 justify-center items-center">
                 <div className="border rounded-md p-4 w-full flex gap-4">
                   <form
@@ -779,17 +763,7 @@ const App = () => {
                   </form>
                 </div>
               </div>
-            ) : null}
-
-            {ranking ? (
-              <div className="w-full flex flex-col gap-4 justify-center items-center">
-                <div className="border rounded-md p-4 w-full">
-                  <pre className="overflow-auto">
-                    {JSON.stringify(ranking, null, 2)}
-                  </pre>
-                </div>
-              </div>
-            ) : null}
+            ) : null} */}
 
             {openCalls ? (
               <div className="w-full flex flex-col gap-4 justify-center items-center">
@@ -880,7 +854,7 @@ const App = () => {
                         htmlFor="pendingCallHash"
                         className="block text-sm font-medium text-neutral-700"
                       >
-                        Call Hash
+                        Pending Call Hash
                       </label>
                       <div className="mt-1">
                         <input
@@ -925,12 +899,6 @@ const App = () => {
                     onClick={handleGetOpenCalls}
                   >
                     Get Open Calls
-                  </button>
-                  <button
-                    className="shadow-sm py-2 px-4 rounded-md transition-all duration-300 bg-neutral-900 text-neutral-50 hover:shadow-lg hover:bg-neutral-800"
-                    onClick={handleGetRanking}
-                  >
-                    Get Ranking
                   </button>
                 </div>
               </div>

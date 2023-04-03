@@ -1,4 +1,4 @@
-import type { GetTokenBalanceMultisigParams } from "../types";
+import type { GetTokenBalanceMultisigParams } from "../../../types";
 
 const getTokenBalanceMultisig = ({
   api,

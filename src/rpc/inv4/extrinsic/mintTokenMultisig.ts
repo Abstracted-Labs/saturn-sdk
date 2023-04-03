@@ -1,4 +1,4 @@
-import type { MintTokenMultisigParams } from "../types";
+import type { MintTokenMultisigParams } from "../../../types";
 
 const mintTokenMultisig = ({
   api,

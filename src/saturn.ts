@@ -13,11 +13,10 @@ import {
   mintTokenMultisig,
   burnTokenMultisig,
   getTokenBalanceMultisig,
-  getAllTokenBalancesMultisig,
   deriveMultisigAccount,
   transferExternalAssetMultisigCall,
+  sendExternalMultisigCall,
 } from "./rpc";
-import { sendExternalMultisigCall } from "./rpc/sendExternalMultisigCall";
 
 import {
   CreateMultisigParams,
@@ -36,8 +35,8 @@ import {
 
 import { getSignAndSendCallback } from "./utils";
 
-const PARACHAINS_KEY = "TinkernetRuntimeRingsParachains";
-const PARACHAINS_ASSETS = "TinkernetRuntimeRingsParachainAssets";
+// const PARACHAINS_KEY = "TinkernetRuntimeRingsParachains";
+// const PARACHAINS_ASSETS = "TinkernetRuntimeRingsParachainAssets";
 
 // const setupTypes = ({ api }: { api: ApiPromise }) => {
 //   const parachainsTypeId = api.registry.getDefinition(PARACHAINS_KEY);
@@ -322,9 +321,16 @@ class Saturn {
     return this.createCall({ calls, metadata });
   };
 
-  public vote = ({ callHash }: { callHash: `0x${string}` }) => {
+  public vote = ({
+    callHash,
+    aye,
+  }: {
+    callHash: `0x${string}`;
+    aye: boolean;
+  }) => {
     return this._voteMultisigCall({
       callHash,
+      aye,
     });
   };
 
@@ -346,22 +352,6 @@ class Saturn {
       calls,
       id: this.id,
     });
-  };
-
-  public createRanking = async () => {
-    const allTokenBalances = await this._getAllTokenBalancesMultisig();
-
-    const ranking = allTokenBalances
-      .map((tokenBalance) => {
-        const amount = tokenBalance[1].toPrimitive() as number;
-
-        const address = tokenBalance[0].args[1].toPrimitive() as string;
-
-        return { address, amount };
-      })
-      .sort((a, b) => b.amount - a.amount);
-
-    return ranking;
   };
 
   public computeVotes = async ({ callHash }: { callHash: `0x${string}` }) => {
@@ -507,10 +497,10 @@ class Saturn {
 
   private _voteMultisigCall = ({
     ...params
-  }: Omit<VoteMultisigCallParams, "api">) => {
+  }: Omit<VoteMultisigCallParams, "api" | "id">) => {
     if (!this.isCreated()) throw new Error("MULTISIG_NOT_CREATED_YET");
 
-    return voteMultisigCall({ api: this.api, ...params });
+    return voteMultisigCall({ api: this.api, id: this.id, ...params });
   };
 
   private _withdrawVoteMultisigCall = ({
@@ -518,7 +508,7 @@ class Saturn {
   }: Omit<WithdrawVoteMultisigCallParams, "api" | "id">) => {
     if (!this.isCreated()) throw new Error("MULTISIG_NOT_CREATED_YET");
 
-    return withdrawVoteMultisigCall({ api: this.api, ...params });
+    return withdrawVoteMultisigCall({ api: this.api, id: this.id, ...params });
   };
 
   private _mintTokenMultisig = ({
@@ -543,14 +533,6 @@ class Saturn {
     if (!this.isCreated()) throw new Error("MULTISIG_NOT_CREATED_YET");
 
     return getTokenBalanceMultisig({ api: this.api, ...params });
-  };
-
-  private _getAllTokenBalancesMultisig = () => {
-    if (!this.isCreated()) throw new Error("MULTISIG_NOT_CREATED_YET");
-
-    return getAllTokenBalancesMultisig({
-      api: this.api,
-    });
   };
 
   private _deriveMultisigAccount = ({

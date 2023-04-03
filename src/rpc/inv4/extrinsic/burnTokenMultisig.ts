@@ -1,4 +1,4 @@
-import type { BurnTokenMultisigParams } from "../types";
+import type { BurnTokenMultisigParams } from "../../../types";
 
 const burnTokenMultisig = ({
   api,

@@ -1,4 +1,4 @@
-import { GetPendingMultisigCallParams } from "../types";
+import { GetPendingMultisigCallParams } from "../../../types";
 
 const getPendingMultisigCall = ({
   api,

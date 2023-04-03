@@ -1,4 +1,4 @@
-import { TransferExternalAssetMultisigCallParams } from "../types";
+import { TransferExternalAssetMultisigCallParams } from "../../../types";
 
 const transferExternalAssetMultisigCall = ({
   api,
