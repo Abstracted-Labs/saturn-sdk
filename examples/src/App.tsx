@@ -25,7 +25,6 @@ const App = () => {
   const [openCalls, setOpenCalls] = useState<{}[]>();
   const [api, setApi] = useState<ApiPromise>();
   const [balance, setBalance] = useState<number>();
-  const [power, setPower] = useState<number>();
   const [allBalances, setAllBalances] = useState<
     {
       address: string;
@@ -158,95 +157,12 @@ const App = () => {
     setMultisig(multisig);
   };
 
-  const handleGetTokenBalance = async () => {
-    if (!multisig) return;
-
-    if (!selectedAccount) return;
-
-    const balance = await multisig.getBalance({
-      address: selectedAccount.address,
-    });
-
-    setBalance(balance);
-  };
-
-  const handleGetPower = async () => {
-    if (!multisig) return;
-
-    if (!selectedAccount) return;
-
-    const power = await multisig.getPower({
-      address: selectedAccount.address,
-    });
-
-    setPower(power);
-  };
-
   const handleGetOpenCalls = async () => {
     if (!multisig) return;
 
     const openCalls = await multisig.getOpenCalls();
 
     setOpenCalls(openCalls);
-  };
-
-  const handleNewMemberSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-
-    const newMember = e.currentTarget?.newMember.value;
-
-    if (!api) return;
-
-    if (!multisig) return;
-
-    if (!selectedAccount) return;
-
-    if (!newMember) return;
-
-    const UNIQUE_SUPPLY_AMOUNT = 1000000;
-
-    const injector = await web3FromAddress(selectedAccount.address);
-
-    multisig
-      .addMember({
-        address: newMember,
-        amount: UNIQUE_SUPPLY_AMOUNT,
-      })
-      .signAndSend(
-        selectedAccount.address,
-        { signer: injector.signer },
-        ({ events }) => {
-          console.log(events.map((event) => event.toHuman()));
-        }
-      );
-  };
-
-  const handleRemoveMemberSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-
-    const memberToRemove = e.currentTarget?.memberToRemove.value;
-
-    if (!api) return;
-
-    if (!multisig) return;
-
-    if (!selectedAccount) return;
-
-    if (!memberToRemove) return;
-
-    const injector = await web3FromAddress(selectedAccount.address);
-
-    const removeMemberCall = await multisig.removeMember({
-      address: memberToRemove,
-    });
-
-    removeMemberCall.signAndSend(
-      selectedAccount.address,
-      { signer: injector.signer },
-      ({ events }) => {
-        console.log(events.map((event) => event.toHuman()));
-      }
-    );
   };
 
   // const handleSendExternalCallSubmit = async (
@@ -372,24 +288,6 @@ const App = () => {
       );
   };
 
-  const handleComputeVotesSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-
-    const computeVotesCallHash = e.currentTarget?.computeVotesCallHash.value;
-
-    if (!multisig) return;
-
-    if (!selectedAccount) return;
-
-    if (!computeVotesCallHash) return;
-
-    const computedVotes = await multisig.computeVotes({
-      callHash: computeVotesCallHash,
-    });
-
-    console.log(computedVotes);
-  };
-
   const handleGetPendingCallSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
@@ -441,8 +339,7 @@ const App = () => {
             </button>
           </div>
         ) : null}
-      </>
-      <>
+
         {accounts.length > 0 && !selectedAccount ? (
           <div className="w-full flex justify-center items-center">
             <form
@@ -475,8 +372,7 @@ const App = () => {
             </form>
           </div>
         ) : null}
-      </>
-      <>
+
         {selectedAccount ? (
           <>
             {!multisig ? (
@@ -520,6 +416,7 @@ const App = () => {
                 </div>
               </>
             ) : null}
+
             {multisig ? (
               <div className="w-full flex flex-col gap-4 justify-center items-center">
                 <div className="border rounded-md p-4 w-full">
@@ -528,6 +425,7 @@ const App = () => {
                 </div>
               </div>
             ) : null}
+
             {details ? (
               <div className="w-full flex flex-col gap-4 justify-center items-center">
                 <div className="border rounded-md p-4 w-full">
@@ -537,19 +435,12 @@ const App = () => {
                 </div>
               </div>
             ) : null}
+
             {balance ? (
               <div className="w-full flex flex-col gap-4 justify-center items-center">
                 <div className="border rounded-md p-4 w-full">
                   <span className="font-bold">User Balance: </span>{" "}
                   <span>{balance.toString()}</span>
-                </div>
-              </div>
-            ) : null}
-            {power ? (
-              <div className="w-full flex flex-col gap-4 justify-center items-center">
-                <div className="border rounded-md p-4 w-full">
-                  <span className="font-bold">User Power: </span>{" "}
-                  <span>{power.toString()}</span>
                 </div>
               </div>
             ) : null}
@@ -560,61 +451,6 @@ const App = () => {
                   <pre className="overflow-auto">
                     {JSON.stringify(allBalances, null, 2)}
                   </pre>
-                </div>
-              </div>
-            ) : null}
-
-            {multisig ? (
-              <div className="w-full flex flex-col gap-4 justify-center items-center">
-                <div className="border rounded-md p-4 w-full flex gap-4">
-                  <form
-                    className="flex w-full flex-col gap-4"
-                    onSubmit={handleNewMemberSubmit}
-                  >
-                    <div>
-                      <label
-                        htmlFor="newMember"
-                        className="block text-sm font-medium text-neutral-700"
-                      >
-                        New Member
-                      </label>
-                      <div className="mt-1">
-                        <input
-                          type="text"
-                          name="text"
-                          id="newMember"
-                          className="block w-full rounded-md border-neutral-300 shadow-sm focus:border-neutral-500 focus:ring-neutral-500 sm:text-sm"
-                        />
-                      </div>
-                    </div>
-                    <button className="shadow-sm py-2 px-4 rounded-md transition-all duration-300 bg-neutral-900 text-neutral-50 hover:shadow-lg hover:bg-neutral-800">
-                      Add New Member
-                    </button>
-                  </form>
-                  <form
-                    className="flex w-full flex-col gap-4"
-                    onSubmit={handleRemoveMemberSubmit}
-                  >
-                    <div>
-                      <label
-                        htmlFor="memberToRemove"
-                        className="block text-sm font-medium text-neutral-700"
-                      >
-                        Remove Member
-                      </label>
-                      <div className="mt-1">
-                        <input
-                          type="text"
-                          name="text"
-                          id="memberToRemove"
-                          className="block w-full rounded-md border-neutral-300 shadow-sm focus:border-neutral-500 focus:ring-neutral-500 sm:text-sm"
-                        />
-                      </div>
-                    </div>
-                    <button className="shadow-sm py-2 px-4 rounded-md transition-all duration-300 bg-neutral-900 text-neutral-50 hover:shadow-lg hover:bg-neutral-800">
-                      Remove Member
-                    </button>
-                  </form>
                 </div>
               </div>
             ) : null}
@@ -823,30 +659,6 @@ const App = () => {
                   </form>
                   <form
                     className="flex w-full flex-col gap-4"
-                    onSubmit={handleComputeVotesSubmit}
-                  >
-                    <div>
-                      <label
-                        htmlFor="computeVotesCallHash"
-                        className="block text-sm font-medium text-neutral-700"
-                      >
-                        Compute Votes Call Hash
-                      </label>
-                      <div className="mt-1">
-                        <input
-                          type="text"
-                          name="text"
-                          id="computeVotesCallHash"
-                          className="block w-full rounded-md border-neutral-300 shadow-sm focus:border-neutral-500 focus:ring-neutral-500 sm:text-sm"
-                        />
-                      </div>
-                    </div>
-                    <button className="shadow-sm py-2 px-4 rounded-md transition-all duration-300 bg-neutral-900 text-neutral-50 hover:shadow-lg hover:bg-neutral-800">
-                      Compute Votes
-                    </button>
-                  </form>
-                  <form
-                    className="flex w-full flex-col gap-4"
                     onSubmit={handleGetPendingCallSubmit}
                   >
                     <div>
@@ -881,18 +693,6 @@ const App = () => {
                     onClick={handleGetMultisigDetails}
                   >
                     Get Details
-                  </button>
-                  <button
-                    className="shadow-sm py-2 px-4 rounded-md transition-all duration-300 bg-neutral-900 text-neutral-50 hover:shadow-lg hover:bg-neutral-800"
-                    onClick={handleGetTokenBalance}
-                  >
-                    Get User Balance
-                  </button>
-                  <button
-                    className="shadow-sm py-2 px-4 rounded-md transition-all duration-300 bg-neutral-900 text-neutral-50 hover:shadow-lg hover:bg-neutral-800"
-                    onClick={handleGetPower}
-                  >
-                    Get User Power
                   </button>
                   <button
                     className="shadow-sm py-2 px-4 rounded-md transition-all duration-300 bg-neutral-900 text-neutral-50 hover:shadow-lg hover:bg-neutral-800"

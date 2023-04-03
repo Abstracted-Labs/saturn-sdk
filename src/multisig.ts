@@ -12,7 +12,6 @@ import {
   withdrawVoteMultisigCall,
   mintTokenMultisig,
   burnTokenMultisig,
-  getTokenBalanceMultisig,
   deriveMultisigAccount,
   transferExternalAssetMultisigCall,
   sendExternalMultisigCall,
@@ -210,26 +209,6 @@ class Multisig {
     return supply;
   };
 
-  public getBalance = async ({ address }: { address: string }) => {
-    const balance = (
-      await this._getTokenBalanceMultisig({
-        address,
-      })
-    ).toPrimitive() as number;
-
-    return balance;
-  };
-
-  public getPower = async ({ address }: { address: string }) => {
-    const balance = await this.getBalance({ address });
-
-    const supply = await this.getSupply();
-
-    const power = (balance / supply) * 100;
-
-    return power;
-  };
-
   public getOpenCalls = async () => {
     const pendingCalls = await this._getPendingMultisigCalls();
 
@@ -282,45 +261,6 @@ class Multisig {
     };
   };
 
-  public addMember = ({
-    address,
-    amount,
-    metadata,
-  }: {
-    address: string;
-    amount: number;
-    token?: string;
-    metadata?: string;
-  }) => {
-    const calls = [
-      this._mintTokenMultisig({
-        address,
-        amount,
-      }),
-    ];
-
-    return this.createCall({ calls, metadata });
-  };
-
-  public removeMember = async ({
-    address,
-    metadata,
-  }: {
-    address: string;
-    metadata?: string;
-  }) => {
-    const balance = await this.getBalance({ address });
-
-    const calls = [
-      this._burnTokenMultisig({
-        address,
-        amount: balance,
-      }),
-    ];
-
-    return this.createCall({ calls, metadata });
-  };
-
   public vote = ({
     callHash,
     aye,
@@ -352,30 +292,6 @@ class Multisig {
       calls,
       id: this.id,
     });
-  };
-
-  public computeVotes = async ({ callHash }: { callHash: `0x${string}` }) => {
-    const pendingCalls = await this.getOpenCalls();
-
-    const call = pendingCalls.find((call) => call.callHash === callHash);
-
-    if (!call) throw new Error("CALL_NOT_FOUND_OR_ALREADY_EXECUTED");
-
-    let yes = 0;
-
-    for (const signer of call.signers) {
-      const power = await this.getPower({ address: signer });
-
-      yes += power;
-    }
-
-    const voters = call.signers;
-
-    return {
-      total: 100,
-      yes,
-      voters,
-    };
   };
 
   public deriveAccount = async ({ id }: { id: string }) => {
@@ -525,14 +441,6 @@ class Multisig {
     if (!this.isCreated()) throw new Error("MULTISIG_NOT_CREATED_YET");
 
     return burnTokenMultisig({ api: this.api, ...params });
-  };
-
-  private _getTokenBalanceMultisig = ({
-    ...params
-  }: Omit<GetTokenBalanceMultisigParams, "api">) => {
-    if (!this.isCreated()) throw new Error("MULTISIG_NOT_CREATED_YET");
-
-    return getTokenBalanceMultisig({ api: this.api, ...params });
   };
 
   private _deriveMultisigAccount = ({
