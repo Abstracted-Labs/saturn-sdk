@@ -8,7 +8,7 @@ import { InjectedAccountWithMeta } from "@polkadot/extension-inject/types";
 import { FormEvent, useEffect, useState } from "react";
 import { Multisig, MultisigTypes, MultisigRuntime } from "../../src";
 
-const host = "ws://127.0.0.1:2125";
+const host = "ws://127.0.0.1:9944";
 
 const App = () => {
   const [accounts, setAccounts] = useState<InjectedAccountWithMeta[]>([]);
@@ -16,11 +16,11 @@ const App = () => {
     useState<InjectedAccountWithMeta>();
   const [multisig, setMultisig] = useState<Multisig>();
   const [details, setDetails] = useState<{
-    supply: number;
+    account: string;
     metadata: string;
-    defaultPermission: boolean;
-    executionThreshold: number;
-    defaultAssetWeight: number;
+    minimumSupport: number;
+    requiredApproval: number;
+    frozenTokens: boolean;
   }>();
   const [openCalls, setOpenCalls] = useState<{}[]>();
   const [api, setApi] = useState<ApiPromise>();
@@ -119,7 +119,8 @@ const App = () => {
     const multisig = await M.create({
       address: selectedAccount.address,
       signer: injector.signer,
-      executionThreshold: 51,
+      minimumSupport: 51,
+      requiredApproval: 51,
     });
 
     setMultisig(multisig);
@@ -143,22 +144,22 @@ const App = () => {
 
     const multisig = new Multisig({ api, id });
 
-    const assets = await multisig.getExternalAssets();
+    // const assets = await multisig.getExternalAssets();
 
-    const parachains = await multisig.getParachains();
+    // const parachains = await multisig.getParachains();
 
-    console.log({ assets, parachains });
+    // console.log({ assets, parachains });
 
-    const MOCK_MULTISIG_ID = "0";
+    // const MOCK_MULTISIG_ID = "0";
 
-    const deriveAccount0 = await multisig.deriveAccount({
-      id: MOCK_MULTISIG_ID,
-    });
+    // const deriveAccount0 = await multisig.deriveAccount({
+    //   id: MOCK_MULTISIG_ID,
+    // });
 
-    console.log(
-      `DERIVED ACCOUNT FROM MULTISIG 0: `,
-      deriveAccount0.toPrimitive()
-    );
+    // console.log(
+    //   `DERIVED ACCOUNT FROM MULTISIG 0: `,
+    //   deriveAccount0.toPrimitive()
+    // );
 
     setMultisig(multisig);
   };

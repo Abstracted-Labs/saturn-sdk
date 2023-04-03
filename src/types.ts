@@ -31,11 +31,9 @@ type GetPendingMultisigCallParams = DefaultMultisigParams & {
 
 type CreateMultisigParams = {
   api: DefaultMultisigParams["api"];
-  defaultAssetWeight?: number;
-  defaultPermission?: boolean;
-  executionThreshold: number;
   metadata?: string;
-  assets?: string[];
+  minimumSupport: number;
+  requiredApproval: number;
 };
 
 type CreateMultisigCallParams = DefaultMultisigParams & {
@@ -66,26 +64,6 @@ type GetTokenBalanceMultisigParams = DefaultMultisigParams & {
   address: string;
 };
 
-type CreateSubTokenMultisigParams = DefaultMultisigParams & {
-  tokens: {
-    metadata: `0x${string}`;
-    address: string;
-  }[];
-};
-
-type SetSubTokenWeightMultisigParams = DefaultMultisigParams & {
-  subTokenId: string;
-  votingWeight: number;
-};
-
-type GetAssetWeightMultisigParams = DefaultMultisigParams & {
-  assetId: string;
-};
-
-type GetSubAssetMultisigParams = DefaultMultisigParams & {
-  subAssetId: string;
-};
-
 type DeriveMultisigAccountParams = DefaultMultisigParams & {
   id: string;
 };
@@ -103,16 +81,6 @@ type TransferExternalAssetMultisigCallParams = DefaultMultisigParams & {
   to: string;
 };
 
-type OneOrPercent =
-  | {
-      zeroPoint: number;
-      one: never;
-    }
-  | {
-      zeroPoint: never;
-      one: null;
-    };
-
 export type {
   DefaultMultisigParams,
   GetPendingMultisigCallsParams,
@@ -126,12 +94,7 @@ export type {
   MintTokenMultisigParams,
   BurnTokenMultisigParams,
   GetTokenBalanceMultisigParams,
-  CreateSubTokenMultisigParams,
-  SetSubTokenWeightMultisigParams,
-  GetAssetWeightMultisigParams,
-  GetSubAssetMultisigParams,
   DeriveMultisigAccountParams,
   SendExternalMultisigCallParams,
   TransferExternalAssetMultisigCallParams,
-  OneOrPercent,
 };

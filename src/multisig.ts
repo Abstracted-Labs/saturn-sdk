@@ -14,17 +14,12 @@ import {
   burnTokenMultisig,
   getTokenBalanceMultisig,
   getAllTokenBalancesMultisig,
-  createSubTokenMultisig,
-  setSubTokenWeightMultisig,
-  getAssetWeightMultisig,
-  getSubAssetMultisig,
   deriveMultisigAccount,
   transferExternalAssetMultisigCall,
 } from "./rpc";
 import { sendExternalMultisigCall } from "./rpc/sendExternalMultisigCall";
 
 import {
-  OneOrPercent,
   CreateMultisigParams,
   CreateMultisigCallParams,
   VoteMultisigCallParams,
@@ -33,10 +28,6 @@ import {
   MintTokenMultisigParams,
   BurnTokenMultisigParams,
   GetTokenBalanceMultisigParams,
-  CreateSubTokenMultisigParams,
-  SetSubTokenWeightMultisigParams,
-  GetAssetWeightMultisigParams,
-  GetSubAssetMultisigParams,
   GetPendingMultisigCallParams,
   DeriveMultisigAccountParams,
   SendExternalMultisigCallParams,
@@ -48,49 +39,49 @@ import { getSignAndSendCallback } from "./utils";
 const PARACHAINS_KEY = "TinkernetRuntimeRingsParachains";
 const PARACHAINS_ASSETS = "TinkernetRuntimeRingsParachainAssets";
 
-const setupTypes = ({ api }: { api: ApiPromise }) => {
-  const parachainsTypeId = api.registry.getDefinition(PARACHAINS_KEY);
-  const parachainsAssetsTypeId = api.registry.getDefinition(PARACHAINS_ASSETS);
+// const setupTypes = ({ api }: { api: ApiPromise }) => {
+//   const parachainsTypeId = api.registry.getDefinition(PARACHAINS_KEY);
+//   const parachainsAssetsTypeId = api.registry.getDefinition(PARACHAINS_ASSETS);
 
-  const parachainAssets = JSON.parse(
-    api.registry.lookup.getTypeDef(parachainsAssetsTypeId).type
-  );
+//   const parachainAssets = JSON.parse(
+//     api.registry.lookup.getTypeDef(parachainsAssetsTypeId).type
+//   );
 
-  const kt = api.registry.knownTypes;
+//   const kt = api.registry.knownTypes;
 
-  kt.types = Object.assign(
-    {
-      Parachains: JSON.parse(
-        api.registry.lookup.getTypeDef(parachainsTypeId).type
-      ),
-      ParachainsAssets: parachainAssets,
-    },
-    kt.types
-  );
+//   kt.types = Object.assign(
+//     {
+//       Parachains: JSON.parse(
+//         api.registry.lookup.getTypeDef(parachainsTypeId).type
+//       ),
+//       ParachainsAssets: parachainAssets,
+//     },
+//     kt.types
+//   );
 
-  for (const key in parachainAssets._enum) {
-    const origValue = parachainAssets._enum[key];
+//   for (const key in parachainAssets._enum) {
+//     const origValue = parachainAssets._enum[key];
 
-    const newValue = origValue.replace("TinkernetRuntimeRings", "");
+//     const newValue = origValue.replace("TinkernetRuntimeRings", "");
 
-    parachainAssets._enum[key] = newValue;
+//     parachainAssets._enum[key] = newValue;
 
-    const typ = api.registry.lookup.getTypeDef(
-      api.registry.getDefinition(origValue)
-    ).type;
+//     const typ = api.registry.lookup.getTypeDef(
+//       api.registry.getDefinition(origValue)
+//     ).type;
 
-    kt.types = Object.assign(JSON.parse(`{"${newValue}": ${typ}}`), kt.types);
-  }
+//     kt.types = Object.assign(JSON.parse(`{"${newValue}": ${typ}}`), kt.types);
+//   }
 
-  kt.types = Object.assign(
-    {
-      ParachainsAssets: parachainAssets,
-    },
-    kt.types
-  );
+//   kt.types = Object.assign(
+//     {
+//       ParachainsAssets: parachainAssets,
+//     },
+//     kt.types
+//   );
 
-  api.registry.setKnownTypes(kt);
-};
+//   api.registry.setKnownTypes(kt);
+// };
 
 class Multisig {
   readonly api: ApiPromise;
@@ -111,7 +102,7 @@ class Multisig {
       this.id = id;
     }
 
-    setupTypes({ api });
+    // setupTypes({ api });
   }
 
   public readonly isCreated = () => {
@@ -125,11 +116,9 @@ class Multisig {
   };
 
   public create = ({
-    defaultAssetWeight = 0,
-    defaultPermission = false,
-    executionThreshold,
     metadata,
-    assets,
+    minimumSupport,
+    requiredApproval,
     onDropped,
     onError,
     onExecuted,
@@ -148,11 +137,9 @@ class Multisig {
       try {
         createMultisig({
           api: this.api,
-          defaultAssetWeight,
-          defaultPermission,
-          executionThreshold,
           metadata,
-          assets,
+          minimumSupport,
+          requiredApproval,
         }).signAndSend(
           address,
           { signer },
@@ -164,7 +151,7 @@ class Multisig {
             onLoading,
             onSuccess: async (result) => {
               const rawEvent = result.events.find(
-                ({ event }) => event.method === "IPSCreated"
+                ({ event }) => event.method === "CoreCreated"
               );
 
               if (!rawEvent) {
@@ -198,28 +185,22 @@ class Multisig {
 
   public getDetails = async () => {
     const multisig = (await this._getMultisig()).toPrimitive() as {
-      supply: number;
+      account: string;
       metadata: string;
-      defaultPermission: boolean;
-      executionThreshold: OneOrPercent;
-      defaultAssetWeight: OneOrPercent;
+      minimumSupport: number;
+      requiredApproval: number;
+      frozenTokens: boolean;
     };
 
     if (!multisig) throw new Error("MULTISIG_DOES_NOT_EXIST");
 
-    const details = {
-      supply: multisig.supply,
+    return {
+      account: multisig.account,
       metadata: multisig.metadata,
-      defaultPermission: multisig.defaultPermission,
-      executionThreshold: multisig.executionThreshold.one
-        ? 100
-        : multisig.executionThreshold.zeroPoint,
-      defaultAssetWeight: multisig.defaultAssetWeight.one
-        ? 100
-        : multisig.defaultAssetWeight.zeroPoint,
+      minimumSupport: multisig.minimumSupport / 100,
+      requiredApproval: multisig.requiredApproval / 100,
+      frozenTokens: multisig.frozenTokens,
     };
-
-    return details;
   };
 
   public getSupply = async () => {
@@ -386,7 +367,6 @@ class Multisig {
 
   public computeVotes = async ({ callHash }: { callHash: `0x${string}` }) => {
     const pendingCalls = await this.getOpenCalls();
-    const details = await this.getDetails();
 
     const call = pendingCalls.find((call) => call.callHash === callHash);
 
@@ -402,14 +382,10 @@ class Multisig {
 
     const voters = call.signers;
 
-    const remaining = details.executionThreshold - yes;
-
     return {
       total: 100,
       yes,
-      remaining,
       voters,
-      executionThreshold: details.executionThreshold,
     };
   };
 
@@ -468,39 +444,39 @@ class Multisig {
     return this.createCall({ calls, metadata });
   };
 
-  public getExternalAssets = () => {
-    const {
-      types: {
-        // TODO fix this
-        // @ts-ignore
-        ParachainsAssets: { _enum: parachains },
-      },
-    } = this.api.registry.knownTypes;
+  // public getExternalAssets = () => {
+  //   const {
+  //     types: {
+  //       // TODO fix this
+  //       // @ts-ignore
+  //       ParachainsAssets: { _enum: parachains },
+  //     },
+  //   } = this.api.registry.knownTypes;
 
-    let assets = {};
+  //   let assets = {};
 
-    for (const key in parachains) {
-      // TODO fix this
-      // @ts-ignore
-      assets[key] = types[parachains[key]]._enum;
-    }
+  //   for (const key in parachains) {
+  //     // TODO fix this
+  //     // @ts-ignore
+  //     assets[key] = types[parachains[key]]._enum;
+  //   }
 
-    return assets;
-  };
+  //   return assets;
+  // };
 
-  public getParachains = () => {
-    const {
-      types: {
-        // TODO fix this
-        // @ts-ignore
-        ParachainsAssets: { _enum: parachains },
-      },
-    } = this.api.registry.knownTypes;
+  // public getParachains = () => {
+  //   const {
+  //     types: {
+  //       // TODO fix this
+  //       // @ts-ignore
+  //       ParachainsAssets: { _enum: parachains },
+  //     },
+  //   } = this.api.registry.knownTypes;
 
-    const names = Object.keys(parachains);
+  //   const names = Object.keys(parachains);
 
-    return names;
-  };
+  //   return names;
+  // };
 
   private _getMultisig = () => {
     if (!this.isCreated()) throw new Error("MULTISIG_NOT_CREATED_YET");
@@ -575,54 +551,6 @@ class Multisig {
 
     return getAllTokenBalancesMultisig({
       api: this.api,
-    });
-  };
-
-  private _createSubTokenMultisig = ({
-    ...params
-  }: Omit<CreateSubTokenMultisigParams, "api">) => {
-    if (!this.isCreated()) throw new Error("MULTISIG_NOT_CREATED_YET");
-
-    return createSubTokenMultisig({
-      api: this.api,
-
-      ...params,
-    });
-  };
-
-  private _setSubTokenWeightMultisig = ({
-    ...params
-  }: Omit<SetSubTokenWeightMultisigParams, "api">) => {
-    if (!this.isCreated()) throw new Error("MULTISIG_NOT_CREATED_YET");
-
-    return setSubTokenWeightMultisig({
-      api: this.api,
-
-      ...params,
-    });
-  };
-
-  private _getAssetWeightMultisig = ({
-    ...params
-  }: Omit<GetAssetWeightMultisigParams, "api">) => {
-    if (!this.isCreated()) throw new Error("MULTISIG_NOT_CREATED_YET");
-
-    return getAssetWeightMultisig({
-      api: this.api,
-
-      ...params,
-    });
-  };
-
-  private _getSubAssetMultisig = ({
-    ...params
-  }: Omit<GetSubAssetMultisigParams, "api">) => {
-    if (!this.isCreated()) throw new Error("MULTISIG_NOT_CREATED_YET");
-
-    return getSubAssetMultisig({
-      api: this.api,
-
-      ...params,
     });
   };
 
