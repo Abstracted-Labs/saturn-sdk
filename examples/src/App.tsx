@@ -502,7 +502,7 @@ const App = () => {
                     className="shadow-sm py-2 px-4 rounded-md transition-all duration-300 bg-neutral-900 text-neutral-50 hover:shadow-lg hover:bg-neutral-800"
                     onClick={handleCreateMultisig}
                   >
-                    Create Multisig
+                    Create Core
                   </button>
                 </div>
                 <div className="flex justify-center items-center">
@@ -530,7 +530,7 @@ const App = () => {
                       </div>
                     </div>
                     <button className="shadow-sm py-2 px-4 rounded-md transition-all duration-300 bg-neutral-900 text-neutral-50 hover:shadow-lg hover:bg-neutral-800">
-                      Get Multisig
+                      Get Core
                     </button>
                   </form>
                 </div>
