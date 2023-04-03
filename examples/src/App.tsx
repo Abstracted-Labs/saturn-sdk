@@ -6,7 +6,7 @@ import {
 } from "@polkadot/extension-dapp";
 import { InjectedAccountWithMeta } from "@polkadot/extension-inject/types";
 import { FormEvent, useEffect, useState } from "react";
-import { Saturn, MultisigTypes, MultisigRuntime } from "../../src";
+import { Multisig, MultisigTypes, MultisigRuntime } from "../../src";
 
 const host = "ws://127.0.0.1:9944";
 
@@ -14,7 +14,7 @@ const App = () => {
   const [accounts, setAccounts] = useState<InjectedAccountWithMeta[]>([]);
   const [selectedAccount, setSelectedAccount] =
     useState<InjectedAccountWithMeta>();
-  const [multisig, setMultisig] = useState<Saturn>();
+  const [multisig, setMultisig] = useState<Multisig>();
   const [details, setDetails] = useState<{
     account: string;
     metadata: string;
@@ -104,7 +104,7 @@ const App = () => {
 
     const injector = await web3FromAddress(selectedAccount.address);
 
-    const M = new Saturn({ api });
+    const M = new Multisig({ api });
 
     if (M.isCreated()) {
       setMultisig(M);
@@ -136,7 +136,7 @@ const App = () => {
 
     if (!api) return;
 
-    const multisig = new Saturn({ api, id });
+    const multisig = new Multisig({ api, id });
 
     // const assets = await multisig.getExternalAssets();
 
@@ -486,7 +486,7 @@ const App = () => {
                     className="shadow-sm py-2 px-4 rounded-md transition-all duration-300 bg-neutral-900 text-neutral-50 hover:shadow-lg hover:bg-neutral-800"
                     onClick={handleCreateMultisig}
                   >
-                    Create Core
+                    Create Multisig
                   </button>
                 </div>
                 <div className="flex justify-center items-center">
@@ -514,7 +514,7 @@ const App = () => {
                       </div>
                     </div>
                     <button className="shadow-sm py-2 px-4 rounded-md transition-all duration-300 bg-neutral-900 text-neutral-50 hover:shadow-lg hover:bg-neutral-800">
-                      Get Core
+                      Get Multisig
                     </button>
                   </form>
                 </div>

@@ -82,7 +82,7 @@ import { getSignAndSendCallback } from "./utils";
 //   api.registry.setKnownTypes(kt);
 // };
 
-class Saturn {
+class Multisig {
   readonly api: ApiPromise;
   readonly id: string;
 
@@ -131,7 +131,7 @@ class Saturn {
     GetSignAndSendCallbackParams & {
       address: string;
       signer: Signer;
-    }): Promise<Saturn> => {
+    }): Promise<Multisig> => {
     return new Promise((resolve, reject) => {
       try {
         createCore({
@@ -171,7 +171,7 @@ class Saturn {
 
               if (onSuccess) onSuccess(result);
 
-              resolve(new Saturn({ api: this.api, id: ipsId }));
+              resolve(new Multisig({ api: this.api, id: ipsId }));
             },
             onUnknown,
           })
@@ -609,4 +609,4 @@ const MultisigRuntime = {
   ],
 };
 
-export { Saturn, MultisigTypes, MultisigRuntime };
+export { Multisig, MultisigTypes, MultisigRuntime };
