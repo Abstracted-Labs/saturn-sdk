@@ -6,7 +6,7 @@ import {
 } from "@polkadot/extension-dapp";
 import { InjectedAccountWithMeta } from "@polkadot/extension-inject/types";
 import { FormEvent, useEffect, useState } from "react";
-import { Multisig, MultisigTypes, MultisigRuntime } from "../../src";
+import { Saturn, MultisigTypes, MultisigRuntime } from "../../src";
 
 const host = "ws://127.0.0.1:9944";
 
@@ -14,7 +14,7 @@ const App = () => {
   const [accounts, setAccounts] = useState<InjectedAccountWithMeta[]>([]);
   const [selectedAccount, setSelectedAccount] =
     useState<InjectedAccountWithMeta>();
-  const [multisig, setMultisig] = useState<Multisig>();
+  const [multisig, setMultisig] = useState<Saturn>();
   const [details, setDetails] = useState<{
     account: string;
     metadata: string;
@@ -110,7 +110,7 @@ const App = () => {
 
     const injector = await web3FromAddress(selectedAccount.address);
 
-    const M = new Multisig({ api });
+    const M = new Saturn({ api });
 
     if (M.isCreated()) {
       setMultisig(M);
@@ -142,7 +142,7 @@ const App = () => {
 
     if (!api) return;
 
-    const multisig = new Multisig({ api, id });
+    const multisig = new Saturn({ api, id });
 
     // const assets = await multisig.getExternalAssets();
 

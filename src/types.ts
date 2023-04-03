@@ -38,6 +38,7 @@ type CreateMultisigParams = {
 
 type CreateMultisigCallParams = DefaultMultisigParams & {
   metadata?: string;
+  id: string;
   calls: SubmittableExtrinsic<"promise", ISubmittableResult>[];
 };
 
@@ -52,7 +53,6 @@ type WithdrawVoteMultisigCallParams = DefaultMultisigParams & {
 type MintTokenMultisigParams = DefaultMultisigParams & {
   address: string;
   amount: number;
-  token: string | null;
 };
 
 type BurnTokenMultisigParams = DefaultMultisigParams & {

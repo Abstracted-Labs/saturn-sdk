@@ -3,7 +3,7 @@ import { SubmittableExtrinsic } from "@polkadot/api/types";
 import { ISubmittableResult, Signer } from "@polkadot/types/types";
 
 import {
-  createMultisig,
+  createCore,
   createMultisigCall,
   getMultisig,
   getPendingMultisigCalls,
@@ -83,7 +83,7 @@ const PARACHAINS_ASSETS = "TinkernetRuntimeRingsParachainAssets";
 //   api.registry.setKnownTypes(kt);
 // };
 
-class Multisig {
+class Saturn {
   readonly api: ApiPromise;
   readonly id: string;
 
@@ -132,10 +132,10 @@ class Multisig {
     GetSignAndSendCallbackParams & {
       address: string;
       signer: Signer;
-    }): Promise<Multisig> => {
+    }): Promise<Saturn> => {
     return new Promise((resolve, reject) => {
       try {
-        createMultisig({
+        createCore({
           api: this.api,
           metadata,
           minimumSupport,
@@ -172,7 +172,7 @@ class Multisig {
 
               if (onSuccess) onSuccess(result);
 
-              resolve(new Multisig({ api: this.api, id: ipsId }));
+              resolve(new Saturn({ api: this.api, id: ipsId }));
             },
             onUnknown,
           })
@@ -286,7 +286,6 @@ class Multisig {
   public addMember = ({
     address,
     amount,
-    token = null,
     metadata,
   }: {
     address: string;
@@ -298,7 +297,6 @@ class Multisig {
       this._mintTokenMultisig({
         address,
         amount,
-        token,
       }),
     ];
 
@@ -346,6 +344,7 @@ class Multisig {
     return this._createMultisigCall({
       metadata,
       calls,
+      id: this.id,
     });
   };
 
@@ -628,4 +627,4 @@ const MultisigRuntime = {
   ],
 };
 
-export { Multisig, MultisigTypes, MultisigRuntime };
+export { Saturn, MultisigTypes, MultisigRuntime };

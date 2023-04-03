@@ -1,6 +1,6 @@
 import type { CreateMultisigParams } from "../types";
 
-const createMultisig = ({
+const createCore = ({
   api,
   metadata,
   minimumSupport,
@@ -13,4 +13,4 @@ const createMultisig = ({
   );
 };
 
-export { createMultisig };
+export { createCore };
