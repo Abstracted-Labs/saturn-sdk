@@ -5,8 +5,10 @@ const sendExternalMultisigCall = ({
   destination,
   weight,
   callData,
+  feeAsset,
+  fee,
 }: SendExternalMultisigCallParams) => {
-  return api.tx.rings.sendCall(destination, weight, callData);
+    return api.tx.rings.sendCall(destination, weight, feeAsset, fee, callData);
 };
 
 export { sendExternalMultisigCall };

@@ -32,8 +32,9 @@ const App = () => {
     }[]
   >();
   const [chains, setChains] = useState<{ chain: string; assets: string[] }[]>([]);
-    const [dest, setDest] = useState<{ chain: string; assets: string[] }>({chain: "", assets: []});
-    const [asset, setAsset] = useState<string>("");
+    const [destTransfer, setDestTransfer] = useState<{ chain: string; assets: string[] }>({chain: "", assets: []});
+    const [assetTransfer, setAssetTransfer] = useState<string>("");
+    const [destCall, setDestCall] = useState<{ chain: string; assets: string[] }>({chain: "", assets: []});
 
   const setup = async () => {
     const wsProvider = new WsProvider(host);
@@ -99,24 +100,6 @@ const App = () => {
     if (!selectedAccount) return;
 
     setSelectedAccount(selectedAccount);
-
-      const multisig = new Multisig({ api, id: "0" });
-
-      // multisig
-      //     .transferExternalAssetCall({
-      //         asset: { "Basilisk": "KSM" },
-      //         amount: 1000000000000,
-      //         to: "5H3L3sTEjFuC9pQEHefkRoffpQdppgWzSPvdHL1Xf3PuZiRX",
-      //         feeAsset: { "Basilisk": "KSM" },
-      //         fee: 1000000000000,
-      //     })
-      //     .signAndSend(
-      //         selectedAccount.address,
-      //         { signer: injector.signer },
-      //         ({ events }) => {
-      //             console.log(events.map((event) => event.toHuman()));
-      //         }
-      //     );
   };
 
   const handleCreateMultisig = async () => {
@@ -182,7 +165,7 @@ const App = () => {
   ) => {
     e.preventDefault();
 
-    const externalDestination = e.currentTarget?.externalDestination.value;
+    const externalDestination = destCall.chain;
 
     const externalWeight = e.currentTarget?.externalWeight.value;
 
@@ -197,10 +180,12 @@ const App = () => {
     const injector = await web3FromAddress(selectedAccount.address);
 
     multisig
-      .sendExternalCall({
+      .sendXcmCall({
         destination: externalDestination,
         weight: externalWeight,
         callData: externalCallData,
+        feeAsset: JSON.parse(`{"${destCall.chain}": "${destCall.assets[0]}"}`),
+        fee: 20000000000000,
       })
       .signAndSend(
         selectedAccount.address,
@@ -216,8 +201,7 @@ const App = () => {
   ) => {
     e.preventDefault();
 
-      console.log(`{"${dest.chain}": "${asset}"}`)
-      const externalAsset = JSON.parse(`{"${dest.chain}": "${asset}"}`);
+    const externalAsset = JSON.parse(`{"${destTransfer.chain}": "${assetTransfer}"}`);
 
     const externalAmount = e.currentTarget?.externalAmount.value;
 
@@ -482,12 +466,15 @@ const App = () => {
                         Destination
                       </label>
                       <div className="mt-1">
-                        <input
-                          type="text"
-                          name="text"
-                          id="externalDestination"
-                          className="block w-full rounded-md border-neutral-300 shadow-sm focus:border-neutral-500 focus:ring-neutral-500 sm:text-sm"
-                        />
+                    <select value={destCall.chain} onChange={e => {
+                        const c = chains.find(i => i.chain == e.target.value);
+                        setDestCall(c);
+
+                    }}
+                className="block w-full rounded-md border-neutral-300 shadow-sm focus:border-neutral-500 focus:ring-neutral-500 sm:text-sm"
+                    >
+                    {chains.map(c => <option value={c.chain}>{c.chain}</option>)}
+                </select>
                       </div>
                     </div>
                     <div>
@@ -546,10 +533,10 @@ const App = () => {
                         Destination
                       </label>
                       <div className="mt-1">
-                    <select value={dest.chain} onChange={e => {
+                    <select value={destTransfer.chain} onChange={e => {
                         const c = chains.find(i => i.chain == e.target.value);
-                        setDest(c);
-                        setAsset(c.assets[0])
+                        setDestTransfer(c);
+                        setAssetTransfer(c.assets[0])
 
                     }}
                 className="block w-full rounded-md border-neutral-300 shadow-sm focus:border-neutral-500 focus:ring-neutral-500 sm:text-sm"
@@ -566,10 +553,10 @@ const App = () => {
                         Asset
                       </label>
                       <div className="mt-1">
-                    <select value={asset} onChange={e => setAsset(e.target.value)}
+                    <select value={assetTransfer} onChange={e => setAssetTransfer(e.target.value)}
                 className="block w-full rounded-md border-neutral-300 shadow-sm focus:border-neutral-500 focus:ring-neutral-500 sm:text-sm"
                     >
-                    {dest.assets.map(a => (<option value={a}>{a}</option>))}
+                    {destTransfer.assets.map(a => (<option value={a}>{a}</option>))}
                 </select>
                       </div>
                     </div>

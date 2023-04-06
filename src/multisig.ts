@@ -64,25 +64,6 @@ const setupTypes = ({ api }: { api: ApiPromise }): {
     kt.types
   );
 
-  // for (const key in parachainAssets._enum) {
-  //   const origValue = parachainAssets._enum[key];
-
-  //     console.log("o: ", origValue);
-
-  //   const newValue = origValue.replace("TinkernetRuntimeRings", "");
-
-  //   parachainAssets._enum[key] = newValue;
-
-  //   const typ = api.registry.lookup.getTypeDef(
-  //     api.registry.getDefinition(origValue) as any
-  //   ).type;
-
-  //     console.log("typ: ", JSON.parse(`{"${newValue}": ${typ}}`));
-  //     console.log("typs: ", JSON.parse(typ));
-
-  //   kt.types = Object.assign(JSON.parse(`{"${newValue}": ${typ}}`), kt.types);
-  // }
-
     let chains = [];
 
     for (const i in chainsEnum._enum) {
@@ -335,15 +316,19 @@ class Multisig {
     });
   };
 
-  public sendExternalCall = ({
+  public sendXcmCall = ({
     destination,
     weight,
     callData,
+    feeAsset,
+    fee,
     metadata,
   }: {
     destination: string;
     weight: string;
     callData: `0x${string}`;
+    feeAsset: string;
+    fee: string;
     metadata?: string;
   }) => {
     const calls = [
@@ -351,6 +336,8 @@ class Multisig {
         destination,
         weight,
         callData,
+        feeAsset,
+        fee,
       }),
     ];
 
