@@ -6,9 +6,9 @@ import {
 } from "@polkadot/extension-dapp";
 import { InjectedAccountWithMeta } from "@polkadot/extension-inject/types";
 import { FormEvent, useEffect, useState } from "react";
-import { Multisig, MultisigTypes, MultisigRuntime } from "../../src";
+import { Multisig, MultisigTypes, MultisigRuntime, Xcm } from "../../src";
 
-const host = "ws://127.0.0.1:2125";
+const host = "ws://127.0.0.1:9944";
 
 const App = () => {
   const [accounts, setAccounts] = useState<InjectedAccountWithMeta[]>([]);
@@ -31,6 +31,9 @@ const App = () => {
       balance: number;
     }[]
   >();
+  const [chains, setChains] = useState<{ chain: string; assets: string[] }[]>([]);
+    const [dest, setDest] = useState<{ chain: string; assets: string[] }>({chain: "", assets: []});
+    const [asset, setAsset] = useState<string>("");
 
   const setup = async () => {
     const wsProvider = new WsProvider(host);
@@ -50,6 +53,8 @@ const App = () => {
     console.log("CONNECTED TO", host, "AT", new Date(time));
 
     setApi(api);
+
+    setChains(new Xcm({ api }).chains);
   };
 
   const handleConnectAccounts = async () => {
@@ -94,6 +99,24 @@ const App = () => {
     if (!selectedAccount) return;
 
     setSelectedAccount(selectedAccount);
+
+      const multisig = new Multisig({ api, id: "0" });
+
+      // multisig
+      //     .transferExternalAssetCall({
+      //         asset: { "Basilisk": "KSM" },
+      //         amount: 1000000000000,
+      //         to: "5H3L3sTEjFuC9pQEHefkRoffpQdppgWzSPvdHL1Xf3PuZiRX",
+      //         feeAsset: { "Basilisk": "KSM" },
+      //         fee: 1000000000000,
+      //     })
+      //     .signAndSend(
+      //         selectedAccount.address,
+      //         { signer: injector.signer },
+      //         ({ events }) => {
+      //             console.log(events.map((event) => event.toHuman()));
+      //         }
+      //     );
   };
 
   const handleCreateMultisig = async () => {
@@ -193,9 +216,8 @@ const App = () => {
   ) => {
     e.preventDefault();
 
-    const externalDestination = e.currentTarget?.externalDestination.value;
-
-    const externalAsset = e.currentTarget?.externalAsset.value;
+      console.log(`{"${dest.chain}": "${asset}"}`)
+      const externalAsset = JSON.parse(`{"${dest.chain}": "${asset}"}`);
 
     const externalAmount = e.currentTarget?.externalAmount.value;
 
@@ -211,10 +233,11 @@ const App = () => {
 
     multisig
       .transferExternalAssetCall({
-        destination: externalDestination,
         asset: externalAsset,
         amount: externalAmount,
         to: externalTo,
+        feeAsset: externalAsset,
+        fee: 1000000000000
       })
       .signAndSend(
         selectedAccount.address,
@@ -523,12 +546,16 @@ const App = () => {
                         Destination
                       </label>
                       <div className="mt-1">
-                        <input
-                          type="text"
-                          name="text"
-                          id="externalDestination"
-                          className="block w-full rounded-md border-neutral-300 shadow-sm focus:border-neutral-500 focus:ring-neutral-500 sm:text-sm"
-                        />
+                    <select value={dest.chain} onChange={e => {
+                        const c = chains.find(i => i.chain == e.target.value);
+                        setDest(c);
+                        setAsset(c.assets[0])
+
+                    }}
+                className="block w-full rounded-md border-neutral-300 shadow-sm focus:border-neutral-500 focus:ring-neutral-500 sm:text-sm"
+                    >
+                    {chains.map(c => <option value={c.chain}>{c.chain}</option>)}
+                     </select>
                       </div>
                     </div>
                     <div>
@@ -539,12 +566,11 @@ const App = () => {
                         Asset
                       </label>
                       <div className="mt-1">
-                        <input
-                          type="text"
-                          name="text"
-                          id="externalAsset"
-                          className="block w-full rounded-md border-neutral-300 shadow-sm focus:border-neutral-500 focus:ring-neutral-500 sm:text-sm"
-                        />
+                    <select value={asset} onChange={e => setAsset(e.target.value)}
+                className="block w-full rounded-md border-neutral-300 shadow-sm focus:border-neutral-500 focus:ring-neutral-500 sm:text-sm"
+                    >
+                    {dest.assets.map(a => (<option value={a}>{a}</option>))}
+                </select>
                       </div>
                     </div>
                     <div>

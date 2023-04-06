@@ -2,15 +2,18 @@ import { TransferExternalAssetMultisigCallParams } from "../../../types";
 
 const transferExternalAssetMultisigCall = ({
   api,
-  destination,
   asset,
   amount,
   to,
+  feeAsset,
+  fee,
 }: TransferExternalAssetMultisigCallParams) => {
   return api.tx.rings.transferAssets(
-    { [destination]: { [asset]: null } },
+    asset,
     amount,
-    to
+    to,
+    feeAsset,
+    fee
   );
 };
 
