@@ -37,7 +37,10 @@ const PARACHAINS_ASSETS = "TinkernetRuntimeRingsChainAssets";
 const setupTypes = ({ api }: { api: ApiPromise }): {
     chains: {
         chain: string,
-        assets: string[]
+        assets: {
+            label: string,
+            registerType: Object,
+        }[]
     }[]
 } => {
   const parachainsTypeId = api.registry.getDefinition(
@@ -80,7 +83,8 @@ const setupTypes = ({ api }: { api: ApiPromise }): {
         kt.types = Object.assign(JSON.parse(`{"${newValue}": ${typ}}`), kt.types);
 
         const assets = (Array.isArray(JSON.parse(typ)._enum) ? JSON.parse(typ)._enum : Object.keys(JSON.parse(typ)._enum))
-                           .filter(item => item != "Custom");
+                           .filter(item => item != "Custom")
+                           .map(item => ({ label: item, registerType: JSON.parse(`{"${key}": "${item}"}`) }));
 
         chains.push({ chain: key, assets });
     }
@@ -304,14 +308,14 @@ class Multisig {
 
   public createCall = ({
     metadata,
-    calls,
+    call,
   }: {
     metadata?: string;
-    calls: SubmittableExtrinsic<"promise", ISubmittableResult>[];
+    call: SubmittableExtrinsic<"promise", ISubmittableResult>;
   }) => {
     return this._createMultisigCall({
       metadata,
-      calls,
+      call,
       id: this.id,
     });
   };
@@ -331,20 +335,18 @@ class Multisig {
     fee: string;
     metadata?: string;
   }) => {
-    const calls = [
-      this._sendExternalMultisigCall({
+    const call = this._sendExternalMultisigCall({
         destination,
         weight,
         callData,
         feeAsset,
         fee,
-      }),
-    ];
+      });
 
-    return this.createCall({ calls, metadata });
+    return this.createCall({ call, metadata });
   };
 
-  public transferExternalAssetCall = ({
+  public transferXcmAsset = ({
     asset,
     amount,
     to,
@@ -359,17 +361,15 @@ class Multisig {
     fee: string,
     metadata?: string;
   }) => {
-    const calls = [
-      this._transferExternalAssetMultisigCall({
+    const call = this._transferExternalAssetMultisigCall({
         asset,
         amount,
         to,
         feeAsset,
         fee
-      }),
-    ];
+      });
 
-    return this.createCall({ calls, metadata });
+    return this.createCall({ call, metadata });
   };
 
   public getExternalAssets = () => {

@@ -4,11 +4,17 @@ import {
   web3Enable,
   web3FromAddress,
 } from "@polkadot/extension-dapp";
+import { hexToU8a } from "@polkadot/util";
+import { GenericCall as Call, GenericExtrinsic as Extrinsic } from "@polkadot/types"
 import { InjectedAccountWithMeta } from "@polkadot/extension-inject/types";
 import { FormEvent, useEffect, useState } from "react";
 import { Multisig, MultisigTypes, MultisigRuntime, Xcm } from "../../src";
 
 const host = "ws://127.0.0.1:9944";
+
+const endpoints = {
+    Kusama: "ws://127.0.0.1:9955",
+};
 
 const App = () => {
   const [accounts, setAccounts] = useState<InjectedAccountWithMeta[]>([]);
@@ -31,10 +37,10 @@ const App = () => {
       balance: number;
     }[]
   >();
-  const [chains, setChains] = useState<{ chain: string; assets: string[] }[]>([]);
-    const [destTransfer, setDestTransfer] = useState<{ chain: string; assets: string[] }>({chain: "", assets: []});
-    const [assetTransfer, setAssetTransfer] = useState<string>("");
-    const [destCall, setDestCall] = useState<{ chain: string; assets: string[] }>({chain: "", assets: []});
+    const [chains, setChains] = useState<{ chain: string; assets: {label: string, registerType: string}[] }[]>([]);
+    const [destTransfer, setDestTransfer] = useState<{ chain: string; assets: {label: string, registerType: string}[] }>({chain: "", assets: []});
+    const [assetTransfer, setAssetTransfer] = useState<{label: string, registerType: string}>({label: "", registerType: ""});
+    const [destCall, setDestCall] = useState<{ chain: string; assets: {label: string, registerType: string}[] }>({chain: "", assets: []});
 
   const setup = async () => {
     const wsProvider = new WsProvider(host);
@@ -171,21 +177,33 @@ const App = () => {
 
     const externalCallData = e.currentTarget?.externalCallData.value;
 
-    if (!api) return;
+      if (!api) return;
 
-    if (!multisig) return;
+      if (!multisig) return;
 
-    if (!selectedAccount) return;
+      if (!selectedAccount) return;
+
+      const destProvider = new WsProvider(endpoints[externalDestination]);
+
+      const destApi = await ApiPromise.create({ provider: destProvider });
+
+      const call = new Call(api.registry, externalCallData);
+
+      const ext = new Extrinsic(api.registry, new Call(api.registry, externalCallData));
+
+      const fee = (await destApi.tx.system.remarkWithEvent("test").paymentInfo(selectedAccount.address));
+
+      console.log("fee: ",fee);
 
     const injector = await web3FromAddress(selectedAccount.address);
 
     multisig
       .sendXcmCall({
         destination: externalDestination,
-        weight: externalWeight,
+        weight: fee.weight.refTime,
         callData: externalCallData,
-        feeAsset: JSON.parse(`{"${destCall.chain}": "${destCall.assets[0]}"}`),
-        fee: 20000000000000,
+        feeAsset: destCall.assets[0].registerType,
+        fee: fee.partialFee,
       })
       .signAndSend(
         selectedAccount.address,
@@ -201,7 +219,7 @@ const App = () => {
   ) => {
     e.preventDefault();
 
-    const externalAsset = JSON.parse(`{"${destTransfer.chain}": "${assetTransfer}"}`);
+    const externalAsset = assetTransfer.registerType;
 
     const externalAmount = e.currentTarget?.externalAmount.value;
 
@@ -216,7 +234,7 @@ const App = () => {
     const injector = await web3FromAddress(selectedAccount.address);
 
     multisig
-      .transferExternalAssetCall({
+      .transferXcmAsset({
         asset: externalAsset,
         amount: externalAmount,
         to: externalTo,
@@ -553,10 +571,14 @@ const App = () => {
                         Asset
                       </label>
                       <div className="mt-1">
-                    <select value={assetTransfer} onChange={e => setAssetTransfer(e.target.value)}
+                    <select value={assetTransfer.label} onChange={e => {
+                        const a = destTransfer.assets.find(i => i.label == e.target.value);
+                        setAssetTransfer(a)
+
+                    }}
                 className="block w-full rounded-md border-neutral-300 shadow-sm focus:border-neutral-500 focus:ring-neutral-500 sm:text-sm"
                     >
-                    {destTransfer.assets.map(a => (<option value={a}>{a}</option>))}
+                    {destTransfer.assets.map(a => (<option value={a.label}>{a.label}</option>))}
                 </select>
                       </div>
                     </div>
