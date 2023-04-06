@@ -34,7 +34,12 @@ import { getSignAndSendCallback } from "./utils";
 const PARACHAINS_KEY = "TinkernetRuntimeRingsChains";
 const PARACHAINS_ASSETS = "TinkernetRuntimeRingsChainAssets";
 
-const setupTypes = ({ api }: { api: ApiPromise }) => {
+const setupTypes = ({ api }: { api: ApiPromise }): {
+    chains: {
+        chain: string,
+        assets: string[]
+    }[]
+} => {
   const parachainsTypeId = api.registry.getDefinition(
     PARACHAINS_KEY
   ) as `Lookup${number}`;
@@ -47,31 +52,57 @@ const setupTypes = ({ api }: { api: ApiPromise }) => {
     api.registry.lookup.getTypeDef(parachainsAssetsTypeId).type
   );
 
+  const chainsEnum = JSON.parse(api.registry.lookup.getTypeDef(parachainsTypeId).type);
+
   const kt = api.registry.knownTypes;
 
   kt.types = Object.assign(
     {
-      Parachains: JSON.parse(
-        api.registry.lookup.getTypeDef(parachainsTypeId).type
-      ),
+      Parachains: chainsEnum,
       ParachainsAssets: parachainAssets,
     },
     kt.types
   );
 
-  for (const key in parachainAssets._enum) {
-    const origValue = parachainAssets._enum[key];
+  // for (const key in parachainAssets._enum) {
+  //   const origValue = parachainAssets._enum[key];
 
-    const newValue = origValue.replace("TinkernetRuntimeRings", "");
+  //     console.log("o: ", origValue);
 
-    parachainAssets._enum[key] = newValue;
+  //   const newValue = origValue.replace("TinkernetRuntimeRings", "");
 
-    const typ = api.registry.lookup.getTypeDef(
-      api.registry.getDefinition(origValue) as any
-    ).type;
+  //   parachainAssets._enum[key] = newValue;
 
-    kt.types = Object.assign(JSON.parse(`{"${newValue}": ${typ}}`), kt.types);
-  }
+  //   const typ = api.registry.lookup.getTypeDef(
+  //     api.registry.getDefinition(origValue) as any
+  //   ).type;
+
+  //     console.log("typ: ", JSON.parse(`{"${newValue}": ${typ}}`));
+  //     console.log("typs: ", JSON.parse(typ));
+
+  //   kt.types = Object.assign(JSON.parse(`{"${newValue}": ${typ}}`), kt.types);
+  // }
+
+    let chains = [];
+
+    for (const i in chainsEnum._enum) {
+        const key = chainsEnum._enum[i];
+
+        const newValue = "TinkernetRuntimeRings" + key + key + "Assets";
+
+        parachainAssets._enum[key] = newValue;
+
+        const typ = api.registry.lookup.getTypeDef(
+            api.registry.getDefinition(newValue) as any
+        ).type;
+
+        kt.types = Object.assign(JSON.parse(`{"${newValue}": ${typ}}`), kt.types);
+
+        const assets = (Array.isArray(JSON.parse(typ)._enum) ? JSON.parse(typ)._enum : Object.keys(JSON.parse(typ)._enum))
+                           .filter(item => item != "Custom");
+
+        chains.push({ chain: key, assets });
+    }
 
   kt.types = Object.assign(
     {
@@ -81,7 +112,17 @@ const setupTypes = ({ api }: { api: ApiPromise }) => {
   );
 
   api.registry.setKnownTypes(kt);
+
+  return { chains }
 };
+
+class Xcm {
+    readonly chains: string[];
+
+    constructor({ api }: { api: ApiPromise }) {
+        this.chains = setupTypes({ api }).chains;
+    }
+}
 
 class Multisig {
   readonly api: ApiPromise;
@@ -101,8 +142,6 @@ class Multisig {
     if (id && !Number.isNaN(parseInt(id))) {
       this.id = id;
     }
-
-    setupTypes({ api });
   }
 
   public readonly isCreated = () => {
@@ -319,24 +358,27 @@ class Multisig {
   };
 
   public transferExternalAssetCall = ({
-    destination,
     asset,
     amount,
     to,
+    feeAsset,
+    fee,
     metadata,
   }: {
-    destination: string;
     asset: string;
     amount: string;
     to: string;
+    feeAsset: string,
+    fee: string,
     metadata?: string;
   }) => {
     const calls = [
       this._transferExternalAssetMultisigCall({
-        destination,
         asset,
         amount,
         to,
+        feeAsset,
+        fee
       }),
     ];
 
@@ -496,4 +538,4 @@ const MultisigRuntime = {
   ],
 };
 
-export { Multisig, MultisigTypes, MultisigRuntime };
+export { Multisig, MultisigTypes, MultisigRuntime, Xcm };
