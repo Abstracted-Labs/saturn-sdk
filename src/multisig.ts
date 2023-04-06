@@ -12,7 +12,6 @@ import {
   withdrawVoteMultisigCall,
   mintTokenMultisig,
   burnTokenMultisig,
-  deriveMultisigAccount,
   transferExternalAssetMultisigCall,
   sendExternalMultisigCall,
 } from "./rpc";
@@ -25,61 +24,64 @@ import {
   GetSignAndSendCallbackParams,
   MintTokenMultisigParams,
   BurnTokenMultisigParams,
-  GetTokenBalanceMultisigParams,
   GetPendingMultisigCallParams,
-  DeriveMultisigAccountParams,
   SendExternalMultisigCallParams,
   TransferExternalAssetMultisigCallParams,
 } from "./types";
 
 import { getSignAndSendCallback } from "./utils";
 
-// const PARACHAINS_KEY = "TinkernetRuntimeRingsParachains";
-// const PARACHAINS_ASSETS = "TinkernetRuntimeRingsParachainAssets";
+const PARACHAINS_KEY = "TinkernetRuntimeRingsChains";
+const PARACHAINS_ASSETS = "TinkernetRuntimeRingsChainAssets";
 
-// const setupTypes = ({ api }: { api: ApiPromise }) => {
-//   const parachainsTypeId = api.registry.getDefinition(PARACHAINS_KEY);
-//   const parachainsAssetsTypeId = api.registry.getDefinition(PARACHAINS_ASSETS);
+const setupTypes = ({ api }: { api: ApiPromise }) => {
+  const parachainsTypeId = api.registry.getDefinition(
+    PARACHAINS_KEY
+  ) as `Lookup${number}`;
 
-//   const parachainAssets = JSON.parse(
-//     api.registry.lookup.getTypeDef(parachainsAssetsTypeId).type
-//   );
+  const parachainsAssetsTypeId = api.registry.getDefinition(
+    PARACHAINS_ASSETS
+  ) as `Lookup${number}`;
 
-//   const kt = api.registry.knownTypes;
+  const parachainAssets = JSON.parse(
+    api.registry.lookup.getTypeDef(parachainsAssetsTypeId).type
+  );
 
-//   kt.types = Object.assign(
-//     {
-//       Parachains: JSON.parse(
-//         api.registry.lookup.getTypeDef(parachainsTypeId).type
-//       ),
-//       ParachainsAssets: parachainAssets,
-//     },
-//     kt.types
-//   );
+  const kt = api.registry.knownTypes;
 
-//   for (const key in parachainAssets._enum) {
-//     const origValue = parachainAssets._enum[key];
+  kt.types = Object.assign(
+    {
+      Parachains: JSON.parse(
+        api.registry.lookup.getTypeDef(parachainsTypeId).type
+      ),
+      ParachainsAssets: parachainAssets,
+    },
+    kt.types
+  );
 
-//     const newValue = origValue.replace("TinkernetRuntimeRings", "");
+  for (const key in parachainAssets._enum) {
+    const origValue = parachainAssets._enum[key];
 
-//     parachainAssets._enum[key] = newValue;
+    const newValue = origValue.replace("TinkernetRuntimeRings", "");
 
-//     const typ = api.registry.lookup.getTypeDef(
-//       api.registry.getDefinition(origValue)
-//     ).type;
+    parachainAssets._enum[key] = newValue;
 
-//     kt.types = Object.assign(JSON.parse(`{"${newValue}": ${typ}}`), kt.types);
-//   }
+    const typ = api.registry.lookup.getTypeDef(
+      api.registry.getDefinition(origValue) as any
+    ).type;
 
-//   kt.types = Object.assign(
-//     {
-//       ParachainsAssets: parachainAssets,
-//     },
-//     kt.types
-//   );
+    kt.types = Object.assign(JSON.parse(`{"${newValue}": ${typ}}`), kt.types);
+  }
 
-//   api.registry.setKnownTypes(kt);
-// };
+  kt.types = Object.assign(
+    {
+      ParachainsAssets: parachainAssets,
+    },
+    kt.types
+  );
+
+  api.registry.setKnownTypes(kt);
+};
 
 class Multisig {
   readonly api: ApiPromise;
@@ -100,7 +102,7 @@ class Multisig {
       this.id = id;
     }
 
-    // setupTypes({ api });
+    setupTypes({ api });
   }
 
   public readonly isCreated = () => {
@@ -294,14 +296,6 @@ class Multisig {
     });
   };
 
-  public deriveAccount = async ({ id }: { id: string }) => {
-    const derivedAddress = await this._deriveMultisigAccount({
-      id,
-    });
-
-    return derivedAddress;
-  };
-
   public sendExternalCall = ({
     destination,
     weight,
@@ -349,39 +343,35 @@ class Multisig {
     return this.createCall({ calls, metadata });
   };
 
-  // public getExternalAssets = () => {
-  //   const {
-  //     types: {
-  //       // TODO fix this
-  //       // @ts-ignore
-  //       ParachainsAssets: { _enum: parachains },
-  //     },
-  //   } = this.api.registry.knownTypes;
+  public getExternalAssets = () => {
+    const { types } = this.api.registry.knownTypes;
 
-  //   let assets = {};
+    // TODO fix this
+    // @ts-ignore
+    const parachains = types.ParachainsAssets._enum;
 
-  //   for (const key in parachains) {
-  //     // TODO fix this
-  //     // @ts-ignore
-  //     assets[key] = types[parachains[key]]._enum;
-  //   }
+    let assets = {};
 
-  //   return assets;
-  // };
+    for (const key in parachains) {
+      // TODO fix this
+      // @ts-ignore
+      assets[key] = types[parachains[key]]._enum;
+    }
 
-  // public getParachains = () => {
-  //   const {
-  //     types: {
-  //       // TODO fix this
-  //       // @ts-ignore
-  //       ParachainsAssets: { _enum: parachains },
-  //     },
-  //   } = this.api.registry.knownTypes;
+    return assets;
+  };
 
-  //   const names = Object.keys(parachains);
+  public getParachains = () => {
+    const { types } = this.api.registry.knownTypes;
 
-  //   return names;
-  // };
+    // TODO fix this
+    // @ts-ignore
+    const parachains = types.ParachainsAssets._enum;
+
+    const names = Object.keys(parachains);
+
+    return names;
+  };
 
   private _getMultisig = () => {
     if (!this.isCreated()) throw new Error("MULTISIG_NOT_CREATED_YET");
@@ -441,17 +431,6 @@ class Multisig {
     if (!this.isCreated()) throw new Error("MULTISIG_NOT_CREATED_YET");
 
     return burnTokenMultisig({ api: this.api, ...params });
-  };
-
-  private _deriveMultisigAccount = ({
-    ...params
-  }: Omit<DeriveMultisigAccountParams, "api">) => {
-    if (!this.isCreated()) throw new Error("MULTISIG_NOT_CREATED_YET");
-
-    return deriveMultisigAccount({
-      api: this.api,
-      ...params,
-    });
   };
 
   private _sendExternalMultisigCall = ({
