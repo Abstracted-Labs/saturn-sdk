@@ -63,14 +63,6 @@ type BurnTokenMultisigParams = DefaultMultisigParams & {
   amount: number;
 };
 
-type GetTokenBalanceMultisigParams = DefaultMultisigParams & {
-  address: string;
-};
-
-type DeriveMultisigAccountParams = DefaultMultisigParams & {
-  id: string;
-};
-
 type SendExternalMultisigCallParams = DefaultMultisigParams & {
   destination: string;
   weight: string;
@@ -96,8 +88,6 @@ export type {
   WithdrawVoteMultisigCallParams,
   MintTokenMultisigParams,
   BurnTokenMultisigParams,
-  GetTokenBalanceMultisigParams,
-  DeriveMultisigAccountParams,
   SendExternalMultisigCallParams,
   TransferExternalAssetMultisigCallParams,
 };
