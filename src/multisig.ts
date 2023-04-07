@@ -1,6 +1,6 @@
 import { ApiPromise } from "@polkadot/api";
-import { SubmittableExtrinsic } from "@polkadot/api/types";
-import { ISubmittableResult, Signer } from "@polkadot/types/types";
+import { SubmittableExtrinsic, Call, GenericCall } from "@polkadot/api/types";
+import { ISubmittableResult, Signer, DispatchResult } from "@polkadot/types/types";
 
 import {
   createCore,
@@ -110,18 +110,31 @@ class Saturn {
       }[];
   }[];
 
-  constructor({ api }: { api: ApiPromise }) {
-    if (!api.tx.inv4) {
-      throw new Error("API_PROMISE_DOES_NOT_CONTAIN_INV4_MODULE");
-    }
+    address: string;
+    signer: Signer;
 
-    if (!api.query.inv4) {
-      throw new Error("API_PROMISE_DOES_NOT_CONTAIN_INV4_MODULE");
-    }
+    constructor({ api, address, signer }: { api: ApiPromise; address: string; signer: Signer }) {
+        if (!api.tx.inv4) {
+            throw new Error("API_PROMISE_DOES_NOT_CONTAIN_INV4_MODULE");
+        }
 
-    this.api = api;
-    this.chains = setupTypes({ api });
+        if (!api.query.inv4) {
+            throw new Error("API_PROMISE_DOES_NOT_CONTAIN_INV4_MODULE");
+        }
+
+        this.api = api;
+        this.chains = setupTypes({ api });
+        this.address = address;
+        this.signer = signer;
   }
+
+    public setAddress = (address: string) => {
+        this.address = address;
+    }
+
+    public setSigner = (signer: Signer) => {
+        this.signer = signer;
+    }
 
   public disconnect = () => {
     this.api.disconnect();
@@ -283,7 +296,7 @@ class Saturn {
     });
   };
 
-  public createCall = ({
+  public proposeMultisigCall = async ({
     id,
     metadata,
     call,
@@ -291,12 +304,89 @@ class Saturn {
     id: string;
     metadata?: string;
     call: SubmittableExtrinsic<"promise", ISubmittableResult>;
-  }) => {
-    return this._createMultisigCall({
-      id,
-      metadata,
-      call,
-    });
+  }): Promise<MultisigCallResult> => {
+      return new Promise((resolve, reject) => {
+      try {
+          this._createMultisigCall({
+              id,
+              metadata,
+              call,
+          }).signAndSend(
+          this.address,
+              { signer: this.signer },
+            ({ events, status }) => {
+                if (status.isInBlock) {
+              const event = events.find(
+                  ({ event }) => event.method == "MultisigExecuted" || event.method == "MultisigVoteStarted"
+              ).event;
+
+                    if (!event) {
+                        throw new Error("SOMETHING_WENT_WRONG");
+                    }
+
+                    const method = event.method;
+
+                   switch (method) {
+                          case "MultisigExecuted": {
+                              const args = event.data.toPrimitive() as [
+                                  number,
+                                  string,
+                                  string,
+                                  string,
+                                  GenericCall,
+                                  DispatchResult,
+                              ];
+
+                              const result: MultisigCallResult = {
+                                  executed: true,
+                                  result: {
+                                      id: args[0],
+                                      account: args[1],
+                                      voter: args[2],
+                                      callHash: args[3],
+                                      call: args[4],
+                                      executionResult: args[5]
+                                  }
+                              };
+
+                              resolve(result);
+
+                              break;
+                          };
+                          case "MultisigVoteStarted": {
+                              const args = event.data.toPrimitive() as [
+                                  number,
+                                  string,
+                                  string,
+                                  {aye: BN} | {nay: BN},
+                                  string,
+                                  GenericCall
+                              ];
+
+                              const result: MultisigCallResult = {
+                                  executed: false,
+                                  result: {
+                                      id: args[0],
+                                      account: args[1],
+                                      voter: args[2],
+                                      votesAdded: args[3],
+                                      callHash: args[4],
+                                      call: args[5],
+                                  }
+                              };
+
+                              resolve(result);
+
+                              break;
+                          };
+                          default: break;
+                      }
+                }
+            }
+        )} catch (e) {
+            reject(e);
+        }
+      });
   };
 
   public sendXcmCall = ({
@@ -352,7 +442,7 @@ class Saturn {
         fee
       });
 
-      return this.createCall({ id, call, metadata });
+      return this.proposeMultisigCall({ id, call, metadata });
   };
 
   public getExternalAssets = () => {

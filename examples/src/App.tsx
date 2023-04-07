@@ -8,7 +8,7 @@ import { hexToU8a } from "@polkadot/util";
 import { GenericCall as Call, GenericExtrinsic as Extrinsic } from "@polkadot/types"
 import { InjectedAccountWithMeta } from "@polkadot/extension-inject/types";
 import { FormEvent, useEffect, useState } from "react";
-import { Saturn, Xcm } from "../../src";
+import { Saturn, Xcm, MultisigCallResult } from "../../src";
 
 const host = "ws://127.0.0.1:9944";
 
@@ -23,7 +23,6 @@ const App = () => {
   const [saturn, setSaturn] = useState<Saturn>();
   const [details, setDetails] = useState<{
     account: string;
-    metadata: string;
     minimumSupport: number;
     requiredApproval: number;
     frozenTokens: boolean;
@@ -41,6 +40,7 @@ const App = () => {
     const [assetTransfer, setAssetTransfer] = useState<{label: string, registerType: string}>({label: "", registerType: ""});
     const [destCall, setDestCall] = useState<{ chain: string; assets: {label: string, registerType: string}[] }>({chain: "", assets: []});
     const [id, setId] = useState<string>("");
+    const [lastCallResult, setLastCallResult] = useState<MultisigCallResult>();
 
   const setup = async () => {
     const wsProvider = new WsProvider(host);
@@ -52,8 +52,6 @@ const App = () => {
     console.log("CONNECTED TO", host, "AT", new Date(time));
 
     setApi(api);
-
-    setSaturn(new Saturn({ api }));
   };
 
   const handleConnectAccounts = async () => {
@@ -79,25 +77,35 @@ const App = () => {
     if (accounts.length === 1) {
       const selectedAccount = accounts[0];
       setSelectedAccount(selectedAccount);
+        const address = selectedAccount.address;
+        const signer = (await web3FromAddress(address)).signer;
+
+        setSaturn(new Saturn({ api, address, signer }));
     }
 
     setAccounts(accounts);
   };
 
-  const handleSelectAccount = (e: FormEvent<HTMLFormElement>) => {
+  const handleSelectAccount = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    const address = e.currentTarget?.address.value;
+    const a = e.currentTarget?.address.value;
 
-    if (!address) return;
+    if (!a) return;
 
     const selectedAccount = accounts.find(
-      (account) => account.address === address
+      (account) => account.address === a
     );
 
     if (!selectedAccount) return;
 
     setSelectedAccount(selectedAccount);
+
+      const address = selectedAccount.address;
+      const signer = await web3FromAddress(address).signer;
+
+      setSaturn(new Saturn({ api, address, signer }));
+
   };
 
   const handleCreateMultisig = async () => {
@@ -111,7 +119,7 @@ const App = () => {
       address: selectedAccount.address,
       signer: injector.signer,
       minimumSupport: 510000000,
-      requiredApproval: 51000000,
+      requiredApproval: 510000000,
     });
 
       console.log("created multisig: ", multisig);
@@ -127,6 +135,7 @@ const App = () => {
   };
 
   const handleGetMultisigSubmit = async (e: FormEvent<HTMLFormElement>) => {
+      if (!saturn) return;
     e.preventDefault();
 
     const id = e.currentTarget?.multisig.value;
@@ -134,6 +143,10 @@ const App = () => {
     if (!id) return;
 
     setId(id);
+
+      const details = await saturn.getDetails(id);
+
+      setDetails(details);
   };
 
   const handleGetOpenCalls = async () => {
@@ -176,22 +189,15 @@ const App = () => {
     const injector = await web3FromAddress(selectedAccount.address);
 
 
-    saturn
-      .sendXcmCall({
-        id,
-        destination: externalDestination,
-        weight: fee.weight.refTime,
-        callData: externalCallData,
-        feeAsset: destCall.assets[0].registerType,
-        fee: fee.partialFee,
-      })
-      .signAndSend(
-        selectedAccount.address,
-        { signer: injector.signer },
-        ({ events }) => {
-          console.log(events.map((event) => event.toHuman()));
-        }
-      );
+      await saturn
+          .sendXcmCall({
+              id,
+              destination: externalDestination,
+              weight: fee.weight.refTime,
+              callData: externalCallData,
+              feeAsset: destCall.assets[0].registerType,
+              fee: fee.partialFee,
+          });
   };
 
   const handleTransferExternalAssetCallSubmit = async (
@@ -209,26 +215,17 @@ const App = () => {
 
     if (!saturn) return;
 
-    if (!selectedAccount) return;
+      const result: MultisigCallResult = await saturn
+          .transferXcmAsset({
+              id,
+              asset: externalAsset,
+              amount: externalAmount,
+              to: externalTo,
+              feeAsset: externalAsset,
+              fee: 1000000000000
+          });
 
-    const injector = await web3FromAddress(selectedAccount.address);
-
-    saturn
-      .transferXcmAsset({
-        id,
-        asset: externalAsset,
-        amount: externalAmount,
-        to: externalTo,
-        feeAsset: externalAsset,
-        fee: 1000000000000
-      })
-      .signAndSend(
-        selectedAccount.address,
-        { signer: injector.signer },
-        ({ events }) => {
-          console.log(events.map((event) => event.toHuman()));
-        }
-      );
+      setLastCallResult(result);
   };
 
   const handleVoteSubmit = async (e: FormEvent<HTMLFormElement>) => {
@@ -425,9 +422,9 @@ const App = () => {
             {details ? (
               <div className="w-full flex flex-col gap-4 justify-center items-center">
                 <div className="border rounded-md p-4 w-full">
-                  <pre className="overflow-auto">
-                    {JSON.stringify(details, null, 2)}
-                  </pre>
+                    <p><b>Account:</b> {details.account}</p>
+                    <p><b>Minimum support:</b> {api.registry.createType('Perbill', details.minimumSupport * 100).toHuman()}</p>
+                    <p><b>Required approval:</b> {api.registry.createType('Perbill', details.requiredApproval * 100).toHuman()}</p>
                 </div>
               </div>
             ) : null}
@@ -602,6 +599,26 @@ const App = () => {
                   </form>
                 </div>
               </div>
+            ) : null}
+
+            {lastCallResult ? (
+                <div className="w-full flex flex-col gap-4 justify-center items-center">
+                    <div className="border rounded-md p-4 w-full">
+                    <p><b>Executed:</b> {lastCallResult.executed}</p>
+                    <p><b>Account:</b> {lastCallResult.result.account}</p>
+                    <p><b>Call Hash:</b> {lastCallResult.result.callHash}</p>
+                    <p><b>Call:</b> {JSON.stringify(lastCallResult.result.call)}</p>
+                    <p><b>Voter:</b> {lastCallResult.result.voter}</p>
+                    {lastCallResult.executed ? (
+                        <p><b>Execution Result:</b> {JSON.stringify(lastCallResult.result.executionResult)}</p>
+                    ) :
+                        <p><b>Votes Added:</b> {
+                        lastCallResult.result.votesAdded.aye ? "Aye" : "Nay"
+                    }{": "}{lastCallResult.result.votesAdded}</p>
+                        }
+
+                    </div>
+                    </div>
             ) : null}
 
             {openCalls ? (

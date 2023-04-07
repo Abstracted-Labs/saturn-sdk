@@ -1,6 +1,6 @@
 import type { ApiPromise } from "@polkadot/api";
-import { SubmittableExtrinsic } from "@polkadot/api/types";
-import { ISubmittableResult } from "@polkadot/types/types";
+import { SubmittableExtrinsic, Call } from "@polkadot/api/types";
+import { ISubmittableResult, DispatchResult } from "@polkadot/types/types";
 
 type GetSignAndSendCallbackParams = {
   onInvalid?: (payload: ISubmittableResult) => void;
@@ -86,6 +86,29 @@ type MultisigCreateResult = {
     tokenSupply: BN;
 };
 
+type MultisigCallVoteStarted = {
+    id: number;
+    account: string;
+    callHash: string;
+    call: Call;
+    voter: string;
+    votesAdded: { aye: BN } | { nay: BN };
+}
+
+type MultisigCallExecuted = {
+    id: number;
+    account: string;
+    callHash: string;
+    call: Call;
+    voter: string;
+    executionResult: DispatchResult;
+}
+
+type MultisigCallResult = {
+    executed: bool;
+    result: MultisigCallVoteStarted | MultisigCallExecuted;
+}
+
 export type {
   DefaultMultisigParams,
   GetPendingMultisigCallsParams,
@@ -101,4 +124,7 @@ export type {
   SendExternalMultisigCallParams,
   TransferExternalAssetMultisigCallParams,
   MultisigCreateResult,
+  MultisigCallResult,
+  MultisigCallExecuted,
+  MultisigCallVoteStarted,
 };
