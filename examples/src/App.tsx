@@ -8,7 +8,7 @@ import { hexToU8a } from "@polkadot/util";
 import { GenericCall as Call, GenericExtrinsic as Extrinsic } from "@polkadot/types"
 import { InjectedAccountWithMeta } from "@polkadot/extension-inject/types";
 import { FormEvent, useEffect, useState } from "react";
-import { Multisig, MultisigTypes, MultisigRuntime, Xcm } from "../../src";
+import { Saturn, Xcm } from "../../src";
 
 const host = "ws://127.0.0.1:9944";
 
@@ -20,7 +20,7 @@ const App = () => {
   const [accounts, setAccounts] = useState<InjectedAccountWithMeta[]>([]);
   const [selectedAccount, setSelectedAccount] =
     useState<InjectedAccountWithMeta>();
-  const [multisig, setMultisig] = useState<Multisig>();
+  const [saturn, setSaturn] = useState<Saturn>();
   const [details, setDetails] = useState<{
     account: string;
     metadata: string;
@@ -37,23 +37,15 @@ const App = () => {
       balance: number;
     }[]
   >();
-    const [chains, setChains] = useState<{ chain: string; assets: {label: string, registerType: string}[] }[]>([]);
     const [destTransfer, setDestTransfer] = useState<{ chain: string; assets: {label: string, registerType: string}[] }>({chain: "", assets: []});
     const [assetTransfer, setAssetTransfer] = useState<{label: string, registerType: string}>({label: "", registerType: ""});
     const [destCall, setDestCall] = useState<{ chain: string; assets: {label: string, registerType: string}[] }>({chain: "", assets: []});
+    const [id, setId] = useState<string>("");
 
   const setup = async () => {
     const wsProvider = new WsProvider(host);
 
-    const api = await ApiPromise.create({
-      provider: wsProvider,
-      types: {
-        ...MultisigTypes,
-      },
-      runtime: {
-        ...MultisigRuntime,
-      },
-    });
+    const api = await ApiPromise.create({ provider: wsProvider });
 
     const time = (await api.query.timestamp.now()).toPrimitive();
 
@@ -61,7 +53,7 @@ const App = () => {
 
     setApi(api);
 
-    setChains(new Xcm({ api }).chains);
+    setSaturn(new Saturn({ api }));
   };
 
   const handleConnectAccounts = async () => {
@@ -115,25 +107,21 @@ const App = () => {
 
     const injector = await web3FromAddress(selectedAccount.address);
 
-    const M = new Multisig({ api });
-
-    if (M.isCreated()) {
-      setMultisig(M);
-    }
-
-    const multisig = await M.create({
+    const multisig = await saturn.create({
       address: selectedAccount.address,
       signer: injector.signer,
-      minimumSupport: 51,
-      requiredApproval: 51,
+      minimumSupport: 510000000,
+      requiredApproval: 51000000,
     });
 
-    setMultisig(multisig);
+      console.log("created multisig: ", multisig);
+
+      setId(multisig.id);
   };
 
   const handleGetMultisigDetails = async () => {
-    if (!multisig) return;
-    const details = await multisig.getDetails();
+    if (!saturn) return;
+    const details = await saturn.getDetails(id);
 
     setDetails(details);
   };
@@ -145,23 +133,13 @@ const App = () => {
 
     if (!id) return;
 
-    if (!api) return;
-
-    const multisig = new Multisig({ api, id });
-
-    const assets = await multisig.getExternalAssets();
-
-    const parachains = await multisig.getParachains();
-
-    console.log({ assets, parachains });
-
-    setMultisig(multisig);
+    setId(id);
   };
 
   const handleGetOpenCalls = async () => {
-    if (!multisig) return;
+    if (!saturn) return;
 
-    const openCalls = await multisig.getOpenCalls();
+    const openCalls = await saturn.getOpenCalls(id);
 
     setOpenCalls(openCalls);
   };
@@ -179,7 +157,7 @@ const App = () => {
 
       if (!api) return;
 
-      if (!multisig) return;
+      if (!saturn) return;
 
       if (!selectedAccount) return;
 
@@ -193,12 +171,14 @@ const App = () => {
 
       const fee = (await destApi.tx.system.remarkWithEvent("test").paymentInfo(selectedAccount.address));
 
-      console.log("fee: ",fee);
+      console.log("fee: ", fee);
 
     const injector = await web3FromAddress(selectedAccount.address);
 
-    multisig
+
+    saturn
       .sendXcmCall({
+        id,
         destination: externalDestination,
         weight: fee.weight.refTime,
         callData: externalCallData,
@@ -227,14 +207,15 @@ const App = () => {
 
     if (!api) return;
 
-    if (!multisig) return;
+    if (!saturn) return;
 
     if (!selectedAccount) return;
 
     const injector = await web3FromAddress(selectedAccount.address);
 
-    multisig
+    saturn
       .transferXcmAsset({
+        id,
         asset: externalAsset,
         amount: externalAmount,
         to: externalTo,
@@ -255,7 +236,7 @@ const App = () => {
 
     const votingCallHash = e.currentTarget?.votingCallHash.value;
 
-    if (!multisig) return;
+    if (!saturn) return;
 
     if (!selectedAccount) return;
 
@@ -265,8 +246,8 @@ const App = () => {
 
     const injector = await web3FromAddress(selectedAccount.address);
 
-    multisig
-      .vote({ callHash: votingCallHash, aye: true })
+    saturn
+      .vote({ id, callHash: votingCallHash, aye: true })
       .signAndSend(
         selectedAccount.address,
         { signer: injector.signer },
@@ -281,7 +262,7 @@ const App = () => {
 
     const withdrawVoteCallHash = e.currentTarget?.withdrawVotingCallHash.value;
 
-    if (!multisig) return;
+    if (!saturn) return;
 
     if (!selectedAccount) return;
 
@@ -291,8 +272,8 @@ const App = () => {
 
     const injector = await web3FromAddress(selectedAccount.address);
 
-    multisig
-      .withdrawVote({ callHash: withdrawVoteCallHash })
+    saturn
+      .withdrawVote({ id, callHash: withdrawVoteCallHash })
       .signAndSend(
         selectedAccount.address,
         { signer: injector.signer },
@@ -307,13 +288,14 @@ const App = () => {
 
     const pendingCallHash = e.currentTarget?.pendingCallHash.value;
 
-    if (!multisig) return;
+    if (!saturn) return;
 
     if (!selectedAccount) return;
 
     if (!pendingCallHash) return;
 
-    const pendingCall = await multisig.getPendingCall({
+    const pendingCall = await saturn.getPendingCall({
+      id,
       callHash: pendingCallHash,
     });
 
@@ -389,7 +371,7 @@ const App = () => {
 
         {selectedAccount ? (
           <>
-            {!multisig ? (
+            {!id ? (
               <>
                 <div className="w-full flex justify-center items-center">
                   <button
@@ -431,11 +413,11 @@ const App = () => {
               </>
             ) : null}
 
-            {multisig ? (
+            {id ? (
               <div className="w-full flex flex-col gap-4 justify-center items-center">
                 <div className="border rounded-md p-4 w-full">
                   <span className="font-bold">Multisig ID: </span>{" "}
-                  <span>{multisig.id}</span>
+                  <span>{id}</span>
                 </div>
               </div>
             ) : null}
@@ -469,7 +451,7 @@ const App = () => {
               </div>
             ) : null}
 
-            {multisig ? (
+            {id ? (
               <div className="w-full flex flex-col gap-4 justify-center items-center">
                 <div className="border rounded-md p-4 w-full flex gap-4">
                   <form
@@ -485,13 +467,13 @@ const App = () => {
                       </label>
                       <div className="mt-1">
                     <select value={destCall.chain} onChange={e => {
-                        const c = chains.find(i => i.chain == e.target.value);
+                        const c = saturn.chains.find(i => i.chain == e.target.value);
                         setDestCall(c);
 
                     }}
                 className="block w-full rounded-md border-neutral-300 shadow-sm focus:border-neutral-500 focus:ring-neutral-500 sm:text-sm"
                     >
-                    {chains.map(c => <option value={c.chain}>{c.chain}</option>)}
+                    {saturn.chains.map(c => <option value={c.chain}>{c.chain}</option>)}
                 </select>
                       </div>
                     </div>
@@ -536,7 +518,7 @@ const App = () => {
               </div>
             ) : null}
 
-            {multisig ? (
+            {id ? (
               <div className="w-full flex flex-col gap-4 justify-center items-center">
                 <div className="border rounded-md p-4 w-full flex gap-4">
                   <form
@@ -552,14 +534,14 @@ const App = () => {
                       </label>
                       <div className="mt-1">
                     <select value={destTransfer.chain} onChange={e => {
-                        const c = chains.find(i => i.chain == e.target.value);
+                        const c = saturn.chains.find(i => i.chain == e.target.value);
                         setDestTransfer(c);
                         setAssetTransfer(c.assets[0])
 
                     }}
                 className="block w-full rounded-md border-neutral-300 shadow-sm focus:border-neutral-500 focus:ring-neutral-500 sm:text-sm"
                     >
-                    {chains.map(c => <option value={c.chain}>{c.chain}</option>)}
+                    {saturn.chains.map(c => <option value={c.chain}>{c.chain}</option>)}
                      </select>
                       </div>
                     </div>
@@ -706,7 +688,7 @@ const App = () => {
               </div>
             ) : null}
 
-            {multisig ? (
+            {id ? (
               <div className="w-full flex flex-col gap-4 justify-center items-center">
                 <div className="border rounded-md p-4 w-full flex gap-4 flex-wrap">
                   <button

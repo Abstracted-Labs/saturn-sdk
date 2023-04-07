@@ -76,6 +76,16 @@ type TransferExternalAssetMultisigCallParams = DefaultMultisigParams & {
   to: string;
 };
 
+type MultisigCreateResult = {
+    id: number;
+    account: string;
+    metadata: string;
+    minimumSupport: BN;
+    requiredApproval: BN;
+    creator: string;
+    tokenSupply: BN;
+};
+
 export type {
   DefaultMultisigParams,
   GetPendingMultisigCallsParams,
@@ -90,4 +100,5 @@ export type {
   BurnTokenMultisigParams,
   SendExternalMultisigCallParams,
   TransferExternalAssetMultisigCallParams,
+  MultisigCreateResult,
 };

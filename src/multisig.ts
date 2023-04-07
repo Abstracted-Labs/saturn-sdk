@@ -27,6 +27,7 @@ import {
   GetPendingMultisigCallParams,
   SendExternalMultisigCallParams,
   TransferExternalAssetMultisigCallParams,
+  MultisigCreateResult,
 } from "./types";
 
 import { getSignAndSendCallback } from "./utils";
@@ -35,14 +36,12 @@ const PARACHAINS_KEY = "TinkernetRuntimeRingsChains";
 const PARACHAINS_ASSETS = "TinkernetRuntimeRingsChainAssets";
 
 const setupTypes = ({ api }: { api: ApiPromise }): {
-    chains: {
         chain: string,
         assets: {
             label: string,
             registerType: Object,
         }[]
-    }[]
-} => {
+}[] => {
   const parachainsTypeId = api.registry.getDefinition(
     PARACHAINS_KEY
   ) as `Lookup${number}`;
@@ -98,22 +97,20 @@ const setupTypes = ({ api }: { api: ApiPromise }): {
 
   api.registry.setKnownTypes(kt);
 
-  return { chains }
+  return chains
 };
 
-class Xcm {
-    readonly chains: string[];
-
-    constructor({ api }: { api: ApiPromise }) {
-        this.chains = setupTypes({ api }).chains;
-    }
-}
-
-class Multisig {
+class Saturn {
   readonly api: ApiPromise;
-  readonly id: string;
+  readonly chains: {
+      chain: string;
+      assets: {
+          label: string;
+          registerType: Object;
+      }[];
+  }[];
 
-  constructor({ api, id }: { api: ApiPromise; id?: string }) {
+  constructor({ api }: { api: ApiPromise }) {
     if (!api.tx.inv4) {
       throw new Error("API_PROMISE_DOES_NOT_CONTAIN_INV4_MODULE");
     }
@@ -123,43 +120,27 @@ class Multisig {
     }
 
     this.api = api;
-
-    if (id && !Number.isNaN(parseInt(id))) {
-      this.id = id;
-    }
+    this.chains = setupTypes({ api });
   }
-
-  public readonly isCreated = () => {
-    if (this.id) return true;
-
-    return false;
-  };
 
   public disconnect = () => {
     this.api.disconnect();
   };
 
-  public create = ({
+  public create = async ({
     metadata,
     minimumSupport,
     requiredApproval,
-    onDropped,
-    onError,
-    onExecuted,
-    onInvalid,
-    onLoading,
-    onSuccess,
-    onUnknown,
     address,
     signer,
   }: Omit<CreateMultisigParams, "api"> &
     GetSignAndSendCallbackParams & {
       address: string;
       signer: Signer;
-    }): Promise<Multisig> => {
-    return new Promise((resolve, reject) => {
+    }): Promise<MultisigCreateResult> => {
+      return new Promise((resolve, reject) => {
       try {
-        createCore({
+      createCore({
           api: this.api,
           metadata,
           minimumSupport,
@@ -167,48 +148,39 @@ class Multisig {
         }).signAndSend(
           address,
           { signer },
-          getSignAndSendCallback({
-            onDropped,
-            onError,
-            onExecuted,
-            onInvalid,
-            onLoading,
-            onSuccess: async (result) => {
-              const rawEvent = result.events.find(
+            ({ events, status }) => {
+                if (status.isInBlock) {
+              const event = events.find(
                 ({ event }) => event.method === "CoreCreated"
-              );
+              ).event.data.toPrimitive() as [string, number, string, BN, BN];
 
-              if (!rawEvent) {
+                const assetsEvent = events.find(
+                    ({ event }) => event.section === "coreAssets" && event.method === "Endowed"
+                ).event.data.toPrimitive() as [string, string, BN];
+
+              if (!event || !assetsEvent) {
                 throw new Error("SOMETHING_WENT_WRONG");
               }
 
-              const { event } = rawEvent.toPrimitive() as {
-                event: {
-                  data: [string, number, []];
-                };
-              };
-
-              const ipsId = event.data[1].toString();
-
-              if (!ipsId) {
-                throw new Error("SOMETHING_WENT_SUPER_WRONG");
-              }
-
-              if (onSuccess) onSuccess(result);
-
-              resolve(new Multisig({ api: this.api, id: ipsId }));
-            },
-            onUnknown,
-          })
-        );
-      } catch (e) {
-        reject(e);
-      }
-    });
+                    resolve({
+                    id: event[1],
+                    account: event[0],
+                    metadata: event[2],
+                    minimumSupport: event[3],
+                    requiredApproval: event[4],
+                    creator: address,
+                    tokenSuply: assetsEvent[2],
+                    } as MultisigCreateEvent);
+            }
+            }
+        )} catch (e) {
+            reject(e);
+        }
+      });
   };
 
-  public getDetails = async () => {
-    const multisig = (await this._getMultisig()).toPrimitive() as {
+    public getDetails = async (id: string) => {
+    const multisig = (await this._getMultisig(id)).toPrimitive() as {
       account: string;
       metadata: string;
       minimumSupport: number;
@@ -219,6 +191,7 @@ class Multisig {
     if (!multisig) throw new Error("MULTISIG_DOES_NOT_EXIST");
 
     return {
+      id,
       account: multisig.account,
       metadata: multisig.metadata,
       minimumSupport: multisig.minimumSupport / 100,
@@ -227,16 +200,16 @@ class Multisig {
     };
   };
 
-  public getSupply = async () => {
-    const { supply } = (await this._getMultisig()).toPrimitive() as {
+   public getSupply = async (id: string) => {
+    const { supply } = (await this._getMultisig(id)).toPrimitive() as {
       supply: number;
     };
 
     return supply;
   };
 
-  public getOpenCalls = async () => {
-    const pendingCalls = await this._getPendingMultisigCalls();
+    public getOpenCalls = async (id: string) => {
+    const pendingCalls = await this._getPendingMultisigCalls(id);
 
     const openCalls = pendingCalls.map((call) => {
       const callHash = call[0].args[1].toHex() as string;
@@ -264,8 +237,8 @@ class Multisig {
     return openCalls;
   };
 
-  public getPendingCall = async ({ callHash }: { callHash: `0x${string}` }) => {
-    const call = await this._getPendingMultisigCall({ callHash });
+    public getPendingCall = async ({ id, callHash }: { id: string; callHash: `0x${string}` }) => {
+        const call = await this._getPendingMultisigCall({ id, callHash });
 
     const callDetails = call.toPrimitive() as {
       signers: [string, null][];
@@ -288,39 +261,46 @@ class Multisig {
   };
 
   public vote = ({
+    id,
     callHash,
     aye,
   }: {
+    id: string;
     callHash: `0x${string}`;
     aye: boolean;
   }) => {
     return this._voteMultisigCall({
+      id,
       callHash,
       aye,
     });
   };
 
-  public withdrawVote = ({ callHash }: { callHash: `0x${string}` }) => {
+    public withdrawVote = ({ id, callHash }: { id: string; callHash: `0x${string}` }) => {
     return this._withdrawVoteMultisigCall({
+      id,
       callHash,
     });
   };
 
   public createCall = ({
+    id,
     metadata,
     call,
   }: {
+    id: string;
     metadata?: string;
     call: SubmittableExtrinsic<"promise", ISubmittableResult>;
   }) => {
     return this._createMultisigCall({
+      id,
       metadata,
       call,
-      id: this.id,
     });
   };
 
   public sendXcmCall = ({
+    id,
     destination,
     weight,
     callData,
@@ -328,6 +308,7 @@ class Multisig {
     fee,
     metadata,
   }: {
+    id: string;
     destination: string;
     weight: string;
     callData: `0x${string}`;
@@ -343,10 +324,11 @@ class Multisig {
         fee,
       });
 
-    return this.createCall({ call, metadata });
+      return this.createCall({ id, call, metadata });
   };
 
   public transferXcmAsset = ({
+    id,
     asset,
     amount,
     to,
@@ -354,6 +336,7 @@ class Multisig {
     fee,
     metadata,
   }: {
+    id: string;
     asset: string;
     amount: string;
     to: string;
@@ -369,7 +352,7 @@ class Multisig {
         fee
       });
 
-    return this.createCall({ call, metadata });
+      return this.createCall({ id, call, metadata });
   };
 
   public getExternalAssets = () => {
@@ -402,71 +385,53 @@ class Multisig {
     return names;
   };
 
-  private _getMultisig = () => {
-    if (!this.isCreated()) throw new Error("MULTISIG_NOT_CREATED_YET");
-
-    return getMultisig({ api: this.api, id: this.id });
+    private _getMultisig = (id: string) => {
+        return getMultisig({ api: this.api, id });
   };
 
   private _createMultisigCall = ({
     ...params
   }: Omit<CreateMultisigCallParams, "api">) => {
-    if (!this.isCreated()) throw new Error("MULTISIG_NOT_CREATED_YET");
-
     return createMultisigCall({ api: this.api, ...params });
   };
 
-  private _getPendingMultisigCalls = () => {
-    if (!this.isCreated()) throw new Error("MULTISIG_NOT_CREATED_YET");
-
-    return getPendingMultisigCalls({ api: this.api, id: this.id });
+    private _getPendingMultisigCalls = (id: string) => {
+        return getPendingMultisigCalls({ api: this.api, id });
   };
 
-  private _getPendingMultisigCall = ({
+    private _getPendingMultisigCall = ({
     ...params
   }: Omit<GetPendingMultisigCallParams, "api" | "id">) => {
-    if (!this.isCreated()) throw new Error("MULTISIG_NOT_CREATED_YET");
-
-    return getPendingMultisigCall({ api: this.api, id: this.id, ...params });
+      return getPendingMultisigCall({ api: this.api, ...params });
   };
 
   private _voteMultisigCall = ({
     ...params
   }: Omit<VoteMultisigCallParams, "api" | "id">) => {
-    if (!this.isCreated()) throw new Error("MULTISIG_NOT_CREATED_YET");
-
-    return voteMultisigCall({ api: this.api, id: this.id, ...params });
+      return voteMultisigCall({ api: this.api, ...params });
   };
 
   private _withdrawVoteMultisigCall = ({
     ...params
   }: Omit<WithdrawVoteMultisigCallParams, "api" | "id">) => {
-    if (!this.isCreated()) throw new Error("MULTISIG_NOT_CREATED_YET");
-
-    return withdrawVoteMultisigCall({ api: this.api, id: this.id, ...params });
+      return withdrawVoteMultisigCall({ api: this.api, ...params });
   };
 
   private _mintTokenMultisig = ({
     ...params
   }: Omit<MintTokenMultisigParams, "api">) => {
-    if (!this.isCreated()) throw new Error("MULTISIG_NOT_CREATED_YET");
-
-    return mintTokenMultisig({ api: this.api, ...params });
+      return mintTokenMultisig({ api: this.api, ...params });
   };
 
   private _burnTokenMultisig = ({
     ...params
   }: Omit<BurnTokenMultisigParams, "api">) => {
-    if (!this.isCreated()) throw new Error("MULTISIG_NOT_CREATED_YET");
-
     return burnTokenMultisig({ api: this.api, ...params });
   };
 
   private _sendExternalMultisigCall = ({
     ...params
   }: Omit<SendExternalMultisigCallParams, "api">) => {
-    if (!this.isCreated()) throw new Error("MULTISIG_NOT_CREATED_YET");
-
     return sendExternalMultisigCall({
       api: this.api,
       ...params,
@@ -477,7 +442,6 @@ class Multisig {
     destination,
     ...params
   }: Omit<TransferExternalAssetMultisigCallParams, "api">) => {
-    if (!this.isCreated()) throw new Error("MULTISIG_NOT_CREATED_YET");
     const {
       types: {
         // TODO fix this
@@ -496,33 +460,4 @@ class Multisig {
   };
 }
 
-const MultisigTypes = {
-  OneOrPercent: {
-    _enum: {
-      One: null,
-      Percent: "Percent",
-    },
-  },
-};
-
-const MultisigRuntime = {
-  SaturnAccountDeriver: [
-    {
-      methods: {
-        derive_account: {
-          description: "Derive Saturn account",
-          params: [
-            {
-              name: "core_id",
-              type: "u32",
-            },
-          ],
-          type: "AccountId32",
-        },
-      },
-      version: 1,
-    },
-  ],
-};
-
-export { Multisig, MultisigTypes, MultisigRuntime, Xcm };
+export { Saturn };
