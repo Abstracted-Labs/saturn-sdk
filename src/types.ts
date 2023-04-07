@@ -16,6 +16,15 @@ type DefaultMultisigParams = {
   api: ApiPromise;
 };
 
+type ApiAndId = {
+    api: ApiPromise;
+    id: string;
+};
+
+type GetMultisigsForAccountParams = DefaultMultisigParams & {
+    account: string;
+};
+
 type GetMultisigParams = DefaultMultisigParams & {
   id: string;
 };
@@ -127,4 +136,6 @@ export type {
   MultisigCallResult,
   MultisigCallExecuted,
   MultisigCallVoteStarted,
+    ApiAndId,
+    GetMultisigsForAccountParams,
 };

@@ -41,6 +41,9 @@ const App = () => {
     const [destCall, setDestCall] = useState<{ chain: string; assets: {label: string, registerType: string}[] }>({chain: "", assets: []});
     const [id, setId] = useState<string>("");
     const [lastCallResult, setLastCallResult] = useState<MultisigCallResult>();
+    const [userMultisigs, setUserMultisigs] = useState<string[]>([]);
+    const [selectedMultisig, setSelectedMultisig] = useState<string>("");
+    const [multisigMembers, setMultisigMembers] = useState<string[]>([]);
 
   const setup = async () => {
     const wsProvider = new WsProvider(host);
@@ -80,7 +83,13 @@ const App = () => {
         const address = selectedAccount.address;
         const signer = (await web3FromAddress(address)).signer;
 
-        setSaturn(new Saturn({ api, address, signer }));
+        const sat = new Saturn({ api, address, signer });
+
+        setSaturn(sat);
+
+        const ids = (await sat.getMultisigsForAccount(address)).map(({multisigId, tokens}) => multisigId);
+
+        setUserMultisigs(ids);
     }
 
     setAccounts(accounts);
@@ -104,7 +113,13 @@ const App = () => {
       const address = selectedAccount.address;
       const signer = await web3FromAddress(address).signer;
 
-      setSaturn(new Saturn({ api, address, signer }));
+      const sat = new Saturn({ api, address, signer });
+
+      setSaturn(sat);
+
+      const ids = sat.getMultisigsForAccount(address).map(({multisigId, tokens}) => multisigId);
+
+      setUserMultisigs(ids);
 
   };
 
@@ -147,7 +162,29 @@ const App = () => {
       const details = await saturn.getDetails(id);
 
       setDetails(details);
+
+      const members = await saturn.getMultisigMembers(id);
+
+      setMultisigMembers(members);
   };
+
+    const handleGoMultisig = async () => {
+        if (!saturn) return;
+
+        const id = selectedMultisig;
+
+        if (!id) return;
+
+        setId(id);
+
+        const details = await saturn.getDetails(id);
+
+        setDetails(details);
+
+        const members = await saturn.getMultisigMembers(id);
+
+        setMultisigMembers(members);
+    };
 
   const handleGetOpenCalls = async () => {
     if (!saturn) return;
@@ -407,6 +444,31 @@ const App = () => {
                     </button>
                   </form>
                 </div>
+                    <div className="flex justify-center items-center">
+                    <span>or</span>
+                    </div>
+
+                    <div>
+                    <label
+                className="block text-sm font-medium text-neutral-700"
+                    >
+                    Your Multisigs
+                </label>
+                    <div className="mt-1">
+                    <select value={selectedMultisig} onChange={e => {
+                        setSelectedMultisig(e.target.value);
+                    }}
+                className="block w-full rounded-md border-neutral-300 shadow-sm focus:border-neutral-500 focus:ring-neutral-500 sm:text-sm"
+                    >
+                    {userMultisigs.map(m => <option value={m}>{m}</option>)}
+                </select>
+                    </div>
+                    <button className="shadow-sm py-2 px-4 rounded-md transition-all duration-300 bg-neutral-900 text-neutral-50 hover:shadow-lg hover:bg-neutral-800"
+                onClick={handleGoMultisig}
+                    >
+                    Go
+                </button>
+                    </div>
               </>
             ) : null}
 
@@ -427,6 +489,17 @@ const App = () => {
                     <p><b>Required approval:</b> {api.registry.createType('Perbill', details.requiredApproval * 100).toHuman()}</p>
                 </div>
               </div>
+            ) : null}
+
+            {multisigMembers ? (
+                <div className="w-full flex flex-col gap-4 justify-center items-center">
+                    <div className="flex justify-center items-center">
+                    <span>Members</span>
+                    </div>
+                    <div className="border rounded-md p-4 w-full">
+                    {multisigMembers.map(m => <p>{m}</p>)}
+                    </div>
+                    </div>
             ) : null}
 
             {balance ? (

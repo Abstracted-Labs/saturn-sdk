@@ -1,5 +1,5 @@
 import { ApiPromise } from "@polkadot/api";
-import { SubmittableExtrinsic, Call, GenericCall } from "@polkadot/api/types";
+import { SubmittableExtrinsic, Call, GenericCall, AccountId } from "@polkadot/api/types";
 import { ISubmittableResult, Signer, DispatchResult } from "@polkadot/types/types";
 
 import {
@@ -14,6 +14,8 @@ import {
   burnTokenMultisig,
   transferExternalAssetMultisigCall,
   sendExternalMultisigCall,
+    getMultisigsForAccount,
+    getMultisigMembers,
 } from "./rpc";
 
 import {
@@ -28,6 +30,8 @@ import {
   SendExternalMultisigCallParams,
   TransferExternalAssetMultisigCallParams,
   MultisigCreateResult,
+    ApiAndId,
+    GetMultisigsForAccountParams,
 } from "./types";
 
 import { getSignAndSendCallback } from "./utils";
@@ -273,6 +277,26 @@ class Saturn {
     };
   };
 
+    public getMultisigMembers = async (id:string): string[] => {
+        const keys = await this._getMultisigMembers({ id });
+
+        const mapped = keys.map(({ args: [coreId, member] }) => member.toPrimitive() as AccountId);
+
+        return mapped;
+    };
+
+    public getMultisigsForAccount = async (account: string): { multisigId: string; tokens: BN }[] => {
+        const entries = await this._getMultisigsForAccount({account});
+
+        const mapped = entries.map(([{ args: [account, coreId] }, tokens]) => {
+            const id = coreId.toPrimitive() as string;
+            const free = (tokens.toPrimitive() as {free: BN}).free
+            return { multisigId: id, tokens: free };
+        });
+
+        return mapped;
+    };
+
   public vote = ({
     id,
     callHash,
@@ -494,6 +518,18 @@ class Saturn {
   }: Omit<GetPendingMultisigCallParams, "api" | "id">) => {
       return getPendingMultisigCall({ api: this.api, ...params });
   };
+
+    private _getMultisigMembers = ({
+        id,
+    }: { id: string }) => {
+        return getMultisigMembers({ api: this.api, id: parseInt(id) });
+    };
+
+    private _getMultisigsForAccount = ({
+        account
+    }: { account: string }) => {
+        return getMultisigsForAccount({ api: this.api, account });
+    };
 
   private _voteMultisigCall = ({
     ...params
