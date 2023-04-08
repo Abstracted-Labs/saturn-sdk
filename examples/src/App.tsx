@@ -8,7 +8,8 @@ import { hexToU8a } from "@polkadot/util";
 import { GenericCall as Call, GenericExtrinsic as Extrinsic } from "@polkadot/types"
 import { InjectedAccountWithMeta } from "@polkadot/extension-inject/types";
 import { FormEvent, useEffect, useState } from "react";
-import { Saturn, Xcm, MultisigCallResult } from "../../src";
+import { Saturn, MultisigCallResult, MultisigCallExecuted, MultisigCallVoteStarted } from "../../src";
+import { BN } from '@polkadot/util';
 
 const host = "ws://127.0.0.1:9944";
 
@@ -36,14 +37,14 @@ const App = () => {
       balance: number;
     }[]
   >();
-    const [destTransfer, setDestTransfer] = useState<{ chain: string; assets: {label: string, registerType: string}[] }>({chain: "", assets: []});
-    const [assetTransfer, setAssetTransfer] = useState<{label: string, registerType: string}>({label: "", registerType: ""});
-    const [destCall, setDestCall] = useState<{ chain: string; assets: {label: string, registerType: string}[] }>({chain: "", assets: []});
+    const [destTransfer, setDestTransfer] = useState<{ chain: string; assets: {label: string, registerType: Object}[] }>({chain: "", assets: []});
+    const [assetTransfer, setAssetTransfer] = useState<{label: string, registerType: Object}>({label: "", registerType: {}});
+    const [destCall, setDestCall] = useState<{ chain: string; assets: {label: string, registerType: Object}[] }>({chain: "", assets: []});
     const [id, setId] = useState<string>("");
     const [lastCallResult, setLastCallResult] = useState<MultisigCallResult>();
     const [userMultisigs, setUserMultisigs] = useState<string[]>([]);
-    const [selectedMultisig, setSelectedMultisig] = useState<string>("");
-    const [multisigMembers, setMultisigMembers] = useState<string[]>([]);
+    const [selectedMultisig, setSelectedMultisig] = useState<string>();
+    const [multisigMembers, setMultisigMembers] = useState<string[]>();
 
   const setup = async () => {
     const wsProvider = new WsProvider(host);
@@ -83,6 +84,8 @@ const App = () => {
         const address = selectedAccount.address;
         const signer = (await web3FromAddress(address)).signer;
 
+        if (!api) return;
+
         const sat = new Saturn({ api, address, signer });
 
         setSaturn(sat);
@@ -90,6 +93,7 @@ const App = () => {
         const ids = (await sat.getMultisigsForAccount(address)).map(({multisigId, tokens}) => multisigId);
 
         setUserMultisigs(ids);
+        setSelectedMultisig(ids[0].toString());
     }
 
     setAccounts(accounts);
@@ -111,22 +115,25 @@ const App = () => {
     setSelectedAccount(selectedAccount);
 
       const address = selectedAccount.address;
-      const signer = await web3FromAddress(address).signer;
+      const signer = (await web3FromAddress(address)).signer;
+
+      if (!api) return;
 
       const sat = new Saturn({ api, address, signer });
 
       setSaturn(sat);
 
-      const ids = sat.getMultisigsForAccount(address).map(({multisigId, tokens}) => multisigId);
+      const ids = (await sat.getMultisigsForAccount(address)).map(({multisigId, tokens}) => multisigId);
 
       setUserMultisigs(ids);
+      setSelectedMultisig(ids[0].toString());
 
   };
 
   const handleCreateMultisig = async () => {
     if (!api) return;
-
     if (!selectedAccount) return;
+      if (!saturn) return;
 
     const injector = await web3FromAddress(selectedAccount.address);
 
@@ -139,7 +146,7 @@ const App = () => {
 
       console.log("created multisig: ", multisig);
 
-      setId(multisig.id);
+      setId(multisig.id.toString());
   };
 
   const handleGetMultisigDetails = async () => {
@@ -165,7 +172,7 @@ const App = () => {
 
       const members = await saturn.getMultisigMembers(id);
 
-      setMultisigMembers(members);
+      setMultisigMembers(members.map((acc) => acc.toString()));
   };
 
     const handleGoMultisig = async () => {
@@ -183,7 +190,7 @@ const App = () => {
 
         const members = await saturn.getMultisigMembers(id);
 
-        setMultisigMembers(members);
+        setMultisigMembers(members.map((acc) => acc.toString()));
     };
 
   const handleGetOpenCalls = async () => {
@@ -211,7 +218,7 @@ const App = () => {
 
       if (!selectedAccount) return;
 
-      const destProvider = new WsProvider(endpoints[externalDestination]);
+      const destProvider = new WsProvider(endpoints.Kusama);
 
       const destApi = await ApiPromise.create({ provider: destProvider });
 
@@ -230,9 +237,9 @@ const App = () => {
           .sendXcmCall({
               id,
               destination: externalDestination,
-              weight: fee.weight.refTime,
+              weight: externalWeight,
               callData: externalCallData,
-              feeAsset: destCall.assets[0].registerType,
+              feeAsset: destCall.assets[0].registerType.toString(),
               fee: fee.partialFee,
           });
   };
@@ -255,11 +262,11 @@ const App = () => {
       const result: MultisigCallResult = await saturn
           .transferXcmAsset({
               id,
-              asset: externalAsset,
+              asset: externalAsset.toString(),
               amount: externalAmount,
               to: externalTo,
-              feeAsset: externalAsset,
-              fee: 1000000000000
+              feeAsset: externalAsset.toString(),
+              fee: new BN("1000000000000")
           });
 
       setLastCallResult(result);
@@ -448,7 +455,8 @@ const App = () => {
                     <span>or</span>
                     </div>
 
-                    <div>
+                    <div className="flex justify-center items-center">
+                    <div className="flex flex-col gap-4">
                     <label
                 className="block text-sm font-medium text-neutral-700"
                     >
@@ -469,6 +477,7 @@ const App = () => {
                     Go
                 </button>
                     </div>
+                    </div>
               </>
             ) : null}
 
@@ -481,7 +490,7 @@ const App = () => {
               </div>
             ) : null}
 
-            {details ? (
+            {details && api ? (
               <div className="w-full flex flex-col gap-4 justify-center items-center">
                 <div className="border rounded-md p-4 w-full">
                     <p><b>Account:</b> {details.account}</p>
@@ -521,7 +530,7 @@ const App = () => {
               </div>
             ) : null}
 
-            {id ? (
+            {id && saturn ? (
               <div className="w-full flex flex-col gap-4 justify-center items-center">
                 <div className="border rounded-md p-4 w-full flex gap-4">
                   <form
@@ -538,7 +547,7 @@ const App = () => {
                       <div className="mt-1">
                     <select value={destCall.chain} onChange={e => {
                         const c = saturn.chains.find(i => i.chain == e.target.value);
-                        setDestCall(c);
+                        if (c) setDestCall(c);
 
                     }}
                 className="block w-full rounded-md border-neutral-300 shadow-sm focus:border-neutral-500 focus:ring-neutral-500 sm:text-sm"
@@ -588,7 +597,7 @@ const App = () => {
               </div>
             ) : null}
 
-            {id ? (
+            {id && saturn ? (
               <div className="w-full flex flex-col gap-4 justify-center items-center">
                 <div className="border rounded-md p-4 w-full flex gap-4">
                   <form
@@ -605,9 +614,10 @@ const App = () => {
                       <div className="mt-1">
                     <select value={destTransfer.chain} onChange={e => {
                         const c = saturn.chains.find(i => i.chain == e.target.value);
-                        setDestTransfer(c);
-                        setAssetTransfer(c.assets[0])
-
+                        if (c) {
+                            setDestTransfer(c);
+                            setAssetTransfer(c.assets[0])
+                        }
                     }}
                 className="block w-full rounded-md border-neutral-300 shadow-sm focus:border-neutral-500 focus:ring-neutral-500 sm:text-sm"
                     >
@@ -625,7 +635,7 @@ const App = () => {
                       <div className="mt-1">
                     <select value={assetTransfer.label} onChange={e => {
                         const a = destTransfer.assets.find(i => i.label == e.target.value);
-                        setAssetTransfer(a)
+                        if (a) setAssetTransfer(a);
 
                     }}
                 className="block w-full rounded-md border-neutral-300 shadow-sm focus:border-neutral-500 focus:ring-neutral-500 sm:text-sm"
@@ -683,11 +693,11 @@ const App = () => {
                     <p><b>Call:</b> {JSON.stringify(lastCallResult.result.call)}</p>
                     <p><b>Voter:</b> {lastCallResult.result.voter}</p>
                     {lastCallResult.executed ? (
-                        <p><b>Execution Result:</b> {JSON.stringify(lastCallResult.result.executionResult)}</p>
+                        <p><b>Execution Result:</b> {JSON.stringify((lastCallResult.result as MultisigCallExecuted).executionResult )}</p>
                     ) :
                         <p><b>Votes Added:</b> {
-                        lastCallResult.result.votesAdded.aye ? "Aye" : "Nay"
-                    }{": "}{lastCallResult.result.votesAdded}</p>
+                        ((lastCallResult.result as MultisigCallVoteStarted).votesAdded as { aye: BN }).aye ? `Aye: ${((lastCallResult.result as MultisigCallVoteStarted).votesAdded as { aye: BN }).aye}` : `Nay: ${ ((lastCallResult.result as MultisigCallVoteStarted).votesAdded as { nay: BN }).nay}`
+                    }</p>
                         }
 
                     </div>

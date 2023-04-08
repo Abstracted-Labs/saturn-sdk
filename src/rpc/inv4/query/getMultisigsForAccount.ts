@@ -1,9 +1,9 @@
-import { getMultisigsForAccountParams } from "../../../types";
+import { GetMultisigsForAccountParams } from "../../../types";
 
 const getMultisigsForAccount = ({
   api,
   account,
-}: getMultisigsForAccountParams) => {
+}: GetMultisigsForAccountParams) => {
   return api.query.coreAssets.accounts.entries(account);
 };
 

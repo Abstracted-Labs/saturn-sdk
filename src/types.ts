@@ -1,6 +1,8 @@
 import type { ApiPromise } from "@polkadot/api";
-import { SubmittableExtrinsic, Call } from "@polkadot/api/types";
-import { ISubmittableResult, DispatchResult } from "@polkadot/types/types";
+import { SubmittableExtrinsic } from "@polkadot/api/types";
+import { ISubmittableResult } from "@polkadot/types/types";
+import { AccountId, DispatchResult, Call } from "@polkadot/types/interfaces";
+import type { BN } from '@polkadot/util';
 
 type GetSignAndSendCallbackParams = {
   onInvalid?: (payload: ISubmittableResult) => void;
@@ -35,7 +37,7 @@ type GetPendingMultisigCallsParams = DefaultMultisigParams & {
 
 type GetPendingMultisigCallParams = DefaultMultisigParams & {
   id: string;
-  callHash: `0x${string}`;
+  callHash: string;
 };
 
 type CreateMultisigParams = {
@@ -48,17 +50,17 @@ type CreateMultisigParams = {
 type CreateMultisigCallParams = DefaultMultisigParams & {
   metadata?: string;
   id: string;
-  calls: SubmittableExtrinsic<"promise", ISubmittableResult>[];
+  call: SubmittableExtrinsic<"promise", ISubmittableResult>;
 };
 
 type VoteMultisigCallParams = DefaultMultisigParams & {
-  callHash: `0x${string}`;
+  callHash: string;
   id: string;
   aye: boolean;
 };
 
 type WithdrawVoteMultisigCallParams = DefaultMultisigParams & {
-  callHash: `0x${string}`;
+  callHash: string;
   id: string;
 };
 
@@ -73,16 +75,19 @@ type BurnTokenMultisigParams = DefaultMultisigParams & {
 };
 
 type SendExternalMultisigCallParams = DefaultMultisigParams & {
-  destination: string;
-  weight: string;
-  callData: `0x${string}`;
+    destination: string;
+    weight: BN;
+    callData: string;
+    feeAsset: string;
+    fee: BN;
 };
 
 type TransferExternalAssetMultisigCallParams = DefaultMultisigParams & {
-  destination: string;
-  asset: string;
-  amount: string;
-  to: string;
+    asset: string;
+    amount: BN;
+    to: string;
+    feeAsset: string;
+    fee: BN;
 };
 
 type MultisigCreateResult = {
@@ -114,8 +119,19 @@ type MultisigCallExecuted = {
 }
 
 type MultisigCallResult = {
-    executed: bool;
+    executed: boolean;
     result: MultisigCallVoteStarted | MultisigCallExecuted;
+}
+
+type CallDetails = {
+    tally: {
+        ayes: BN;
+        nays: BN;
+        records: Record<string, Record<"aye" | "nay", BN>>;
+    };
+    originalCaller: string;
+    actualCall: Call;
+    metadata: string | null;
 }
 
 export type {
@@ -138,4 +154,5 @@ export type {
   MultisigCallVoteStarted,
     ApiAndId,
     GetMultisigsForAccountParams,
+    CallDetails,
 };
