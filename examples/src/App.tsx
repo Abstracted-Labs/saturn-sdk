@@ -251,7 +251,7 @@ const App = () => {
 
     const injector = await web3FromAddress(selectedAccount.address);
 
-    await saturn.sendXcmCall({
+    await saturn.sendXCMCall({
       id,
       destination: externalDestination,
       weight: externalWeight,
