@@ -19,6 +19,7 @@ import {
   sendExternalMultisigCall,
   getMultisigsForAccount,
   getMultisigMembers,
+  bridgeExternalMultisigAssetCall,
 } from "./rpc";
 
 import {
@@ -339,6 +340,29 @@ class Saturn {
     );
 
     return mapped;
+  };
+
+  public proposeNewMember = ({
+    id,
+    address,
+    amount,
+    token = null,
+    metadata,
+  }: {
+    id: string;
+    address: string;
+    amount: number;
+    token?: string;
+    metadata?: string;
+  }) => {
+    return this.proposeMultisigCall({
+      id,
+      call: this._mintTokenMultisig({
+        address,
+        amount,
+      }),
+      metadata,
+    });
   };
 
   public vote = ({
@@ -668,6 +692,29 @@ class Saturn {
       to,
       feeAsset,
       fee,
+    });
+  };
+
+  private _bridgeExternalMultisigAssetCall = ({
+    asset,
+    destination,
+    fee,
+    amount,
+    to,
+  }: {
+    asset: string;
+    destination: string;
+    fee: BN;
+    amount: BN;
+    to: string;
+  }) => {
+    return bridgeExternalMultisigAssetCall({
+      api: this.api,
+      asset,
+      destination,
+      fee,
+      amount,
+      to,
     });
   };
 }
