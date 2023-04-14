@@ -365,6 +365,29 @@ class Saturn {
     });
   };
 
+  public proposeMemberRemoval = async ({
+    id,
+    address,
+    amount,
+    token = null,
+    metadata,
+  }: {
+    id: string;
+    address: string;
+    amount: number;
+    token?: string;
+    metadata?: string;
+  }) => {
+    return this.proposeMultisigCall({
+      id,
+      call: this._burnTokenMultisig({
+        address,
+        amount,
+      }),
+      metadata,
+    });
+  };
+
   public vote = ({
     id,
     callHash,

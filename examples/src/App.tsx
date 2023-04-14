@@ -15,7 +15,7 @@ import {
 } from "../../src";
 import { BN } from "@polkadot/util";
 
-const host = "ws://127.0.0.1:9944";
+const host = "ws://127.0.0.1:2125";
 
 const endpoints = {
   KUSAMA: "ws://127.0.0.1:9955",
