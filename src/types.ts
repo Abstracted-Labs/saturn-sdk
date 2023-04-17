@@ -1,8 +1,11 @@
 import type { ApiPromise } from "@polkadot/api";
 import { SubmittableExtrinsic } from "@polkadot/api/types";
-import { ISubmittableResult } from "@polkadot/types/types";
-import { AccountId, DispatchResult, Call } from "@polkadot/types/interfaces";
+import { ISubmittableResult, AnyJson } from "@polkadot/types/types";
+import { AccountId, DispatchResult, Call, Hash, Perbill, Balance } from "@polkadot/types/interfaces";
 import type { BN } from "@polkadot/util";
+import { u32 } from "@polkadot/types-codec/primitive";
+import { Text } from "@polkadot/types-codec/native";
+import { Enum } from "@polkadot/types-codec";
 
 type GetSignAndSendCallbackParams = {
   onInvalid?: (payload: ISubmittableResult) => void;
@@ -78,49 +81,135 @@ type SendExternalMultisigCallParams = DefaultMultisigParams & {
   destination: string;
   weight: BN;
   callData: string;
-  feeAsset: string;
+  feeAsset: Object;
   fee: BN;
 };
 
 type TransferExternalAssetMultisigCallParams = DefaultMultisigParams & {
-  asset: string;
+  asset: Object;
   amount: BN;
   to: string;
-  feeAsset: string;
+  feeAsset: Object;
   fee: BN;
 };
 
-type MultisigCreateResult = {
-  id: number;
-  account: string;
-  metadata: string;
-  minimumSupport: BN;
-  requiredApproval: BN;
-  creator: string;
-  tokenSupply: BN;
+export class MultisigCreateResult {
+  readonly id: u32;
+  readonly account: AccountId;
+  readonly metadata: Text;
+  readonly minimumSupport: Perbill;
+  readonly requiredApproval: Perbill;
+  readonly creator: AccountId;
+  readonly tokenSupply: Balance;
+
+    constructor ({
+        id,
+        account,
+        metadata,
+        minimumSupport,
+        requiredApproval,
+        creator,
+        tokenSupply
+    }: {
+        id: u32;
+        account: AccountId;
+        metadata: Text;
+        minimumSupport: Perbill;
+        requiredApproval: Perbill;
+        creator: AccountId;
+        tokenSupply: Balance;
+    }) {
+        this.id = id;
+        this.account = account;
+        this.metadata = metadata;
+        this.minimumSupport = minimumSupport;
+        this.requiredApproval = requiredApproval;
+        this.creator = creator;
+        this.tokenSupply = tokenSupply;
+    }
+
+    public toHuman (): AnyJson {
+        return {
+            id: this.id.toHuman(),
+            account: this.account.toHuman(),
+            metadata: this.metadata.toHuman(),
+            minimumSupport: this.minimumSupport.toHuman(),
+            requiredApproval: this.requiredApproval.toHuman(),
+            creator: this.creator.toHuman(),
+            tokenSupply: this.tokenSupply.toHuman()
+        }
+    }
 };
 
-type MultisigCallVoteStarted = {
-  id: number;
-  account: string;
-  callHash: string;
-  call: Call;
-  voter: string;
-  votesAdded: { aye: BN } | { nay: BN };
-};
+export interface VotesAdded extends Enum {
+    readonly isAye: boolean;
+    readonly isNay: boolean;
+    readonly asAye: Balance;
+    readonly asNay: Balance;
+    readonly type: 'Aye' | 'Nay';
+}
 
-type MultisigCallExecuted = {
-  id: number;
-  account: string;
-  callHash: string;
-  call: Call;
-  voter: string;
-  executionResult: DispatchResult;
-};
+export class MultisigCallResult {
+    readonly isVoteStarted: boolean
+    readonly votesAdded?: VotesAdded;
+    readonly isExecuted: boolean;
+    readonly executionResult?: DispatchResult;
 
-type MultisigCallResult = {
-  executed: boolean;
-  result: MultisigCallVoteStarted | MultisigCallExecuted;
+    readonly id: u32;
+    readonly account: AccountId;
+    readonly callHash: Hash;
+    readonly call: Call;
+    readonly voter: AccountId;
+
+    constructor ({
+        isVoteStarted,
+        votesAdded,
+        isExecuted,
+        executionResult,
+
+        id,
+        account,
+        callHash,
+        call,
+        voter,
+    }: {
+        isVoteStarted: boolean,
+        votesAdded?: VotesAdded,
+        isExecuted: boolean,
+        executionResult?: DispatchResult,
+
+        id: u32;
+        account: AccountId;
+        callHash: Hash;
+        call: Call;
+        voter: AccountId;
+    }) {
+        this.isVoteStarted = isVoteStarted;
+        this.votesAdded = votesAdded;
+        this.isExecuted = isExecuted;
+        this.executionResult = executionResult;
+
+        this.id = id;
+        this.account = account;
+        this.callHash = callHash;
+        this.call = call;
+        this.voter = voter;
+    }
+
+    public toHuman (): AnyJson {
+        return {
+            isVoteStarted: this.isVoteStarted,
+            isExecuted: this.isExecuted,
+            votesAdded: this.votesAdded?.toHuman(),
+            executionResult: this.executionResult?.isErr ? this.executionResult.asErr.toHuman() : this.executionResult?.asOk.toHuman(),
+
+            id: this.id.toHuman(),
+            account: this.account.toHuman(),
+            callHash: this.callHash.toHuman(),
+            call: this.call.toHuman(),
+            voter: this.voter.toHuman(),
+        }
+    }
 };
 
 type CallDetails = {
@@ -156,10 +245,6 @@ export type {
   BurnTokenMultisigParams,
   SendExternalMultisigCallParams,
   TransferExternalAssetMultisigCallParams,
-  MultisigCreateResult,
-  MultisigCallResult,
-  MultisigCallExecuted,
-  MultisigCallVoteStarted,
   ApiAndId,
   GetMultisigsForAccountParams,
   CallDetails,

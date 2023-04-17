@@ -1,9 +1,12 @@
+import "../typegen";
 import { ApiPromise } from "@polkadot/api";
 import { SubmittableExtrinsic } from "@polkadot/api/types";
-import { AccountId, DispatchResult, Call } from "@polkadot/types/interfaces";
+import { AccountId, DispatchResult, Call, Hash, Perbill, Balance } from "@polkadot/types/interfaces";
 import { ISubmittableResult, Signer } from "@polkadot/types/types";
 import type { BN } from "@polkadot/util";
 import { AnyJson } from "@polkadot/types-codec/types";
+import { u32 } from "@polkadot/types-codec/primitive";
+import { Text } from "@polkadot/types-codec/native";
 
 import {
   createCore,
@@ -38,6 +41,7 @@ import {
   GetMultisigsForAccountParams,
   CallDetails,
   MultisigCallResult,
+    VotesAdded,
 } from "./types";
 
 import { getSignAndSendCallback } from "./utils";
@@ -193,28 +197,30 @@ class Saturn {
           if (status.isInBlock) {
             const event = events
               .find(({ event }) => event.method === "CoreCreated")
-              ?.event.data.toPrimitive() as [string, number, string, BN, BN];
+              ?.event.data;
 
             const assetsEvent = events
               .find(
                 ({ event }) =>
                   event.section === "coreAssets" && event.method === "Endowed"
               )
-              ?.event.data.toPrimitive() as [string, string, BN];
+              ?.event.data;
 
             if (!event || !assetsEvent) {
               throw new Error("SOMETHING_WENT_WRONG");
             }
 
-            resolve({
-              id: event[1],
-              account: event[0],
-              metadata: event[2],
-              minimumSupport: event[3],
-              requiredApproval: event[4],
-              creator: address,
-              tokenSupply: assetsEvent[2],
-            } as MultisigCreateResult);
+              const result = new MultisigCreateResult({
+                  id: event[1] as u32,
+                  account: event[0] as AccountId,
+                  metadata: event[2] as Text,
+                  minimumSupport: event[3] as Perbill,
+                  requiredApproval: event[4] as Perbill,
+                  creator: this.api.createType("AccountId", address),
+                  tokenSupply: assetsEvent[2] as Balance,
+              });
+
+            resolve(result);
           }
         });
       } catch (e) {
@@ -346,13 +352,11 @@ class Saturn {
     id,
     address,
     amount,
-    token = null,
     metadata,
   }: {
     id: string;
     address: string;
     amount: number;
-    token?: string;
     metadata?: string;
   }) => {
     return this.proposeMultisigCall({
@@ -369,13 +373,11 @@ class Saturn {
     id,
     address,
     amount,
-    token = null,
     metadata,
   }: {
     id: string;
     address: string;
     amount: number;
-    token?: string;
     metadata?: string;
   }) => {
     return this.proposeMultisigCall({
@@ -451,52 +453,47 @@ class Saturn {
 
               switch (method) {
                 case "MultisigExecuted": {
-                  const args = event.data.toPrimitive() as [
-                    number,
-                    string,
-                    string,
-                    string,
-                    Call,
-                    DispatchResult
-                  ];
 
-                  const result: MultisigCallResult = {
-                    executed: true,
-                    result: {
-                      id: args[0],
-                      account: args[1],
-                      voter: args[2],
-                      callHash: args[3],
-                      call: args[4],
-                      executionResult: args[5],
-                    },
-                  };
+                    console.log("event typ: ", event.typeDef);
+
+                    console.log("as Call: ", event.data[4] as Call);
+                    const test = this.api.createType('Call', event.data[4]);
+                    console.log("test: ", test);
+
+                    const args = event.data;
+
+                    const result = new MultisigCallResult({
+                    isExecuted: true,
+                        isVoteStarted: false,
+                      id: args[0] as u32,
+                      account: args[1] as AccountId,
+                      voter: args[2] as AccountId,
+                      callHash: args[3] as Hash,
+                      call: args[4] as Call,
+                      executionResult: args[5] as DispatchResult,
+                    });
+
+                    console.log("result: ", result);
 
                   resolve(result);
 
                   break;
                 }
                 case "MultisigVoteStarted": {
-                  const args = event.data.toPrimitive() as [
-                    number,
-                    string,
-                    string,
-                    { aye: BN } | { nay: BN },
-                    string,
-                    Call
-                  ];
+                    const args = event.data;
 
-                  const result: MultisigCallResult = {
-                    executed: false,
-                    result: {
-                      id: args[0],
-                      account: args[1],
-                      voter: args[2],
-                      votesAdded: args[3],
-                      callHash: args[4],
-                      call: args[5],
-                    },
-                  };
+                    const result = new MultisigCallResult({
+                    isVoteStarted: true,
+                        isExecuted: false,
+                      id: args[0] as u32,
+                      account: args[1] as AccountId,
+                      voter: args[2] as AccountId,
+                          votesAdded: args[3] as VotesAdded,
+                      callHash: args[4] as Hash,
+                      call: args[5] as Call,
+                    });
+
+                    console.log("result: ", result);
 
                   resolve(result);
 
@@ -527,7 +524,7 @@ class Saturn {
     destination: string;
     weight: BN;
     callData: string;
-    feeAsset: string;
+    feeAsset: Object;
     fee: BN;
     metadata?: string;
   }) => {
@@ -552,10 +549,10 @@ class Saturn {
     metadata,
   }: {
     id: string;
-    asset: string;
+    asset: Object;
     amount: BN;
     to: string;
-    feeAsset: string;
+    feeAsset: Object;
     fee: BN;
     metadata?: string;
   }) => {
@@ -682,7 +679,7 @@ class Saturn {
     destination: string;
     weight: BN;
     callData: string;
-    feeAsset: string;
+    feeAsset: Object;
     fee: BN;
   }) => {
     return sendExternalMultisigCall({
@@ -702,10 +699,10 @@ class Saturn {
     feeAsset,
     fee,
   }: {
-    asset: string;
+    asset: Object;
     amount: BN;
     to: string;
-    feeAsset: string;
+    feeAsset: Object;
     fee: BN;
   }) => {
     return transferExternalAssetMultisigCall({

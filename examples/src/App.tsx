@@ -10,12 +10,10 @@ import { FormEvent, useEffect, useState } from "react";
 import {
   Saturn,
   MultisigCallResult,
-  MultisigCallExecuted,
-  MultisigCallVoteStarted,
 } from "../../src";
 import { BN } from "@polkadot/util";
 
-const host = "ws://127.0.0.1:2125";
+const host = "ws://127.0.0.1:9944";
 
 const endpoints = {
   KUSAMA: "ws://127.0.0.1:9955",
@@ -232,33 +230,18 @@ const App = () => {
 
     if (!selectedAccount) return;
 
-    const destProvider = new WsProvider(endpoints.KUSAMA);
-
-    const destApi = await ApiPromise.create({ provider: destProvider });
-
-    const call = new GenericCall(api.registry, externalCallData);
-
-    const ext = new GenericExtrinsic(
-      api.registry,
-      new GenericCall(api.registry, externalCallData)
-    );
-
-    const fee = await destApi.tx.system
-      .remarkWithEvent("test")
-      .paymentInfo(selectedAccount.address);
-
-    console.log("fee: ", fee);
-
     const injector = await web3FromAddress(selectedAccount.address);
 
-    await saturn.sendXCMCall({
+    const result = await saturn.sendXCMCall({
       id,
       destination: externalDestination,
       weight: externalWeight,
       callData: externalCallData,
-      feeAsset: destCall.assets[0].registerType.toString(),
-      fee: fee.partialFee,
+      feeAsset: destCall.assets[0].registerType,
+      fee: new BN("1000000000000"),
     });
+
+      console.log("result toHuman: ", result.toHuman());
   };
 
   const handleTransferExternalAssetCallSubmit = async (
@@ -737,46 +720,38 @@ const App = () => {
               <div className="w-full flex flex-col gap-4 justify-center items-center">
                 <div className="border rounded-md p-4 w-full">
                   <p>
-                    <b>Executed:</b> {lastCallResult.executed}
+                    <b>Executed:</b> {lastCallResult.isExecuted}
                   </p>
                   <p>
-                    <b>Account:</b> {lastCallResult.result.account}
+                    <b>Account:</b> {lastCallResult.account}
                   </p>
                   <p>
-                    <b>Call Hash:</b> {lastCallResult.result.callHash}
+                    <b>Call Hash:</b> {lastCallResult.callHash}
                   </p>
                   <p>
-                    <b>Call:</b> {JSON.stringify(lastCallResult.result.call)}
+                    <b>Call:</b> {JSON.stringify(lastCallResult.call)}
                   </p>
                   <p>
-                    <b>Voter:</b> {lastCallResult.result.voter}
+                    <b>Voter:</b> {lastCallResult.voter}
                   </p>
-                  {lastCallResult.executed ? (
+                  {lastCallResult.executionResult ? (
                     <p>
                       <b>Execution Result:</b>{" "}
                       {JSON.stringify(
-                        (lastCallResult.result as MultisigCallExecuted)
-                          .executionResult
+                        lastCallResult.executionResult
                       )}
                     </p>
                   ) : (
                     <p>
                       <b>Votes Added:</b>{" "}
-                      {(
-                        (lastCallResult.result as MultisigCallVoteStarted)
-                          .votesAdded as { aye: BN }
-                      ).aye
+                      {
+                        lastCallResult
+                          .votesAdded?.isAye
                         ? `Aye: ${
-                            (
-                              (lastCallResult.result as MultisigCallVoteStarted)
-                                .votesAdded as { aye: BN }
-                            ).aye
+                              lastCallResult.votesAdded?.asAye
                           }`
                         : `Nay: ${
-                            (
-                              (lastCallResult.result as MultisigCallVoteStarted)
-                                .votesAdded as { nay: BN }
-                            ).nay
+                              lastCallResult.votesAdded?.asNay
                           }`}
                     </p>
                   )}
