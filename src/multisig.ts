@@ -7,6 +7,7 @@ import type { BN } from "@polkadot/util";
 import { AnyJson } from "@polkadot/types-codec/types";
 import { u32 } from "@polkadot/types-codec/primitive";
 import { Text } from "@polkadot/types-codec/native";
+import { Option } from "@polkadot/types-codec";
 
 import {
   createCore,
@@ -41,11 +42,13 @@ import {
   GetMultisigsForAccountParams,
   CallDetails,
   MultisigCallResult,
-    VotesAdded,
+    Vote,
     MultisigCall,
+    Tally
 } from "./types";
 
 import { getSignAndSendCallback } from "./utils";
+import { BTreeMap } from "@polkadot/types";
 
 const PARACHAINS_KEY = "TinkernetRuntimeRingsChains";
 const PARACHAINS_ASSETS = "TinkernetRuntimeRingsChainAssets";
@@ -242,29 +245,17 @@ class Saturn {
     return supply;
   };
 
-  public getOpenCalls = async (id: string) => {
+    public getOpenCalls = async (id: string): Promise<{callHash: string, details: CallDetails}[]> => {
     const pendingCalls = await this._getPendingMultisigCalls(id);
 
     const openCalls = pendingCalls.map((call) => {
       const callHash = call[0].args[1].toHex() as string;
 
-      const callDetails = call[1].toPrimitive() as unknown as {
-        tally: {
-          ayes: BN;
-          nays: BN;
-          records: Record<string, Record<"aye" | "nay", BN>>;
-        };
-        originalCaller: string;
-        actualCall: Call;
-        metadata: string | null;
-      };
+      const callDetails = call[1] as CallDetails;
 
       return {
         callHash,
-        tally: callDetails.tally,
-        originalCaller: callDetails.originalCaller,
-        actualCall: callDetails.actualCall,
-        metadata: callDetails.metadata,
+          details: callDetails,
       };
     });
 
@@ -277,27 +268,14 @@ class Saturn {
   }: {
     id: string;
     callHash: string;
-  }) => {
-    const call = await this._getPendingMultisigCall({ id, callHash });
+  }): Promise<CallDetails | null> => {
+      const maybeCall: Option<CallDetails> = await this._getPendingMultisigCall({ id, callHash });
 
-    const callDetails = call.toPrimitive() as {
-      signers: [string, null][];
-      originalCaller: string;
-      actualCall: string;
-      callMetadata: string;
-      callWeight: number;
-      metadata?: string;
-    };
+      const call: CallDetails = maybeCall.unwrap();
 
-    return {
-      callHash,
-      signers: callDetails.signers.map((signer) => signer[0]),
-      originalCaller: callDetails.originalCaller,
-      actualCall: callDetails.actualCall,
-      callMetadata: callDetails.callMetadata,
-      callWeight: callDetails.callWeight,
-      metadata: callDetails.metadata,
-    };
+      if (!call) return null;
+
+      return call;
   };
 
   public getMultisigMembers = async (id: string): Promise<AccountId[]> => {
@@ -501,7 +479,7 @@ class Saturn {
   }: {
     id: string;
     callHash: string;
-  }) => {
+  }): Promise<Option<CallDetails>> => {
     return getPendingMultisigCall({ api: this.api, id, callHash });
   };
 

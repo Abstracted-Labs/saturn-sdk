@@ -8,21 +8,24 @@
     "declarationMap": true,
     "allowSyntheticDefaultImports": true,
     "baseUrl": ".",
-    "paths": {
-        "typegen/*": [
-            "typegen/src/*"
-        ],
-        "tinkernet-typegen/*": [
-            "typegen/src/*"
-        ],
-        "@polkadot/api/augment": [
-            "typegen/src/interfaces/augment-api.ts"
-        ],
-        "@polkadot/types/augment": [
-            "typegen/src/interfaces/augment-types.ts"
-        ]
-    }
+      "paths": {
+          "@polkadot/api/augment": [
+              "typegen/src/interfaces/augment-api.ts"
+          ],
+          "@polkadot/types/augment": [
+              "typegen/src/interfaces/augment-types.ts"
+          ],
+          "@polkadot/types/lookup": [
+              "typegen/src/interfaces/types-lookup.ts"
+          ],
+          "@polkadot/types/types/registry": [
+              "typegen/src/interfaces/registry.ts"
+          ],
+          "saturn-sdk/*": [
+              "src/*"
+          ]
+      }
   },
   "include": ["src/**/*"],
-  "exclude": ["node_modules"]
+      "exclude": ["node_modules"]
 }

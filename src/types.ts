@@ -1,11 +1,13 @@
+import "../typegen";
+
 import type { ApiPromise } from "@polkadot/api";
-import { SubmittableExtrinsic } from "@polkadot/api/types";
+import { SubmittableExtrinsic, AugmentedEvent, ApiTypes, AugmentedEvents } from "@polkadot/api/types";
 import { ISubmittableResult, AnyJson, Signer } from "@polkadot/types/types";
-import { AccountId, DispatchResult, Call, Hash, Perbill, Balance } from "@polkadot/types/interfaces";
+import { AccountId, AccountId32, DispatchResult, Call, Hash, Perbill, Balance } from "@polkadot/types/interfaces";
 import type { BN } from "@polkadot/util";
-import { u32 } from "@polkadot/types-codec/primitive";
+import { u32, u128 } from "@polkadot/types-codec/primitive";
 import { Text } from "@polkadot/types-codec/native";
-import { Enum } from "@polkadot/types-codec";
+import { Enum, Struct, BTreeMap, Option, Bytes } from "@polkadot/types-codec";
 
 type GetSignAndSendCallbackParams = {
   onInvalid?: (payload: ISubmittableResult) => void;
@@ -141,17 +143,9 @@ export class MultisigCreateResult {
     }
 };
 
-export interface VotesAdded extends Enum {
-    readonly isAye: boolean;
-    readonly isNay: boolean;
-    readonly asAye: Balance;
-    readonly asNay: Balance;
-    readonly type: 'Aye' | 'Nay';
-}
-
 export class MultisigCallResult {
     readonly isVoteStarted: boolean
-    readonly votesAdded?: VotesAdded;
+    readonly votesAdded?: Vote;
     readonly isExecuted: boolean;
     readonly executionResult?: DispatchResult;
 
@@ -174,7 +168,7 @@ export class MultisigCallResult {
         voter,
     }: {
         isVoteStarted: boolean,
-        votesAdded?: VotesAdded,
+        votesAdded?: Vote,
         isExecuted: boolean,
         executionResult?: DispatchResult,
 
@@ -271,12 +265,12 @@ export class MultisigCall {
                     const args = event.data;
 
                     const result = new MultisigCallResult({
-                    isVoteStarted: true,
-                        isExecuted: false,
+                      isVoteStarted: true,
+                      isExecuted: false,
                       id: args[0] as u32,
                       account: args[1] as AccountId,
                       voter: args[2] as AccountId,
-                          votesAdded: args[3] as VotesAdded,
+                      votesAdded: args[3] as Vote,
                       callHash: args[4] as Hash,
                       call: args[5] as Call,
                     });
@@ -300,16 +294,26 @@ export class MultisigCall {
     }
 }
 
-type CallDetails = {
-  tally: {
-    ayes: BN;
-    nays: BN;
-    records: Record<string, Record<"aye" | "nay", BN>>;
-  };
-  originalCaller: string;
-  actualCall: Call;
-  metadata: string | null;
-};
+export interface CallDetails extends Struct {
+    readonly tally: Tally;
+    readonly originalCaller: AccountId32;
+    readonly actualCall: Call;
+    readonly metadata: Text;
+}
+
+export interface Tally extends Struct {
+    readonly ayes: Balance;
+    readonly nays: Balance;
+    readonly records: BTreeMap<AccountId, Vote>;
+}
+
+export interface Vote extends Enum {
+    readonly isAye: boolean;
+    readonly asAye: Balance;
+    readonly isNay: boolean;
+    readonly asNay: Balance;
+    readonly type: 'Aye' | 'Nay';
+}
 
 type BridgeExternalMultisigAssetCallParams = DefaultMultisigParams & {
   asset: string;
@@ -335,6 +339,5 @@ export type {
   TransferExternalAssetMultisigCallParams,
   ApiAndId,
   GetMultisigsForAccountParams,
-  CallDetails,
   BridgeExternalMultisigAssetCallParams,
 };
