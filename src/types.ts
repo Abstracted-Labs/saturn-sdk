@@ -1,6 +1,6 @@
 import type { ApiPromise } from "@polkadot/api";
 import { SubmittableExtrinsic } from "@polkadot/api/types";
-import { ISubmittableResult, AnyJson } from "@polkadot/types/types";
+import { ISubmittableResult, AnyJson, Signer } from "@polkadot/types/types";
 import { AccountId, DispatchResult, Call, Hash, Perbill, Balance } from "@polkadot/types/interfaces";
 import type { BN } from "@polkadot/util";
 import { u32 } from "@polkadot/types-codec/primitive";
@@ -211,6 +211,94 @@ export class MultisigCallResult {
         }
     }
 };
+
+export class MultisigCall {
+    readonly call: SubmittableExtrinsic<"promise", ISubmittableResult>;
+
+    constructor (call: SubmittableExtrinsic<"promise", ISubmittableResult>) {
+        this.call = call;
+    }
+
+    public async signAndSend (address: string, signer: Signer): Promise<MultisigCallResult> {
+        return new Promise((resolve, reject) => {
+            try {
+        this.call.signAndSend(
+            address,
+            { signer },
+          ({ events, status }) => {
+            if (status.isInBlock) {
+              const event = events.find(
+                ({ event }) =>
+                  event.method == "MultisigExecuted" ||
+                  event.method == "MultisigVoteStarted"
+              )?.event;
+
+              if (!event) {
+                throw new Error("SOMETHING_WENT_WRONG");
+              }
+
+              const method = event.method;
+
+              switch (method) {
+                case "MultisigExecuted": {
+
+                    console.log("event typ: ", event.typeDef);
+
+                    console.log("as Call: ", event.data[4] as Call);
+                    const test = this.call.registry.createType('Call', event.data[4]);
+                    console.log("test: ", test);
+
+                    const args = event.data;
+
+                    const result = new MultisigCallResult({
+                    isExecuted: true,
+                        isVoteStarted: false,
+                      id: args[0] as u32,
+                      account: args[1] as AccountId,
+                      voter: args[2] as AccountId,
+                      callHash: args[3] as Hash,
+                      call: args[4] as Call,
+                      executionResult: args[5] as DispatchResult,
+                    });
+
+                    console.log("result: ", result);
+
+                  resolve(result);
+
+                  break;
+                }
+                case "MultisigVoteStarted": {
+                    const args = event.data;
+
+                    const result = new MultisigCallResult({
+                    isVoteStarted: true,
+                        isExecuted: false,
+                      id: args[0] as u32,
+                      account: args[1] as AccountId,
+                      voter: args[2] as AccountId,
+                          votesAdded: args[3] as VotesAdded,
+                      callHash: args[4] as Hash,
+                      call: args[5] as Call,
+                    });
+
+                    console.log("result: ", result);
+
+                  resolve(result);
+
+                  break;
+                }
+                default:
+                  break;
+              }
+            }
+          }
+        );
+        } catch (e) {
+            reject(e);
+        }
+                          });
+    }
+}
 
 type CallDetails = {
   tally: {
