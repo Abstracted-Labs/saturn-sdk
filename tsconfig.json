@@ -9,18 +9,10 @@
     "allowSyntheticDefaultImports": true,
     "baseUrl": ".",
     "paths": {
-        "typegen/*": [
-            "typegen/src/*"
-        ],
-        "tinkernet-typegen/*": [
-            "typegen/src/*"
-        ],
-        "@polkadot/api/augment": [
-            "typegen/src/interfaces/augment-api.ts"
-        ],
-        "@polkadot/types/augment": [
-            "typegen/src/interfaces/augment-types.ts"
-        ]
+      "typegen/*": ["typegen/src/*"],
+      "tinkernet-typegen/*": ["typegen/src/*"],
+      "@polkadot/api/augment": ["typegen/src/interfaces/augment-api.ts"],
+      "@polkadot/types/augment": ["typegen/src/interfaces/augment-types.ts"]
     }
   },
   "include": ["src/**/*"],
