@@ -1,13 +1,13 @@
-import "../typegen";
-
 import type { ApiPromise } from "@polkadot/api";
-import { SubmittableExtrinsic, AugmentedEvent, ApiTypes, AugmentedEvents } from "@polkadot/api/types";
+import { SubmittableExtrinsic, ApiTypes } from "@polkadot/api/types";
 import { ISubmittableResult, AnyJson, Signer } from "@polkadot/types/types";
-import { AccountId, AccountId32, DispatchResult, Call, Hash, Perbill, Balance } from "@polkadot/types/interfaces";
+import { AccountId, AccountId32, DispatchResult, Call, Hash, Perbill, Balance, DispatchError } from "@polkadot/types/interfaces";
 import type { BN } from "@polkadot/util";
 import { u32, u128 } from "@polkadot/types-codec/primitive";
 import { Text } from "@polkadot/types-codec/native";
-import { Enum, Struct, BTreeMap, Option, Bytes } from "@polkadot/types-codec";
+import { Enum, Struct, BTreeMap, Option, Bytes, bool, Result, Null, Vec } from "@polkadot/types-codec";
+import type { AddressOrPair, AugmentedEvent, AugmentedEvents, SignerOptions, SubmittablePaymentResult } from "@polkadot/api-base/types";
+import { FrameSystemEventRecord, PalletInv4Event } from "@polkadot/types/lookup";
 
 type GetSignAndSendCallbackParams = {
   onInvalid?: (payload: ISubmittableResult) => void;
@@ -77,14 +77,6 @@ type MintTokenMultisigParams = DefaultMultisigParams & {
 type BurnTokenMultisigParams = DefaultMultisigParams & {
   address: string;
   amount: number;
-};
-
-type SendExternalMultisigCallParams = DefaultMultisigParams & {
-  destination: string;
-  weight: BN;
-  callData: string;
-  feeAsset: Object;
-  fee: BN;
 };
 
 type TransferExternalAssetMultisigCallParams = DefaultMultisigParams & {
@@ -207,11 +199,15 @@ export class MultisigCallResult {
 };
 
 export class MultisigCall {
-    readonly call: SubmittableExtrinsic<"promise", ISubmittableResult>;
+    readonly call: SubmittableExtrinsic<ApiTypes>;
 
-    constructor (call: SubmittableExtrinsic<"promise", ISubmittableResult>) {
+    constructor (call: SubmittableExtrinsic<ApiTypes>) {
         this.call = call;
     }
+
+    public paymentInfo (account: AddressOrPair, options?: Partial<SignerOptions>): SubmittablePaymentResult<ApiTypes> {
+        return this.call.paymentInfo(account, options);
+    };
 
     public async signAndSend (address: string, signer: Signer): Promise<MultisigCallResult> {
         return new Promise((resolve, reject) => {
@@ -235,27 +231,18 @@ export class MultisigCall {
 
               switch (method) {
                 case "MultisigExecuted": {
-
-                    console.log("event typ: ", event.typeDef);
-
-                    console.log("as Call: ", event.data[4] as Call);
-                    const test = this.call.registry.createType('Call', event.data[4]);
-                    console.log("test: ", test);
-
                     const args = event.data;
 
                     const result = new MultisigCallResult({
-                    isExecuted: true,
+                        isExecuted: true,
                         isVoteStarted: false,
-                      id: args[0] as u32,
-                      account: args[1] as AccountId,
-                      voter: args[2] as AccountId,
-                      callHash: args[3] as Hash,
-                      call: args[4] as Call,
-                      executionResult: args[5] as DispatchResult,
+                        id: args[0] as u32,
+                        account: args[1] as AccountId,
+                        voter: args[2] as AccountId,
+                        callHash: args[3] as Hash,
+                        call: args[4] as Call,
+                        executionResult: args[5] as DispatchResult,
                     });
-
-                    console.log("result: ", result);
 
                   resolve(result);
 
@@ -275,8 +262,6 @@ export class MultisigCall {
                       call: args[5] as Call,
                     });
 
-                    console.log("result: ", result);
-
                   resolve(result);
 
                   break;
@@ -287,10 +272,10 @@ export class MultisigCall {
             }
           }
         );
-        } catch (e) {
-            reject(e);
-        }
-                          });
+            } catch (e) {
+                reject(e);
+            }
+        });
     }
 }
 
@@ -315,14 +300,6 @@ export interface Vote extends Enum {
     readonly type: 'Aye' | 'Nay';
 }
 
-type BridgeExternalMultisigAssetCallParams = DefaultMultisigParams & {
-  asset: string;
-  destination: string;
-  fee: BN;
-  amount: BN;
-  to: string;
-};
-
 export type {
   DefaultMultisigParams,
   GetPendingMultisigCallsParams,
@@ -335,9 +312,7 @@ export type {
   WithdrawVoteMultisigCallParams,
   MintTokenMultisigParams,
   BurnTokenMultisigParams,
-  SendExternalMultisigCallParams,
   TransferExternalAssetMultisigCallParams,
   ApiAndId,
   GetMultisigsForAccountParams,
-  BridgeExternalMultisigAssetCallParams,
 };

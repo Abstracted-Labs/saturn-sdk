@@ -1,12 +1,13 @@
-import { GetPendingMultisigCallParams, CallDetails } from "../../../types";
+import { PalletInv4MultisigMultisigOperation } from "@polkadot/types/lookup";
+import { GetPendingMultisigCallParams } from "../../../types";
 import { Option } from "@polkadot/types-codec";
 
 const getPendingMultisigCall = async ({
   api,
   id,
   callHash,
-}: GetPendingMultisigCallParams): Promise<Option<CallDetails>> => {
-    const cd = (await api.query.inv4.multisig(parseInt(id), callHash)) as Option<CallDetails>;
+}: GetPendingMultisigCallParams): Promise<Option<PalletInv4MultisigMultisigOperation>> => {
+    const cd = (await api.query.inv4.multisig(parseInt(id), callHash)) as Option<PalletInv4MultisigMultisigOperation>;
 
     return cd;
 };

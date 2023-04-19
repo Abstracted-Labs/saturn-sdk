@@ -1,4 +1,5 @@
-import { TransferExternalAssetMultisigCallParams } from "../../../types";
+import { ApiPromise } from '@polkadot/api';
+import { BN } from '@polkadot/util';
 
 const transferExternalAssetMultisigCall = ({
   api,
@@ -7,7 +8,14 @@ const transferExternalAssetMultisigCall = ({
   to,
   feeAsset,
   fee,
-}: TransferExternalAssetMultisigCallParams) => {
+}: {
+    api: ApiPromise;
+    asset: Object;
+    amount: BN;
+    to: string;
+    feeAsset: Object;
+    fee: BN;
+}) => {
   return api.tx.rings.transferAssets(
     asset,
     amount,

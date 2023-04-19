@@ -1,5 +1,5 @@
 {
-  "name": "saturn-sdk",
+  "name": "@invarch/saturn-sdk",
   "version": "1.0.0",
   "description": "",
   "type": "module",
@@ -8,19 +8,25 @@
   ],
   "main": "index.js",
   "scripts": {
-    "build": "tsc --outDir ./dist"
+      "build": "tsc --outDir ./dist",
+      "typegen": "yarn generate:defs && yarn generate:meta",
+      "generate:defs": "ts-node-esm node_modules/.bin/polkadot-types-from-defs --package @invarch/saturn-sdk/interfaces --input ./src/typegen --endpoint ./src/typegen/tinkernet.json",
+      "generate:meta": "ts-node-esm node_modules/.bin/polkadot-types-from-chain --package @invarch/saturn-sdk/interfaces --endpoint ./src/typegen/tinkernet.json --output ./src/typegen --strict"
   },
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "@types/node": "^18.15.11",
-    "typescript": "^5.0.4"
+      "@types/node": "^18.15.11",
+      "typescript": "^5.0.4",
+      "@polkadot/typegen": "10.3.4",
+      "prettier": "2.8.1",
+      "ts-node": "10.9.1"
   },
   "dependencies": {
-    "@polkadot/api": "^10.3.2",
-    "@polkadot/api-augment": "^10.3.2",
+    "@polkadot/api": "^10.3.4",
+    "@polkadot/api-augment": "^10.3.4",
     "@polkadot/extension-dapp": "^0.45.5",
-    "@polkadot/types": "^10.3.2",
+    "@polkadot/types": "^10.3.4",
     "bn.js": "^5.2.1"
   }
 }

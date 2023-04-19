@@ -1,4 +1,6 @@
-import { SendExternalMultisigCallParams } from "../../../types";
+import { BN } from '@polkadot/util';
+import { ApiPromise } from '@polkadot/api';
+import { AnyJson } from '@polkadot/types/types';
 
 const sendExternalMultisigCall = ({
   api,
@@ -7,7 +9,14 @@ const sendExternalMultisigCall = ({
   callData,
   feeAsset,
   fee,
-}: SendExternalMultisigCallParams) => {
+}: {
+    api: ApiPromise;
+    destination: string;
+    weight: BN;
+    callData: Uint8Array;
+    feeAsset: Object;
+    fee: BN;
+}) => {
     return api.tx.rings.sendCall(destination, weight, feeAsset, fee, callData);
 };
 
