@@ -202,7 +202,7 @@ class Saturn {
             const result = new MultisigCreateResult({
               id: event[1] as u32,
               account: event[0] as AccountId,
-              metadata: event[2] as unknown as Text,
+              metadata: event[2] as Text,
               minimumSupport: event[3] as Perbill,
               requiredApproval: event[4] as Perbill,
               creator: this.api.createType("AccountId", address),
