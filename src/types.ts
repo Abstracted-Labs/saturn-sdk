@@ -264,7 +264,7 @@ export class MultisigCall {
                 const result = new MultisigCallResult({
                   isExecuted: true,
                   isVoteStarted: false,
-                  id: args[0] as unknown as u32,
+                  id: args[0] as u32,
                   account: args[1] as AccountId,
                   voter: args[2] as AccountId,
                   callHash: args[3] as Hash,
