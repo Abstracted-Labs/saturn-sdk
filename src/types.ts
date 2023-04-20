@@ -34,7 +34,7 @@ type DefaultMultisigParams = {
 
 type ApiAndId = {
   api: ApiPromise;
-  id: string;
+  id: number;
 };
 
 type GetMultisigsForAccountParams = DefaultMultisigParams & {
@@ -42,15 +42,15 @@ type GetMultisigsForAccountParams = DefaultMultisigParams & {
 };
 
 type GetMultisigParams = DefaultMultisigParams & {
-  id: string;
+  id: number;
 };
 
 type GetPendingMultisigCallsParams = DefaultMultisigParams & {
-  id: string;
+  id: number;
 };
 
 type GetPendingMultisigCallParams = DefaultMultisigParams & {
-  id: string;
+  id: number;
   callHash: string;
 };
 
@@ -63,19 +63,19 @@ type CreateMultisigParams = {
 
 type CreateMultisigCallParams = DefaultMultisigParams & {
   metadata?: string;
-  id: string;
+  id: number;
   call: SubmittableExtrinsic<"promise", ISubmittableResult>;
 };
 
 type VoteMultisigCallParams = DefaultMultisigParams & {
   callHash: string;
-  id: string;
+  id: number;
   aye: boolean;
 };
 
 type WithdrawVoteMultisigCallParams = DefaultMultisigParams & {
   callHash: string;
-  id: string;
+  id: number;
 };
 
 type MintTokenMultisigParams = DefaultMultisigParams & {
@@ -236,31 +236,6 @@ export class MultisigCall {
                 throw new Error("SOMETHING_WENT_WRONG");
               }
 
-export class MultisigCall {
-  readonly call: SubmittableExtrinsic<"promise", ISubmittableResult>;
-
-  constructor(call: SubmittableExtrinsic<"promise", ISubmittableResult>) {
-    this.call = call;
-  }
-
-  public async signAndSend(
-    address: string,
-    signer: Signer
-  ): Promise<MultisigCallResult> {
-    return new Promise((resolve, reject) => {
-      try {
-        this.call.signAndSend(address, { signer }, ({ events, status }) => {
-          if (status.isInBlock) {
-            const event = events.find(
-              ({ event }) =>
-                event.method == "MultisigExecuted" ||
-                event.method == "MultisigVoteStarted"
-            )?.event;
-
-            if (!event) {
-              throw new Error("SOMETHING_WENT_WRONG");
-            }
-            
               const method = event.method;
 
               switch (method) {
@@ -280,10 +255,10 @@ export class MultisigCall {
 
                   resolve(result);
 
-                break;
-              }
-              case "MultisigVoteStarted": {
-                const args = event.data;
+                  break;
+                }
+                case "MultisigVoteStarted": {
+                    const args = event.data;
 
                     const result = new MultisigCallResult({
                       isVoteStarted: true,
@@ -298,10 +273,11 @@ export class MultisigCall {
 
                   resolve(result);
 
-                break;
+                  break;
+                }
+                default:
+                  break;
               }
-              default:
-                break;
             }
           }
         );
@@ -334,11 +310,11 @@ export interface Vote extends Enum {
 }
 
 type GetTotalIssuance = DefaultMultisigParams & {
-  id: string;
+  id: number;
 };
 
 type GetMemberBalance = DefaultMultisigParams & {
-  id: string;
+  id: number;
   address: string;
 };
 

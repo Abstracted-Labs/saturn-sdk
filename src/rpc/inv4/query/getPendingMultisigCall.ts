@@ -7,7 +7,7 @@ const getPendingMultisigCall = async ({
   id,
   callHash,
 }: GetPendingMultisigCallParams): Promise<Option<PalletInv4MultisigMultisigOperation>> => {
-    const cd = (await api.query.inv4.multisig(parseInt(id), callHash)) as Option<PalletInv4MultisigMultisigOperation>;
+    const cd = (await api.query.inv4.multisig(id, callHash)) as Option<PalletInv4MultisigMultisigOperation>;
 
     return cd;
 };

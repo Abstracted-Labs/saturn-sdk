@@ -218,7 +218,7 @@ class Saturn {
     });
   };
 
-  public getDetails = async (id: string) => {
+  public getDetails = async (id: number) => {
     const multisig = (await this._getMultisig(id)).toPrimitive() as {
       account: string;
       metadata: string;
@@ -244,7 +244,7 @@ class Saturn {
     };
   };
 
-  public getSupply = async (id: string) => {
+  public getSupply = async (id: number) => {
     const { supply } = (await this._getMultisig(id)).toPrimitive() as {
       supply: number;
     };
@@ -252,7 +252,7 @@ class Saturn {
     return supply;
   };
 
-    public getPendingCalls = async (id: string): Promise<{callHash: Hash, details: PalletInv4MultisigMultisigOperation}[]> => {
+    public getPendingCalls = async (id: number): Promise<{callHash: Hash, details: PalletInv4MultisigMultisigOperation}[]> => {
         const pendingCalls: [
             StorageKey<[u32, Hash]>,
             Option<PalletInv4MultisigMultisigOperation>
@@ -281,7 +281,7 @@ class Saturn {
     id,
     callHash,
   }: {
-    id: string;
+    id: number;
     callHash: string;
   }): Promise<PalletInv4MultisigMultisigOperation | null> => {
       const maybeCall: Option<PalletInv4MultisigMultisigOperation> = await this._getPendingMultisigCall({ id, callHash });
@@ -293,7 +293,7 @@ class Saturn {
       return call;
   };
 
-  public getMultisigMembers = async (id: string): Promise<AccountId[]> => {
+  public getMultisigMembers = async (id: number): Promise<AccountId[]> => {
     const keys = await this._getMultisigMembers({ id });
 
     const mapped = keys.map(
@@ -329,14 +329,12 @@ class Saturn {
     id,
     address,
   }: {
-    id: string;
+    id: number;
     address: string;
-  }) => {
+  }): Promise<BN> => {
     const balance = await this._getMemberBalance({ id, address });
 
-    const { free } = balance.toPrimitive() as { free: number };
-
-    return free;
+    return balance;
   };
 
   public proposeNewMember = ({
@@ -345,7 +343,7 @@ class Saturn {
     amount,
     metadata,
   }: {
-    id: string;
+    id: number;
     address: string;
     amount: number;
     metadata?: string;
@@ -366,7 +364,7 @@ class Saturn {
     amount,
     metadata,
   }: {
-    id: string;
+    id: number;
     address: string;
     amount: number;
     metadata?: string;
@@ -386,7 +384,7 @@ class Saturn {
     callHash,
     aye,
   }: {
-    id: string;
+    id: number;
     callHash: `0x${string}`;
     aye: boolean;
   }) => {
@@ -401,7 +399,7 @@ class Saturn {
     id,
     callHash,
   }: {
-    id: string;
+    id: number;
     callHash: `0x${string}`;
   }) => {
     return this._withdrawVoteMultisigCall({
@@ -415,7 +413,7 @@ class Saturn {
     metadata,
     call,
   }: {
-    id: string;
+    id: number;
     metadata?: string;
     call: SubmittableExtrinsic<"promise", ISubmittableResult>;
   }): MultisigCall => {
@@ -437,7 +435,7 @@ class Saturn {
     fee,
     metadata,
   }: {
-    id: string;
+    id: number;
     destination: string;
     weight: BN;
     callData: string;
@@ -465,7 +463,7 @@ class Saturn {
     fee,
     metadata,
   }: {
-    id: string;
+    id: number;
     asset: Object;
     amount: BN;
     to: string;
@@ -484,7 +482,7 @@ class Saturn {
       return this.buildMultisigCall({ id, call, metadata });
   };
 
-  private _getMultisig = (id: string) => {
+  private _getMultisig = (id: number) => {
     return getMultisig({ api: this.api, id });
   };
 
@@ -493,14 +491,14 @@ class Saturn {
     metadata,
     call,
   }: {
-    id: string;
+    id: number;
     metadata?: string;
     call: SubmittableExtrinsic<"promise", ISubmittableResult>;
   }) => {
     return createMultisigCall({ api: this.api, id, metadata, call });
   };
 
-    private _getPendingMultisigCalls = (id: string): Promise<[StorageKey<[u32, Hash]>, Option<PalletInv4MultisigMultisigOperation>][]> => {
+    private _getPendingMultisigCalls = (id: number): Promise<[StorageKey<[u32, Hash]>, Option<PalletInv4MultisigMultisigOperation>][]> => {
         return getPendingMultisigCalls({ api: this.api, id });
   };
 
@@ -508,13 +506,13 @@ class Saturn {
     id,
     callHash,
   }: {
-    id: string;
+    id: number;
     callHash: string;
   }): Promise<Option<PalletInv4MultisigMultisigOperation>> => {
     return getPendingMultisigCall({ api: this.api, id, callHash });
   };
 
-  private _getMultisigMembers = ({ id }: { id: string }) => {
+  private _getMultisigMembers = ({ id }: { id: number }) => {
     return getMultisigMembers({ api: this.api, id });
   };
 
@@ -527,7 +525,7 @@ class Saturn {
     callHash,
     aye,
   }: {
-    id: string;
+    id: number;
     callHash: string;
     aye: boolean;
   }) => {
@@ -538,7 +536,7 @@ class Saturn {
     id,
     callHash,
   }: {
-    id: string;
+    id: number;
     callHash: string;
   }) => {
     return withdrawVoteMultisigCall({ api: this.api, id, callHash });
@@ -625,7 +623,7 @@ class Saturn {
     });
   };
 
-  private _getTotalIssuance = (id: string) => {
+  private _getTotalIssuance = (id: number) => {
     return getTotalIssuance({ api: this.api, id: id });
   };
 
@@ -633,7 +631,7 @@ class Saturn {
     id,
     address,
   }: {
-    id: string;
+    id: number;
     address: string;
   }) => {
     return getMemberBalance({ api: this.api, id, address });
