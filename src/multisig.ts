@@ -200,7 +200,7 @@ class Saturn {
             }
 
             const result = new MultisigCreateResult({
-              id: event[1] as unknown as u32,
+              id: event[1] as u32,
               account: event[0] as AccountId,
               metadata: event[2] as unknown as Text,
               minimumSupport: event[3] as Perbill,
