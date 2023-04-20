@@ -403,7 +403,7 @@ export class CallDetails {
     this.originalCaller = details.originalCaller;
     this.actualCall = details.actualCall.registry.createType(
       "Call",
-      details.actualCall.buffer
+      details.actualCall
     );
     this.proposalMetadata = details.metadata.toString();
   }

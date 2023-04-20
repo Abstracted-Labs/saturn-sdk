@@ -229,7 +229,7 @@ class Saturn {
 
     const openCalls = pendingCalls.reduce(
       (newCalls: { callHash: Hash; details: CallDetails }[], call) => {
-        const callHash = call[0] as Hash;
+        const callHash = call[0].args[1] as Hash;
 
         const maybeCallDetails = call[1].unwrap();
 
@@ -271,7 +271,7 @@ class Saturn {
     const keys = await this._getMultisigMembers({ id });
 
     const mapped = keys.map(
-      ({ args: [coreId, member] }) =>
+      ({ args: [_, member] }) =>
         member.toPrimitive() as unknown as AccountId
     );
 
@@ -286,7 +286,7 @@ class Saturn {
     const mapped = entries.map(
       ([
         {
-          args: [account, coreId],
+          args: [_, coreId],
         },
         tokens,
       ]) => {

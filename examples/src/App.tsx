@@ -608,14 +608,14 @@ const App = () => {
               <div className="w-full flex flex-col gap-4 justify-center items-center">
                 <div className="border rounded-md p-4 w-full">
                   <p>
-                    <b>Account:</b> {details.account}
+                    <b>Account:</b> {details.account.toHuman()}
                   </p>
                   <p>
                     <b>Minimum support:</b>{" "}
                     {api.registry
                       .createType(
                         "Perbill",
-                        details.minimumSupport.toNumber() * 100
+                        details.minimumSupport.toNumber()
                       )
                       .toHuman()}
                   </p>
@@ -624,12 +624,12 @@ const App = () => {
                     {api.registry
                       .createType(
                         "Perbill",
-                        details.requiredApproval.toNumber() * 100
+                        details.requiredApproval.toNumber()
                       )
                       .toHuman()}
                   </p>
                   <p>
-                    <b>Required approval:</b> {details.totalIssuance.toString()}
+                    <b>Total Issuance:</b> {details.totalIssuance.toNumber()}
                   </p>
                 </div>
               </div>
