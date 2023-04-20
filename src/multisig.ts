@@ -35,6 +35,7 @@ import {
   getTotalIssuance,
   getMemberBalance,
     getChainsUnderMaintenance,
+    setParameters,
 } from "./rpc";
 
 import {
@@ -301,12 +302,12 @@ class Saturn {
     id,
     address,
     amount,
-    metadata,
+    proposalMetadata,
   }: {
     id: number;
     address: string | AccountId;
     amount: BN;
-    metadata?: string | Uint8Array;
+    proposalMetadata?: string | Uint8Array;
   }) => {
     return this.buildMultisigCall({
       id,
@@ -314,7 +315,7 @@ class Saturn {
         address,
         amount,
       }),
-      metadata,
+      proposalMetadata,
     });
   };
 
@@ -322,12 +323,12 @@ class Saturn {
     id,
     address,
     amount,
-    metadata,
+    proposalMetadata,
   }: {
     id: number;
     address: string | AccountId;
     amount: BN;
-    metadata?: string | Uint8Array;
+    proposalMetadata?: string | Uint8Array;
   }) => {
     return this.buildMultisigCall({
       id,
@@ -335,7 +336,7 @@ class Saturn {
         address,
         amount,
       }),
-      metadata,
+      proposalMetadata,
     });
   };
 
@@ -370,17 +371,17 @@ class Saturn {
 
   public buildMultisigCall = ({
     id,
-    metadata,
+    proposalMetadata,
     call,
   }: {
     id: number;
-    metadata?: string | Uint8Array;
+    proposalMetadata?: string | Uint8Array;
     call: SubmittableExtrinsic<ApiTypes> | Uint8Array | Call;
   }): MultisigCall => {
     return new MultisigCall(
       this._createMultisigCall({
         id,
-        metadata,
+        proposalMetadata,
         call,
       })
     );
@@ -393,7 +394,7 @@ class Saturn {
     callData,
     feeAsset,
     fee,
-    metadata,
+    proposalMetadata,
   }: {
     id: number;
     destination: string;
@@ -401,7 +402,7 @@ class Saturn {
     callData: string | Uint8Array;
     feeAsset: Object;
     fee: BN;
-    metadata?: string | Uint8Array;
+    proposalMetadata?: string | Uint8Array;
   }) => {
     const call = this._sendExternalMultisigCall({
         destination,
@@ -411,7 +412,7 @@ class Saturn {
         fee,
     });
 
-    return this.buildMultisigCall({ id, call, metadata });
+    return this.buildMultisigCall({ id, call, proposalMetadata });
   };
 
   public transferXcmAsset = ({
@@ -421,7 +422,7 @@ class Saturn {
     to,
     feeAsset,
     fee,
-    metadata,
+    proposalMetadata,
   }: {
     id: number;
     asset: Object;
@@ -429,7 +430,7 @@ class Saturn {
     to: string | AccountId;
     feeAsset: Object;
     fee: BN;
-    metadata?: string | Uint8Array;
+    proposalMetadata?: string | Uint8Array;
   }) => {
       const call = this._transferExternalAssetMultisigCall({
           asset,
@@ -439,7 +440,7 @@ class Saturn {
           fee,
       });
 
-      return this.buildMultisigCall({ id, call, metadata });
+      return this.buildMultisigCall({ id, call, proposalMetadata });
   };
 
     public bridgeXcmAsset = ({
@@ -449,7 +450,7 @@ class Saturn {
         destination,
         to,
         fee,
-        metadata,
+        proposalMetadata,
     }: {
         id: number;
         asset: Object;
@@ -457,7 +458,7 @@ class Saturn {
         destination: string,
         to: string | AccountId;
         fee: BN;
-        metadata?: string | Uint8Array;
+        proposalMetadata?: string | Uint8Array;
     }) => {
         const call = this._bridgeExternalMultisigAssetCall({
             asset,
@@ -467,7 +468,32 @@ class Saturn {
             fee,
         });
 
-        return this.buildMultisigCall({ id, call, metadata });
+        return this.buildMultisigCall({ id, call, proposalMetadata });
+    };
+
+    public setMultisigParameters = ({
+        id,
+        proposalMetadata,
+        metadata,
+        minimumSupport,
+        requiredApproval,
+        frozenTokens,
+    }: {
+        id: number;
+        proposalMetadata: string | Uint8Array;
+        metadata?: string | Uint8Array;
+        minimumSupport: Perbill | BN | number;
+        requiredApproval: Perbill | BN | number;
+        frozenTokens: boolean;
+    }) => {
+        const call = this._setMultisigParameters({
+            id,
+            minimumSupport,
+            requiredApproval,
+            frozenTokens,
+        });
+
+        return this.buildMultisigCall({ id, call, proposalMetadata });
     };
 
     public getXcmStatus = async () => {
@@ -492,14 +518,14 @@ class Saturn {
 
   private _createMultisigCall = ({
     id,
-    metadata,
+    proposalMetadata,
     call,
   }: {
     id: number;
-    metadata?: string | Uint8Array;
+    proposalMetadata?: string | Uint8Array;
     call: SubmittableExtrinsic<ApiTypes> | Uint8Array | Call;
   }) => {
-    return createMultisigCall({ api: this.api, id, metadata, call });
+    return createMultisigCall({ api: this.api, id, proposalMetadata, call });
   };
 
     private _getPendingMultisigCalls = (id: number): Promise<[StorageKey<[u32, Hash]>, Option<PalletInv4MultisigMultisigOperation>][]> => {
@@ -643,6 +669,22 @@ class Saturn {
 
     private _getChainsUnderMaintenance = () => {
         return getChainsUnderMaintenance({ api: this.api });
+    };
+
+    private _setMultisigParameters = ({
+        id,
+        metadata,
+        minimumSupport,
+        requiredApproval,
+        frozenTokens,
+    }: {
+        id: number;
+        metadata?: string | Uint8Array;
+        minimumSupport?: Perbill | BN | number;
+        requiredApproval?: Perbill | BN | number;
+        frozenTokens?: boolean;
+    }) => {
+        return setParameters({ api: this.api, id, metadata, minimumSupport, requiredApproval, frozenTokens });
     };
 }
 

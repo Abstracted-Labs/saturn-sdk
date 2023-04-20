@@ -2,13 +2,13 @@ import { CreateMultisigCallParams } from "../../../types";
 
 const createMultisigCall = ({
   api,
-  metadata,
+  proposalMetadata,
   call,
   id,
 }: CreateMultisigCallParams) => {
   return api.tx.inv4.operateMultisig(
     id,
-    JSON.stringify(metadata),
+      proposalMetadata ? proposalMetadata : null,
     call
   );
 };
