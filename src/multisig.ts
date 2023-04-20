@@ -57,6 +57,7 @@ import {
     Tally,
     MultisigDetails,
     MultisigCreator,
+    CallDetails
 } from "./types";
 
 import { getSignAndSendCallback } from "./utils";
@@ -213,22 +214,22 @@ class Saturn {
     return supply;
   };
 
-    public getPendingCalls = async (id: number): Promise<{callHash: Hash, details: PalletInv4MultisigMultisigOperation}[]> => {
+    public getPendingCalls = async (id: number): Promise<{callHash: Hash, details: CallDetails}[]> => {
         const pendingCalls: [
             StorageKey<[u32, Hash]>,
             Option<PalletInv4MultisigMultisigOperation>
         ][] = await this._getPendingMultisigCalls(id);
 
         const openCalls = pendingCalls
-            .reduce((newCalls: {callHash: Hash, details: PalletInv4MultisigMultisigOperation}[], call) => {
+            .reduce((newCalls: {callHash: Hash, details: CallDetails}[], call) => {
                 const callHash = call[0] as Hash;
 
-                const maybeCallDetails = call[1].unwrap()
+                const maybeCallDetails = call[1].unwrap();
 
                 if (maybeCallDetails) {
                     newCalls.push({
                         callHash,
-                        details: maybeCallDetails,
+                        details: new CallDetails({ id, details: maybeCallDetails }),
                     });
                 }
 
@@ -244,14 +245,16 @@ class Saturn {
   }: {
     id: number;
     callHash: string | Hash;
-  }): Promise<PalletInv4MultisigMultisigOperation | null> => {
+  }): Promise<CallDetails | null> => {
       const maybeCall: Option<PalletInv4MultisigMultisigOperation> = await this._getPendingMultisigCall({ id, callHash });
 
       const call: PalletInv4MultisigMultisigOperation = maybeCall.unwrap();
 
       if (!call) return null;
 
-      return call;
+      const details = new CallDetails({ id, details: call });
+
+      return details;
   };
 
   public getMultisigMembers = async (id: number): Promise<AccountId[]> => {

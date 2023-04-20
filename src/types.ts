@@ -16,8 +16,8 @@ import { u32, u128 } from "@polkadot/types-codec/primitive";
 import { Text } from "@polkadot/types-codec/native";
 import { Enum, Struct, BTreeMap, Option, Bytes, bool, Result, Null, Vec } from "@polkadot/types-codec";
 import type { AddressOrPair, AugmentedEvent, AugmentedEvents, SignerOptions, SubmittablePaymentResult } from "@polkadot/api-base/types";
-import { FrameSystemEventRecord, PalletInv4Event } from "@polkadot/types/lookup";
-import { createCore } from "./rpc";
+import { FrameSystemEventRecord, PalletInv4Event, PalletInv4MultisigMultisigOperation, PalletInv4VotingTally } from "@polkadot/types/lookup";
+import { createCore, getTotalIssuance, getMultisig } from "./rpc";
 
 type GetSignAndSendCallbackParams = {
   onInvalid?: (payload: ISubmittableResult) => void;
@@ -353,11 +353,43 @@ export class MultisigCreator {
     }
 }
 
-export interface CallDetails extends Struct {
-    readonly tally: Tally;
-    readonly originalCaller: AccountId32;
+export class CallDetails {
+    readonly id: number;
+    readonly tally: PalletInv4VotingTally;
+    readonly originalCaller: AccountId;
     readonly actualCall: Call;
-    readonly metadata: Text;
+    readonly proposalMetadata?: string;
+
+    constructor ({
+        id,
+        details
+    }: {
+        id: number;
+        details: PalletInv4MultisigMultisigOperation;
+    }) {
+        this.id = id;
+        this.tally = details.tally;
+        this.originalCaller = details.originalCaller;
+        this.actualCall = details.actualCall.registry.createType("Call", details.actualCall.buffer);
+        this.proposalMetadata = details.metadata.toString();
+    }
+
+    public canExecute = async (api: ApiPromise, votes: BN): Promise<boolean> => {
+        const totalIssuance: BN = await getTotalIssuance({ api, id: this.id });
+        const details = (await getMultisig({ api, id: this.id })).unwrap();
+
+        if (!details) return false;
+
+        const { minimumSupport, requiredApproval } = details;
+
+        const aye: BN = this.tally.ayes;
+        const nay: BN = this.tally.nays;
+
+        const support = aye.add(votes).div(totalIssuance);
+        const approval = aye.add(votes).div(aye.add(votes).add(nay));
+
+        return support.gt(minimumSupport) && approval.gt(requiredApproval);
+    }
 }
 
 export interface Tally extends Struct {
