@@ -137,20 +137,22 @@ const App = () => {
 
     const injector = await web3FromAddress(selectedAccount.address);
 
-    const multisig = await saturn.createMultisig({
+    const multisig = await saturn
+      .createMultisig({
         minimumSupport: 510000000,
         requiredApproval: 510000000,
-    }).signAndSend(selectedAccount.address, injector.signer);
+      })
+      .signAndSend(selectedAccount.address, injector.signer);
 
     console.log("created multisig: ", multisig);
 
-      if (!multisig) return;
+    if (!multisig) return;
 
     setId(multisig.id);
 
     const details = await saturn.getDetails(multisig.id);
 
-      if (!details) return;
+    if (!details) return;
 
     setDetails(details);
 
@@ -161,11 +163,11 @@ const App = () => {
 
   const handleGetMultisigDetails = async () => {
     if (!saturn) return;
-      if (!id) return;
+    if (!id) return;
 
     const details = await saturn.getDetails(id);
 
-      if (!details) return;
+    if (!details) return;
 
     setDetails(details);
   };
@@ -182,7 +184,7 @@ const App = () => {
 
     const details = await saturn.getDetails(id);
 
-      if (!details) return;
+    if (!details) return;
 
     setDetails(details);
 
@@ -202,7 +204,7 @@ const App = () => {
 
     const details = await saturn.getDetails(id);
 
-      if (!details) return;
+    if (!details) return;
 
     setDetails(details);
 
@@ -214,7 +216,7 @@ const App = () => {
   const handleGetOpenCalls = async () => {
     if (!saturn) return;
 
-      if (!id) return;
+    if (!id) return;
 
     const openCalls = await saturn.getPendingCalls(id);
 
@@ -238,7 +240,7 @@ const App = () => {
 
     if (!selectedAccount) return;
 
-      if (!id) return;
+    if (!id) return;
 
     const address = selectedAccount.address;
     const signer = (await web3FromAddress(address)).signer;
@@ -276,7 +278,7 @@ const App = () => {
 
     if (!selectedAccount) return;
 
-      if (!id) return;
+    if (!id) return;
 
     const address = selectedAccount.address;
     const signer = (await web3FromAddress(address)).signer;
@@ -308,7 +310,7 @@ const App = () => {
 
     if (!openCalls) return;
 
-      if (!id) return;
+    if (!id) return;
 
     const injector = await web3FromAddress(selectedAccount.address);
 
@@ -336,7 +338,7 @@ const App = () => {
 
     if (!openCalls) return;
 
-      if (!id) return;
+    if (!id) return;
 
     const injector = await web3FromAddress(selectedAccount.address);
 
@@ -362,7 +364,7 @@ const App = () => {
 
     if (!pendingCallHash) return;
 
-      if (!id) return;
+    if (!id) return;
 
     const pendingCall = await saturn.getPendingCall({
       id,
@@ -395,7 +397,7 @@ const App = () => {
 
     if (!newMember) return;
 
-        if (!id) return;
+    if (!id) return;
 
     const UNIQUE_SUPPLY_AMOUNT = new BN("1000000");
 
@@ -424,7 +426,7 @@ const App = () => {
 
     if (!memberToRemove) return;
 
-      if (!id) return;
+    if (!id) return;
 
     const address = selectedAccount.address;
     const signer = (await web3FromAddress(address)).signer;
@@ -569,7 +571,7 @@ const App = () => {
                           <select
                             value={selectedMultisig}
                             onChange={(e) => {
-                                setSelectedMultisig(parseInt(e.target.value));
+                              setSelectedMultisig(parseInt(e.target.value));
                             }}
                             className="block w-full rounded-md border-neutral-300 shadow-sm focus:border-neutral-500 focus:ring-neutral-500 sm:text-sm"
                           >
@@ -611,13 +613,19 @@ const App = () => {
                   <p>
                     <b>Minimum support:</b>{" "}
                     {api.registry
-                      .createType("Perbill", details.minimumSupport.toNumber() * 100)
+                      .createType(
+                        "Perbill",
+                        details.minimumSupport.toNumber() * 100
+                      )
                       .toHuman()}
                   </p>
                   <p>
                     <b>Required approval:</b>{" "}
                     {api.registry
-                      .createType("Perbill", details.requiredApproval.toNumber() * 100)
+                      .createType(
+                        "Perbill",
+                        details.requiredApproval.toNumber() * 100
+                      )
                       .toHuman()}
                   </p>
                   <p>

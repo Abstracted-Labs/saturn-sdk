@@ -8,7 +8,7 @@ const createMultisigCall = ({
 }: CreateMultisigCallParams) => {
   return api.tx.inv4.operateMultisig(
     id,
-      proposalMetadata ? proposalMetadata : null,
+    proposalMetadata ? proposalMetadata : null,
     call
   );
 };

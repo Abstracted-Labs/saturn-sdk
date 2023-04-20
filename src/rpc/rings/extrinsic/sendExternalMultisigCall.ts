@@ -1,5 +1,5 @@
-import { BN } from '@polkadot/util';
-import { ApiPromise } from '@polkadot/api';
+import { BN } from "@polkadot/util";
+import { ApiPromise } from "@polkadot/api";
 
 const sendExternalMultisigCall = ({
   api,
@@ -9,14 +9,14 @@ const sendExternalMultisigCall = ({
   feeAsset,
   fee,
 }: {
-    api: ApiPromise;
-    destination: string;
-    weight: BN;
-    callData: string | Uint8Array;
-    feeAsset: Object;
-    fee: BN;
+  api: ApiPromise;
+  destination: string;
+  weight: BN;
+  callData: string | Uint8Array;
+  feeAsset: Object;
+  fee: BN;
 }) => {
-    return api.tx.rings.sendCall(destination, weight, feeAsset, fee, callData);
+  return api.tx.rings.sendCall(destination, weight, feeAsset, fee, callData);
 };
 
 export { sendExternalMultisigCall };

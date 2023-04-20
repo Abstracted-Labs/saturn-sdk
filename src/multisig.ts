@@ -6,7 +6,7 @@ import {
   Call,
   Hash,
   Perbill,
-  Balance
+  Balance,
 } from "@polkadot/types/interfaces";
 import { ISubmittableResult, Signer } from "@polkadot/types/types";
 import type { BN } from "@polkadot/util";
@@ -15,7 +15,7 @@ import { u32 } from "@polkadot/types-codec/primitive";
 import { Text } from "@polkadot/types-codec/native";
 import { Option, bool } from "@polkadot/types-codec";
 import { PalletInv4MultisigMultisigOperation } from "@polkadot/types/lookup";
-import { stringToU8a, hexToU8a } from "@polkadot/util"
+import { stringToU8a, hexToU8a } from "@polkadot/util";
 
 import {
   createCore,
@@ -34,8 +34,8 @@ import {
   bridgeExternalMultisigAssetCall,
   getTotalIssuance,
   getMemberBalance,
-    getChainsUnderMaintenance,
-    setParameters,
+  getChainsUnderMaintenance,
+  setParameters,
 } from "./rpc";
 
 import {
@@ -52,12 +52,12 @@ import {
   ApiAndId,
   GetMultisigsForAccountParams,
   MultisigCallResult,
-    Vote,
-    MultisigCall,
-    Tally,
-    MultisigDetails,
-    MultisigCreator,
-    CallDetails
+  Vote,
+  MultisigCall,
+  Tally,
+  MultisigDetails,
+  MultisigCreator,
+  CallDetails,
 } from "./types";
 
 import { getSignAndSendCallback } from "./utils";
@@ -177,31 +177,36 @@ class Saturn {
     minimumSupport,
     requiredApproval,
   }: {
-      metadata?: string | Uint8Array;
-      minimumSupport: Perbill | BN | number;
-      requiredApproval: Perbill | BN | number;
+    metadata?: string | Uint8Array;
+    minimumSupport: Perbill | BN | number;
+    requiredApproval: Perbill | BN | number;
   }): MultisigCreator => {
-      const creator = new MultisigCreator({ api: this.api, metadata, minimumSupport, requiredApproval });
+    const creator = new MultisigCreator({
+      api: this.api,
+      metadata,
+      minimumSupport,
+      requiredApproval,
+    });
 
-      return creator;
+    return creator;
   };
 
-    public getDetails = async (id: number): Promise<MultisigDetails | null> => {
-      const multisig = (await this._getMultisig(id)).unwrap();
+  public getDetails = async (id: number): Promise<MultisigDetails | null> => {
+    const multisig = (await this._getMultisig(id)).unwrap();
 
     if (!multisig) throw new Error("MULTISIG_DOES_NOT_EXIST");
 
-      const totalIssuance: BN = await this._getTotalIssuance(id);
+    const totalIssuance: BN = await this._getTotalIssuance(id);
 
-      const details = new MultisigDetails({
-          id,
-          account: multisig.account,
-          metadata: multisig.metadata.toString(),
-          minimumSupport: multisig.minimumSupport,
-          requiredApproval: multisig.requiredApproval,
-          frozenTokens: multisig.frozenTokens.toHuman(),
-          totalIssuance,
-      });
+    const details = new MultisigDetails({
+      id,
+      account: multisig.account,
+      metadata: multisig.metadata.toString(),
+      minimumSupport: multisig.minimumSupport,
+      requiredApproval: multisig.requiredApproval,
+      frozenTokens: multisig.frozenTokens.toHuman(),
+      totalIssuance,
+    });
 
     return details;
   };
@@ -214,27 +219,31 @@ class Saturn {
     return supply;
   };
 
-    public getPendingCalls = async (id: number): Promise<{callHash: Hash, details: CallDetails}[]> => {
-        const pendingCalls: [
-            StorageKey<[u32, Hash]>,
-            Option<PalletInv4MultisigMultisigOperation>
-        ][] = await this._getPendingMultisigCalls(id);
+  public getPendingCalls = async (
+    id: number
+  ): Promise<{ callHash: Hash; details: CallDetails }[]> => {
+    const pendingCalls: [
+      StorageKey<[u32, Hash]>,
+      Option<PalletInv4MultisigMultisigOperation>
+    ][] = await this._getPendingMultisigCalls(id);
 
-        const openCalls = pendingCalls
-            .reduce((newCalls: {callHash: Hash, details: CallDetails}[], call) => {
-                const callHash = call[0] as Hash;
+    const openCalls = pendingCalls.reduce(
+      (newCalls: { callHash: Hash; details: CallDetails }[], call) => {
+        const callHash = call[0] as Hash;
 
-                const maybeCallDetails = call[1].unwrap();
+        const maybeCallDetails = call[1].unwrap();
 
-                if (maybeCallDetails) {
-                    newCalls.push({
-                        callHash,
-                        details: new CallDetails({ id, details: maybeCallDetails }),
-                    });
-                }
+        if (maybeCallDetails) {
+          newCalls.push({
+            callHash,
+            details: new CallDetails({ id, details: maybeCallDetails }),
+          });
+        }
 
-                return newCalls;
-            }, []);
+        return newCalls;
+      },
+      []
+    );
 
     return openCalls;
   };
@@ -246,15 +255,16 @@ class Saturn {
     id: number;
     callHash: string | Hash;
   }): Promise<CallDetails | null> => {
-      const maybeCall: Option<PalletInv4MultisigMultisigOperation> = await this._getPendingMultisigCall({ id, callHash });
+    const maybeCall: Option<PalletInv4MultisigMultisigOperation> =
+      await this._getPendingMultisigCall({ id, callHash });
 
-      const call: PalletInv4MultisigMultisigOperation = maybeCall.unwrap();
+    const call: PalletInv4MultisigMultisigOperation = maybeCall.unwrap();
 
-      if (!call) return null;
+    if (!call) return null;
 
-      const details = new CallDetails({ id, details: call });
+    const details = new CallDetails({ id, details: call });
 
-      return details;
+    return details;
   };
 
   public getMultisigMembers = async (id: number): Promise<AccountId[]> => {
@@ -280,7 +290,7 @@ class Saturn {
         },
         tokens,
       ]) => {
-          const id = coreId.toNumber();
+        const id = coreId.toNumber();
         const free = tokens.free;
         return { multisigId: id, tokens: free };
       }
@@ -408,11 +418,11 @@ class Saturn {
     proposalMetadata?: string | Uint8Array;
   }) => {
     const call = this._sendExternalMultisigCall({
-        destination,
-        weight,
-        callData,
-        feeAsset,
-        fee,
+      destination,
+      weight,
+      callData,
+      feeAsset,
+      fee,
     });
 
     return this.buildMultisigCall({ id, call, proposalMetadata });
@@ -435,85 +445,87 @@ class Saturn {
     fee: BN;
     proposalMetadata?: string | Uint8Array;
   }) => {
-      const call = this._transferExternalAssetMultisigCall({
-          asset,
-          amount,
-          to,
-          feeAsset,
-          fee,
-      });
+    const call = this._transferExternalAssetMultisigCall({
+      asset,
+      amount,
+      to,
+      feeAsset,
+      fee,
+    });
 
-      return this.buildMultisigCall({ id, call, proposalMetadata });
+    return this.buildMultisigCall({ id, call, proposalMetadata });
   };
 
-    public bridgeXcmAsset = ({
-        id,
-        asset,
-        amount,
-        destination,
-        to,
-        fee,
-        proposalMetadata,
-    }: {
-        id: number;
-        asset: Object;
-        amount: BN;
-        destination: string,
-        to: string | AccountId;
-        fee: BN;
-        proposalMetadata?: string | Uint8Array;
-    }) => {
-        const call = this._bridgeExternalMultisigAssetCall({
-            asset,
-            amount,
-            to,
-            destination,
-            fee,
-        });
+  public bridgeXcmAsset = ({
+    id,
+    asset,
+    amount,
+    destination,
+    to,
+    fee,
+    proposalMetadata,
+  }: {
+    id: number;
+    asset: Object;
+    amount: BN;
+    destination: string;
+    to: string | AccountId;
+    fee: BN;
+    proposalMetadata?: string | Uint8Array;
+  }) => {
+    const call = this._bridgeExternalMultisigAssetCall({
+      asset,
+      amount,
+      to,
+      destination,
+      fee,
+    });
 
-        return this.buildMultisigCall({ id, call, proposalMetadata });
-    };
+    return this.buildMultisigCall({ id, call, proposalMetadata });
+  };
 
-    public setMultisigParameters = ({
-        id,
-        proposalMetadata,
-        metadata,
-        minimumSupport,
-        requiredApproval,
-        frozenTokens,
-    }: {
-        id: number;
-        proposalMetadata: string | Uint8Array;
-        metadata?: string | Uint8Array;
-        minimumSupport: Perbill | BN | number;
-        requiredApproval: Perbill | BN | number;
-        frozenTokens: boolean;
-    }) => {
-        const call = this._setMultisigParameters({
-            id,
-            minimumSupport,
-            requiredApproval,
-            frozenTokens,
-        });
+  public setMultisigParameters = ({
+    id,
+    proposalMetadata,
+    metadata,
+    minimumSupport,
+    requiredApproval,
+    frozenTokens,
+  }: {
+    id: number;
+    proposalMetadata: string | Uint8Array;
+    metadata?: string | Uint8Array;
+    minimumSupport: Perbill | BN | number;
+    requiredApproval: Perbill | BN | number;
+    frozenTokens: boolean;
+  }) => {
+    const call = this._setMultisigParameters({
+      id,
+      minimumSupport,
+      requiredApproval,
+      frozenTokens,
+    });
 
-        return this.buildMultisigCall({ id, call, proposalMetadata });
-    };
+    return this.buildMultisigCall({ id, call, proposalMetadata });
+  };
 
-    public getXcmStatus = async () => {
-        const chains = await this._getChainsUnderMaintenance();
+  public getXcmStatus = async () => {
+    const chains = await this._getChainsUnderMaintenance();
 
-        const chainStatus: {
-            chainMultilocation: XcmV1MultiLocation;
-            isUnderMaintenance: boolean;
-        }[] = chains.map(([chainMultilocation, isUnderMaintenance]) => {
-            return {
-                chainMultilocation: chainMultilocation.args[0],
-                isUnderMaintenance: isUnderMaintenance.unwrapOr(this.api.createType("bool", false)).toHuman(),
-            }
-        });
+    const chainStatus: {
+      chainMultilocation: XcmV1MultiLocation;
+      isUnderMaintenance: boolean;
+    }[] = chains.map(([chainMultilocation, isUnderMaintenance]) => {
+      return {
+        chainMultilocation: chainMultilocation.args[0],
+        isUnderMaintenance: isUnderMaintenance
+          .unwrapOr(this.api.createType("bool", false))
+          .toHuman(),
+      };
+    });
 
-        return chainStatus;
-    };
+    return chainStatus;
+  };
 
   private _getMultisig = (id: number) => {
     return getMultisig({ api: this.api, id });
@@ -531,8 +543,12 @@ class Saturn {
     return createMultisigCall({ api: this.api, id, proposalMetadata, call });
   };
 
-    private _getPendingMultisigCalls = (id: number): Promise<[StorageKey<[u32, Hash]>, Option<PalletInv4MultisigMultisigOperation>][]> => {
-        return getPendingMultisigCalls({ api: this.api, id });
+  private _getPendingMultisigCalls = (
+    id: number
+  ): Promise<
+    [StorageKey<[u32, Hash]>, Option<PalletInv4MultisigMultisigOperation>][]
+  > => {
+    return getPendingMultisigCalls({ api: this.api, id });
   };
 
   private _getPendingMultisigCall = ({
@@ -549,7 +565,11 @@ class Saturn {
     return getMultisigMembers({ api: this.api, id });
   };
 
-  private _getMultisigsForAccount = ({ account }: { account: string | AccountId }) => {
+  private _getMultisigsForAccount = ({
+    account,
+  }: {
+    account: string | AccountId;
+  }) => {
     return getMultisigsForAccount({ api: this.api, account });
   };
 
@@ -670,25 +690,32 @@ class Saturn {
     return getMemberBalance({ api: this.api, id, address });
   };
 
-    private _getChainsUnderMaintenance = () => {
-        return getChainsUnderMaintenance({ api: this.api });
-    };
+  private _getChainsUnderMaintenance = () => {
+    return getChainsUnderMaintenance({ api: this.api });
+  };
 
-    private _setMultisigParameters = ({
-        id,
-        metadata,
-        minimumSupport,
-        requiredApproval,
-        frozenTokens,
-    }: {
-        id: number;
-        metadata?: string | Uint8Array;
-        minimumSupport?: Perbill | BN | number;
-        requiredApproval?: Perbill | BN | number;
-        frozenTokens?: boolean;
-    }) => {
-        return setParameters({ api: this.api, id, metadata, minimumSupport, requiredApproval, frozenTokens });
-    };
+  private _setMultisigParameters = ({
+    id,
+    metadata,
+    minimumSupport,
+    requiredApproval,
+    frozenTokens,
+  }: {
+    id: number;
+    metadata?: string | Uint8Array;
+    minimumSupport?: Perbill | BN | number;
+    requiredApproval?: Perbill | BN | number;
+    frozenTokens?: boolean;
+  }) => {
+    return setParameters({
+      api: this.api,
+      id,
+      metadata,
+      minimumSupport,
+      requiredApproval,
+      frozenTokens,
+    });
+  };
 }
 
 export { Saturn };

@@ -1,6 +1,6 @@
-import { ApiPromise } from '@polkadot/api';
-import { BN } from '@polkadot/util';
-import { AccountId } from '@polkadot/types/interfaces';
+import { ApiPromise } from "@polkadot/api";
+import { BN } from "@polkadot/util";
+import { AccountId } from "@polkadot/types/interfaces";
 
 const transferExternalAssetMultisigCall = ({
   api,
@@ -10,20 +10,14 @@ const transferExternalAssetMultisigCall = ({
   feeAsset,
   fee,
 }: {
-    api: ApiPromise;
-    asset: Object;
-    amount: BN;
-    to: string | AccountId;
-    feeAsset: Object;
-    fee: BN;
+  api: ApiPromise;
+  asset: Object;
+  amount: BN;
+  to: string | AccountId;
+  feeAsset: Object;
+  fee: BN;
 }) => {
-  return api.tx.rings.transferAssets(
-    asset,
-    amount,
-    to,
-    feeAsset,
-    fee
-  );
+  return api.tx.rings.transferAssets(asset, amount, to, feeAsset, fee);
 };
 
 export { transferExternalAssetMultisigCall };
