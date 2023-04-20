@@ -333,6 +333,11 @@ type GetTotalIssuance = DefaultMultisigParams & {
   id: string;
 };
 
+type GetMemberBalance = DefaultMultisigParams & {
+  id: string;
+  address: string;
+};
+
 export type {
   DefaultMultisigParams,
   GetPendingMultisigCallsParams,
@@ -352,4 +357,5 @@ export type {
   CallDetails,
   BridgeExternalMultisigAssetCallParams,
   GetTotalIssuance,
+  GetMemberBalance,
 };

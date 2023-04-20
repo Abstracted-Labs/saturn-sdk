@@ -31,6 +31,7 @@ import {
   getMultisigMembers,
   bridgeExternalMultisigAssetCall,
   getTotalIssuance,
+  getMemberBalance,
 } from "./rpc";
 
 import {
@@ -339,6 +340,20 @@ class Saturn {
     return mapped;
   };
 
+  public getMultisigMemberBalance = async ({
+    id,
+    address,
+  }: {
+    id: string;
+    address: string;
+  }) => {
+    const balance = await this._getMemberBalance({ id, address });
+
+    const { free } = balance.toPrimitive() as { free: number };
+
+    return free;
+  };
+
   public proposeNewMember = ({
     id,
     address,
@@ -360,7 +375,7 @@ class Saturn {
     });
   };
 
-  public proposeMemberRemoval = async ({
+  public proposeMemberRemoval = ({
     id,
     address,
     amount,
@@ -627,6 +642,16 @@ class Saturn {
 
   private _getTotalIssuance = (id: string) => {
     return getTotalIssuance({ api: this.api, id: id });
+  };
+
+  private _getMemberBalance = ({
+    id,
+    address,
+  }: {
+    id: string;
+    address: string;
+  }) => {
+    return getMemberBalance({ api: this.api, id, address });
   };
 }
 
