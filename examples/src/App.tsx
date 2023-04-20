@@ -154,6 +154,14 @@ const App = () => {
     console.log("created multisig: ", multisig);
 
     setId(multisig.id.toString());
+
+    const details = await saturn.getDetails(id);
+
+    setDetails(details);
+
+    const members = await saturn.getMultisigMembers(id);
+
+    setMultisigMembers(members.map((acc) => acc.toString()));
   };
 
   const handleGetMultisigDetails = async () => {
@@ -402,12 +410,18 @@ const App = () => {
     const address = selectedAccount.address;
     const signer = (await web3FromAddress(address)).signer;
 
-    const removeMemberCall = await saturn.proposeMemberRemoval({
+    const amount = await saturn.getMultisigMemberBalance({
       id,
       address: memberToRemove,
     });
 
-    removeMemberCall.signAndSend(address, signer);
+    saturn
+      .proposeMemberRemoval({
+        amount,
+        id,
+        address: memberToRemove,
+      })
+      .signAndSend(address, signer);
   };
 
   useEffect(() => {
@@ -594,15 +608,68 @@ const App = () => {
               </div>
             ) : null}
 
-            {multisigMembers ? (
+            {multisigMembers && saturn ? (
               <div className="w-full flex flex-col gap-4 justify-center items-center">
-                <div className="flex justify-center items-center">
-                  <span>Members</span>
-                </div>
                 <div className="border rounded-md p-4 w-full">
-                  {multisigMembers.map((m) => (
-                    <p key={m}>{m}</p>
-                  ))}
+                  <div className="h-96 overflow-y-auto">
+                    {multisigMembers.map((m) => (
+                      <p key={m}>{m}</p>
+                    ))}
+                  </div>
+
+                  <div className="flex gap-4">
+                    <form
+                      className="flex w-full flex-col gap-4"
+                      onSubmit={handleNewMemberSubmit}
+                    >
+                      <div>
+                        <label
+                          htmlFor="newMember"
+                          className="block text-sm font-medium text-neutral-700"
+                        >
+                          Member to add
+                        </label>
+                        <div className="mt-1">
+                          <input
+                            type="text"
+                            name="text"
+                            id="newMember"
+                            className="block w-full rounded-md border-neutral-300 shadow-sm focus:border-neutral-500 focus:ring-neutral-500 sm:text-sm"
+                          />
+                        </div>
+                      </div>
+
+                      <button className="shadow-sm py-2 px-4 rounded-md transition-all duration-300 bg-neutral-900 text-neutral-50 hover:shadow-lg hover:bg-neutral-800">
+                        Add member
+                      </button>
+                    </form>
+
+                    <form
+                      className="flex w-full flex-col gap-4"
+                      onSubmit={handleRemoveMemberSubmit}
+                    >
+                      <div>
+                        <label
+                          htmlFor="memberToRemove"
+                          className="block text-sm font-medium text-neutral-700"
+                        >
+                          Member to remove
+                        </label>
+                        <div className="mt-1">
+                          <input
+                            type="text"
+                            name="text"
+                            id="memberToRemove"
+                            className="block w-full rounded-md border-neutral-300 shadow-sm focus:border-neutral-500 focus:ring-neutral-500 sm:text-sm"
+                          />
+                        </div>
+                      </div>
+
+                      <button className="shadow-sm py-2 px-4 rounded-md transition-all duration-300 bg-neutral-900 text-neutral-50 hover:shadow-lg hover:bg-neutral-800">
+                        Remove member
+                      </button>
+                    </form>
+                  </div>
                 </div>
               </div>
             ) : null}
