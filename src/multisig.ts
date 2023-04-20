@@ -13,7 +13,7 @@ import type { BN } from "@polkadot/util";
 import { AnyJson } from "@polkadot/types-codec/types";
 import { u32 } from "@polkadot/types-codec/primitive";
 import { Text } from "@polkadot/types-codec/native";
-import { Option } from "@polkadot/types-codec";
+import { Option, bool } from "@polkadot/types-codec";
 import { PalletInv4MultisigMultisigOperation } from "@polkadot/types/lookup";
 import { stringToU8a, hexToU8a } from "@polkadot/util"
 
@@ -34,6 +34,7 @@ import {
   bridgeExternalMultisigAssetCall,
   getTotalIssuance,
   getMemberBalance,
+    getChainsUnderMaintenance,
 } from "./rpc";
 
 import {
@@ -59,6 +60,7 @@ import {
 
 import { getSignAndSendCallback } from "./utils";
 import { BTreeMap, StorageKey } from "@polkadot/types";
+import { XcmV1MultiLocation } from "@polkadot/types/lookup";
 
 const PARACHAINS_KEY = "TinkernetRuntimeRingsChains";
 const PARACHAINS_ASSETS = "TinkernetRuntimeRingsChainAssets";
@@ -468,6 +470,22 @@ class Saturn {
         return this.buildMultisigCall({ id, call, metadata });
     };
 
+    public getXcmStatus = async () => {
+        const chains = await this._getChainsUnderMaintenance();
+
+        const chainStatus: {
+            chainMultilocation: XcmV1MultiLocation;
+            isUnderMaintenance: boolean;
+        }[] = chains.map(([chainMultilocation, isUnderMaintenance]) => {
+            return {
+                chainMultilocation: chainMultilocation.args[0],
+                isUnderMaintenance: isUnderMaintenance.unwrapOr(this.api.createType("bool", false)).toHuman(),
+            }
+        });
+
+        return chainStatus;
+    };
+
   private _getMultisig = (id: number) => {
     return getMultisig({ api: this.api, id });
   };
@@ -622,6 +640,10 @@ class Saturn {
   }) => {
     return getMemberBalance({ api: this.api, id, address });
   };
+
+    private _getChainsUnderMaintenance = () => {
+        return getChainsUnderMaintenance({ api: this.api });
+    };
 }
 
 export { Saturn };
