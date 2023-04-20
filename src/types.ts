@@ -374,7 +374,7 @@ export class CallDetails {
         this.proposalMetadata = details.metadata.toString();
     }
 
-    public canExecute = async (api: ApiPromise, votes: BN): Promise<boolean> => {
+    public async canExecute(api: ApiPromise, votes: BN): Promise<boolean> {
         const totalIssuance: BN = await getTotalIssuance({ api, id: this.id });
         const details = (await getMultisig({ api, id: this.id })).unwrap();
 
@@ -389,6 +389,16 @@ export class CallDetails {
         const approval = aye.add(votes).div(aye.add(votes).add(nay));
 
         return support.gt(minimumSupport) && approval.gt(requiredApproval);
+    }
+
+    public toHuman(): AnyJson {
+        return {
+            id: this.id,
+            tally: this.tally.toHuman(),
+            originalCaller: this.originalCaller.toHuman(),
+            actualCall: this.actualCall.toHuman(),
+            proposalMetadata: this.proposalMetadata,
+        };
     }
 }
 
