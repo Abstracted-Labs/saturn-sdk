@@ -38,7 +38,7 @@ type ApiAndId = {
 };
 
 type GetMultisigsForAccountParams = DefaultMultisigParams & {
-  account: string;
+  account: string | AccountId;
 };
 
 type GetMultisigParams = DefaultMultisigParams & {
@@ -51,53 +51,53 @@ type GetPendingMultisigCallsParams = DefaultMultisigParams & {
 
 type GetPendingMultisigCallParams = DefaultMultisigParams & {
   id: number;
-  callHash: string;
+  callHash: string | Hash;
 };
 
 type CreateMultisigParams = {
   api: DefaultMultisigParams["api"];
   metadata?: string;
-  minimumSupport: number;
-  requiredApproval: number;
+  minimumSupport: Perbill | BN | number;
+  requiredApproval: Perbill | BN | number;
 };
 
 type CreateMultisigCallParams = DefaultMultisigParams & {
-  metadata?: string;
+  metadata?: string | Uint8Array;
   id: number;
-  call: SubmittableExtrinsic<"promise", ISubmittableResult>;
+  call: SubmittableExtrinsic<ApiTypes> | Uint8Array | Call;
 };
 
 type VoteMultisigCallParams = DefaultMultisigParams & {
-  callHash: string;
+  callHash: string | Hash;
   id: number;
   aye: boolean;
 };
 
 type WithdrawVoteMultisigCallParams = DefaultMultisigParams & {
-  callHash: string;
+  callHash: string | Hash;
   id: number;
 };
 
 type MintTokenMultisigParams = DefaultMultisigParams & {
-  address: string;
-  amount: number;
+  address: string | AccountId;
+  amount: BN;
 };
 
 type BurnTokenMultisigParams = DefaultMultisigParams & {
-  address: string;
-  amount: number;
+  address: string | AccountId;
+  amount: BN;
 };
 
 type TransferExternalAssetMultisigCallParams = DefaultMultisigParams & {
   asset: Object;
   amount: BN;
-  to: string;
+  to: string | AccountId;
   feeAsset: Object;
   fee: BN;
 };
 
 export class MultisigCreateResult {
-  readonly id: u32;
+  readonly id: number;
   readonly account: AccountId;
   readonly metadata: Text;
   readonly minimumSupport: Perbill;
@@ -114,7 +114,7 @@ export class MultisigCreateResult {
     creator,
     tokenSupply,
   }: {
-    id: u32;
+    id: number;
     account: AccountId;
     metadata: Text;
     minimumSupport: Perbill;
@@ -133,7 +133,7 @@ export class MultisigCreateResult {
 
   public toHuman(): AnyJson {
     return {
-      id: this.id.toHuman(),
+      id: this.id,
       account: this.account.toHuman(),
       metadata: this.metadata.toHuman(),
       minimumSupport: this.minimumSupport.toHuman(),
@@ -309,13 +309,61 @@ export interface Vote extends Enum {
     readonly type: 'Aye' | 'Nay';
 }
 
+export class MultisigDetails {
+    readonly id: number;
+    readonly account: AccountId;
+    readonly metadata: string;
+    readonly minimumSupport: Perbill;
+    readonly requiredApproval: Perbill;
+    readonly frozenTokens: boolean;
+    readonly totalIssuance: BN;
+
+    constructor ({
+        id,
+        account,
+        metadata,
+        minimumSupport,
+        requiredApproval,
+        frozenTokens,
+        totalIssuance,
+    }: {
+        id: number;
+        account: AccountId;
+        metadata: string;
+        minimumSupport: Perbill;
+        requiredApproval: Perbill;
+        frozenTokens: boolean;
+        totalIssuance: BN;
+    }) {
+        this.id = id;
+        this.account = account;
+        this.metadata = metadata;
+        this.minimumSupport = minimumSupport;
+        this.requiredApproval = requiredApproval;
+        this.frozenTokens = frozenTokens;
+        this.totalIssuance = totalIssuance;
+    }
+
+    public toHuman (): AnyJson {
+        return {
+            id: this.id,
+            account: this.account.toHuman(),
+            metadata: this.metadata,
+            minimumSupport: this.minimumSupport.toHuman(),
+            requiredApproval: this.requiredApproval.toHuman(),
+            frozenTokens: this.frozenTokens,
+            totalIssuance: this.totalIssuance.toString(),
+        }
+    }
+};
+
 type GetTotalIssuance = DefaultMultisigParams & {
   id: number;
 };
 
 type GetMemberBalance = DefaultMultisigParams & {
   id: number;
-  address: string;
+  address: string | AccountId;
 };
 
 export type {

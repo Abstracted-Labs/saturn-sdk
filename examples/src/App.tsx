@@ -6,7 +6,7 @@ import {
 } from "@polkadot/extension-dapp";
 import { InjectedAccountWithMeta } from "@polkadot/extension-inject/types";
 import { FormEvent, useEffect, useState } from "react";
-import { Saturn, MultisigCallResult } from "../../src";
+import { Saturn, MultisigCallResult, MultisigDetails } from "../../src";
 import { BN } from "@polkadot/util";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import YAML from "yaml";
@@ -22,13 +22,7 @@ const App = () => {
   const [selectedAccount, setSelectedAccount] =
     useState<InjectedAccountWithMeta>();
   const [saturn, setSaturn] = useState<Saturn>();
-  const [details, setDetails] = useState<{
-    account: string;
-    minimumSupport: number;
-    requiredApproval: number;
-    frozenTokens: boolean;
-    totalIssuance: number;
-  }>();
+  const [details, setDetails] = useState<MultisigDetails>();
   const [openCalls, setOpenCalls] = useState<{}[]>();
   const [api, setApi] = useState<ApiPromise>();
   const [balance, setBalance] = useState<number>();
@@ -50,10 +44,10 @@ const App = () => {
     chain: string;
     assets: { label: string; registerType: Object }[];
   }>({ chain: "", assets: [] });
-  const [id, setId] = useState<string>("");
+  const [id, setId] = useState<number>();
   const [lastCallResult, setLastCallResult] = useState<MultisigCallResult>();
-  const [userMultisigs, setUserMultisigs] = useState<string[]>([]);
-  const [selectedMultisig, setSelectedMultisig] = useState<string>();
+  const [userMultisigs, setUserMultisigs] = useState<number[]>([]);
+  const [selectedMultisig, setSelectedMultisig] = useState<number>();
   const [multisigMembers, setMultisigMembers] = useState<string[]>();
 
   const setup = async () => {
@@ -103,7 +97,7 @@ const App = () => {
       ).map(({ multisigId, tokens }) => multisigId);
 
       setUserMultisigs(ids);
-      setSelectedMultisig(ids[0].toString());
+      setSelectedMultisig(ids[0]);
     }
 
     setAccounts(accounts);
@@ -133,7 +127,7 @@ const App = () => {
     );
 
     setUserMultisigs(ids);
-    setSelectedMultisig(ids[0].toString());
+    setSelectedMultisig(ids[0]);
   };
 
   const handleCreateMultisig = async () => {
@@ -152,20 +146,28 @@ const App = () => {
 
     console.log("created multisig: ", multisig);
 
-    setId(multisig.id.toString());
+      if (!multisig) return;
 
-    const details = await saturn.getDetails(id);
+    setId(multisig.id);
+
+    const details = await saturn.getDetails(multisig.id);
+
+      if (!details) return;
 
     setDetails(details);
 
-    const members = await saturn.getMultisigMembers(id);
+    const members = await saturn.getMultisigMembers(multisig.id);
 
     setMultisigMembers(members.map((acc) => acc.toString()));
   };
 
   const handleGetMultisigDetails = async () => {
     if (!saturn) return;
+      if (!id) return;
+
     const details = await saturn.getDetails(id);
+
+      if (!details) return;
 
     setDetails(details);
   };
@@ -174,13 +176,15 @@ const App = () => {
     if (!saturn) return;
     e.preventDefault();
 
-    const id = e.currentTarget?.multisig.value;
+    const id = parseInt(e.currentTarget?.multisig.value);
 
     if (!id) return;
 
     setId(id);
 
     const details = await saturn.getDetails(id);
+
+      if (!details) return;
 
     setDetails(details);
 
@@ -200,6 +204,8 @@ const App = () => {
 
     const details = await saturn.getDetails(id);
 
+      if (!details) return;
+
     setDetails(details);
 
     const members = await saturn.getMultisigMembers(id);
@@ -209,6 +215,8 @@ const App = () => {
 
   const handleGetOpenCalls = async () => {
     if (!saturn) return;
+
+      if (!id) return;
 
     const openCalls = await saturn.getPendingCalls(id);
 
@@ -231,6 +239,8 @@ const App = () => {
     if (!saturn) return;
 
     if (!selectedAccount) return;
+
+      if (!id) return;
 
     const address = selectedAccount.address;
     const signer = (await web3FromAddress(address)).signer;
@@ -268,6 +278,8 @@ const App = () => {
 
     if (!selectedAccount) return;
 
+      if (!id) return;
+
     const address = selectedAccount.address;
     const signer = (await web3FromAddress(address)).signer;
 
@@ -298,6 +310,8 @@ const App = () => {
 
     if (!openCalls) return;
 
+      if (!id) return;
+
     const injector = await web3FromAddress(selectedAccount.address);
 
     saturn
@@ -324,6 +338,8 @@ const App = () => {
 
     if (!openCalls) return;
 
+      if (!id) return;
+
     const injector = await web3FromAddress(selectedAccount.address);
 
     saturn
@@ -347,6 +363,8 @@ const App = () => {
     if (!selectedAccount) return;
 
     if (!pendingCallHash) return;
+
+      if (!id) return;
 
     const pendingCall = await saturn.getPendingCall({
       id,
@@ -379,7 +397,9 @@ const App = () => {
 
     if (!newMember) return;
 
-    const UNIQUE_SUPPLY_AMOUNT = 1000000;
+        if (!id) return;
+
+    const UNIQUE_SUPPLY_AMOUNT = new BN("1000000");
 
     const address = selectedAccount.address;
     const signer = (await web3FromAddress(address)).signer;
@@ -405,6 +425,8 @@ const App = () => {
     if (!selectedAccount) return;
 
     if (!memberToRemove) return;
+
+      if (!id) return;
 
     const address = selectedAccount.address;
     const signer = (await web3FromAddress(address)).signer;
@@ -549,7 +571,7 @@ const App = () => {
                           <select
                             value={selectedMultisig}
                             onChange={(e) => {
-                              setSelectedMultisig(e.target.value);
+                                setSelectedMultisig(parseInt(e.target.value));
                             }}
                             className="block w-full rounded-md border-neutral-300 shadow-sm focus:border-neutral-500 focus:ring-neutral-500 sm:text-sm"
                           >
@@ -591,17 +613,17 @@ const App = () => {
                   <p>
                     <b>Minimum support:</b>{" "}
                     {api.registry
-                      .createType("Perbill", details.minimumSupport * 100)
+                      .createType("Perbill", details.minimumSupport.toNumber() * 100)
                       .toHuman()}
                   </p>
                   <p>
                     <b>Required approval:</b>{" "}
                     {api.registry
-                      .createType("Perbill", details.requiredApproval * 100)
+                      .createType("Perbill", details.requiredApproval.toNumber() * 100)
                       .toHuman()}
                   </p>
                   <p>
-                    <b>Required approval:</b> {details.totalIssuance}
+                    <b>Required approval:</b> {details.totalIssuance.toString()}
                   </p>
                 </div>
               </div>

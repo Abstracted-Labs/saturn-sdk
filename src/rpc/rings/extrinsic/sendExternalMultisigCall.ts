@@ -1,6 +1,5 @@
 import { BN } from '@polkadot/util';
 import { ApiPromise } from '@polkadot/api';
-import { AnyJson } from '@polkadot/types/types';
 
 const sendExternalMultisigCall = ({
   api,
@@ -13,7 +12,7 @@ const sendExternalMultisigCall = ({
     api: ApiPromise;
     destination: string;
     weight: BN;
-    callData: Uint8Array;
+    callData: string | Uint8Array;
     feeAsset: Object;
     fee: BN;
 }) => {

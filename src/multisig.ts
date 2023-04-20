@@ -1,12 +1,12 @@
 import { ApiPromise } from "@polkadot/api";
-import { SubmittableExtrinsic } from "@polkadot/api/types";
+import { SubmittableExtrinsic, ApiTypes } from "@polkadot/api/types";
 import {
   AccountId,
   DispatchResult,
   Call,
   Hash,
   Perbill,
-  Balance,
+  Balance
 } from "@polkadot/types/interfaces";
 import { ISubmittableResult, Signer } from "@polkadot/types/types";
 import type { BN } from "@polkadot/util";
@@ -52,7 +52,8 @@ import {
   MultisigCallResult,
     Vote,
     MultisigCall,
-    Tally
+    Tally,
+    MultisigDetails,
 } from "./types";
 
 import { getSignAndSendCallback } from "./utils";
@@ -200,7 +201,7 @@ class Saturn {
             }
 
             const result = new MultisigCreateResult({
-              id: event[1] as u32,
+              id: (event[1] as u32).toNumber(),
               account: event[0] as AccountId,
               metadata: event[2] as Text,
               minimumSupport: event[3] as Perbill,
@@ -218,30 +219,24 @@ class Saturn {
     });
   };
 
-  public getDetails = async (id: number) => {
-    const multisig = (await this._getMultisig(id)).toPrimitive() as {
-      account: string;
-      metadata: string;
-      minimumSupport: number;
-      requiredApproval: number;
-      frozenTokens: boolean;
-    };
+    public getDetails = async (id: number): Promise<MultisigDetails | null> => {
+      const multisig = (await this._getMultisig(id)).unwrap();
 
     if (!multisig) throw new Error("MULTISIG_DOES_NOT_EXIST");
 
-    const totalIssuance = (
-      await this._getTotalIssuance(id)
-    ).toPrimitive() as number;
+      const totalIssuance: BN = await this._getTotalIssuance(id);
 
-    return {
-      id,
-      account: multisig.account,
-      metadata: multisig.metadata,
-      minimumSupport: multisig.minimumSupport / 100,
-      requiredApproval: multisig.requiredApproval / 100,
-      frozenTokens: multisig.frozenTokens,
-      totalIssuance: totalIssuance,
-    };
+      const details = new MultisigDetails({
+          id,
+          account: multisig.account,
+          metadata: multisig.metadata.toString(),
+          minimumSupport: multisig.minimumSupport,
+          requiredApproval: multisig.requiredApproval,
+          frozenTokens: multisig.frozenTokens.toHuman(),
+          totalIssuance,
+      });
+
+    return details;
   };
 
   public getSupply = async (id: number) => {
@@ -282,7 +277,7 @@ class Saturn {
     callHash,
   }: {
     id: number;
-    callHash: string;
+    callHash: string | Hash;
   }): Promise<PalletInv4MultisigMultisigOperation | null> => {
       const maybeCall: Option<PalletInv4MultisigMultisigOperation> = await this._getPendingMultisigCall({ id, callHash });
 
@@ -305,8 +300,8 @@ class Saturn {
   };
 
   public getMultisigsForAccount = async (
-    account: string
-  ): Promise<{ multisigId: string; tokens: BN }[]> => {
+    account: string | AccountId
+  ): Promise<{ multisigId: number; tokens: BN }[]> => {
     const entries = await this._getMultisigsForAccount({ account });
 
     const mapped = entries.map(
@@ -316,8 +311,8 @@ class Saturn {
         },
         tokens,
       ]) => {
-        const id = coreId.toPrimitive() as string;
-        const free = (tokens.toPrimitive() as unknown as { free: BN }).free;
+          const id = coreId.toNumber();
+        const free = tokens.free;
         return { multisigId: id, tokens: free };
       }
     );
@@ -330,7 +325,7 @@ class Saturn {
     address,
   }: {
     id: number;
-    address: string;
+    address: string | AccountId;
   }): Promise<BN> => {
     const balance = await this._getMemberBalance({ id, address });
 
@@ -344,9 +339,9 @@ class Saturn {
     metadata,
   }: {
     id: number;
-    address: string;
-    amount: number;
-    metadata?: string;
+    address: string | AccountId;
+    amount: BN;
+    metadata?: string | Uint8Array;
   }) => {
     return this.buildMultisigCall({
       id,
@@ -365,9 +360,9 @@ class Saturn {
     metadata,
   }: {
     id: number;
-    address: string;
-    amount: number;
-    metadata?: string;
+    address: string | AccountId;
+    amount: BN;
+    metadata?: string | Uint8Array;
   }) => {
     return this.buildMultisigCall({
       id,
@@ -385,7 +380,7 @@ class Saturn {
     aye,
   }: {
     id: number;
-    callHash: `0x${string}`;
+    callHash: string | Hash;
     aye: boolean;
   }) => {
     return this._voteMultisigCall({
@@ -400,7 +395,7 @@ class Saturn {
     callHash,
   }: {
     id: number;
-    callHash: `0x${string}`;
+    callHash: string | Hash;
   }) => {
     return this._withdrawVoteMultisigCall({
       id,
@@ -414,8 +409,8 @@ class Saturn {
     call,
   }: {
     id: number;
-    metadata?: string;
-    call: SubmittableExtrinsic<"promise", ISubmittableResult>;
+    metadata?: string | Uint8Array;
+    call: SubmittableExtrinsic<ApiTypes> | Uint8Array | Call;
   }): MultisigCall => {
     return new MultisigCall(
       this._createMultisigCall({
@@ -438,15 +433,15 @@ class Saturn {
     id: number;
     destination: string;
     weight: BN;
-    callData: string;
+    callData: string | Uint8Array;
     feeAsset: Object;
     fee: BN;
-    metadata?: string;
+    metadata?: string | Uint8Array;
   }) => {
     const call = this._sendExternalMultisigCall({
         destination,
         weight,
-        callData: hexToU8a(callData),
+        callData,
         feeAsset,
         fee,
     });
@@ -466,10 +461,10 @@ class Saturn {
     id: number;
     asset: Object;
     amount: BN;
-    to: string;
+    to: string | AccountId;
     feeAsset: Object;
     fee: BN;
-    metadata?: string;
+    metadata?: string | Uint8Array;
   }) => {
       const call = this._transferExternalAssetMultisigCall({
           asset,
@@ -482,6 +477,34 @@ class Saturn {
       return this.buildMultisigCall({ id, call, metadata });
   };
 
+    public bridgeXcmAsset = ({
+        id,
+        asset,
+        amount,
+        destination,
+        to,
+        fee,
+        metadata,
+    }: {
+        id: number;
+        asset: Object;
+        amount: BN;
+        destination: string,
+        to: string | AccountId;
+        fee: BN;
+        metadata?: string | Uint8Array;
+    }) => {
+        const call = this._bridgeExternalMultisigAssetCall({
+            asset,
+            amount,
+            to,
+            destination,
+            fee,
+        });
+
+        return this.buildMultisigCall({ id, call, metadata });
+    };
+
   private _getMultisig = (id: number) => {
     return getMultisig({ api: this.api, id });
   };
@@ -492,8 +515,8 @@ class Saturn {
     call,
   }: {
     id: number;
-    metadata?: string;
-    call: SubmittableExtrinsic<"promise", ISubmittableResult>;
+    metadata?: string | Uint8Array;
+    call: SubmittableExtrinsic<ApiTypes> | Uint8Array | Call;
   }) => {
     return createMultisigCall({ api: this.api, id, metadata, call });
   };
@@ -507,7 +530,7 @@ class Saturn {
     callHash,
   }: {
     id: number;
-    callHash: string;
+    callHash: string | Hash;
   }): Promise<Option<PalletInv4MultisigMultisigOperation>> => {
     return getPendingMultisigCall({ api: this.api, id, callHash });
   };
@@ -516,7 +539,7 @@ class Saturn {
     return getMultisigMembers({ api: this.api, id });
   };
 
-  private _getMultisigsForAccount = ({ account }: { account: string }) => {
+  private _getMultisigsForAccount = ({ account }: { account: string | AccountId }) => {
     return getMultisigsForAccount({ api: this.api, account });
   };
 
@@ -526,7 +549,7 @@ class Saturn {
     aye,
   }: {
     id: number;
-    callHash: string;
+    callHash: string | Hash;
     aye: boolean;
   }) => {
     return voteMultisigCall({ api: this.api, id, callHash, aye });
@@ -537,7 +560,7 @@ class Saturn {
     callHash,
   }: {
     id: number;
-    callHash: string;
+    callHash: string | Hash;
   }) => {
     return withdrawVoteMultisigCall({ api: this.api, id, callHash });
   };
@@ -563,7 +586,7 @@ class Saturn {
   }: {
     destination: string;
     weight: BN;
-    callData: Uint8Array;
+    callData: string | Uint8Array;
     feeAsset: Object;
     fee: BN;
   }) => {
@@ -586,7 +609,7 @@ class Saturn {
   }: {
     asset: Object;
     amount: BN;
-    to: string;
+    to: string | AccountId;
     feeAsset: Object;
     fee: BN;
   }) => {
@@ -608,10 +631,10 @@ class Saturn {
     to,
   }: {
     asset: Object;
-      destination: string;
+    destination: string;
     fee: BN;
     amount: BN;
-    to: string;
+    to: string | AccountId;
   }) => {
     return bridgeExternalMultisigAssetCall({
       api: this.api,
@@ -632,7 +655,7 @@ class Saturn {
     address,
   }: {
     id: number;
-    address: string;
+    address: string | AccountId;
   }) => {
     return getMemberBalance({ api: this.api, id, address });
   };

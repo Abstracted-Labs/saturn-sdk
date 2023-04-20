@@ -1,5 +1,6 @@
 import { ApiPromise } from '@polkadot/api';
 import { BN } from '@polkadot/util';
+import { AccountId } from '@polkadot/types/interfaces';
 
 const transferExternalAssetMultisigCall = ({
   api,
@@ -12,7 +13,7 @@ const transferExternalAssetMultisigCall = ({
     api: ApiPromise;
     asset: Object;
     amount: BN;
-    to: string;
+    to: string | AccountId;
     feeAsset: Object;
     fee: BN;
 }) => {
