@@ -11,18 +11,10 @@
     "esModuleInterop": true,
     "baseUrl": ".",
       "paths": {
-          "@polkadot/api/augment": [
-              "src/typegen/augment-api.ts"
-          ],
-          "@polkadot/types/augment": [
-              "src/typegen/augment-types.ts"
-          ],
-          "@polkadot/types/lookup": [
-              "src/typegen/types-lookup.ts"
-          ],
-          "@invarch/saturn-sdk/*": [
-              "src/*"
-          ]
+          "@polkadot/api/augment": ["src/typegen/augment-api.ts"],
+          "@polkadot/types/augment": ["src/typegen/augment-types.ts"],
+          "@polkadot/types/lookup": ["src/typegen/types-lookup.ts"],
+          "@invarch/saturn-sdk/*": ["src/*"]
       }
   },
     "ts-node": {

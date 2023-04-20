@@ -1,7 +1,16 @@
 import type { ApiPromise } from "@polkadot/api";
 import { SubmittableExtrinsic, ApiTypes } from "@polkadot/api/types";
 import { ISubmittableResult, AnyJson, Signer } from "@polkadot/types/types";
-import { AccountId, AccountId32, DispatchResult, Call, Hash, Perbill, Balance, DispatchError } from "@polkadot/types/interfaces";
+import {
+  AccountId,
+  AccountId32,
+  DispatchResult,
+  Call,
+  Hash,
+  Perbill,
+  Balance,
+  DispatchError,
+} from "@polkadot/types/interfaces";
 import type { BN } from "@polkadot/util";
 import { u32, u128 } from "@polkadot/types-codec/primitive";
 import { Text } from "@polkadot/types-codec/native";
@@ -96,44 +105,44 @@ export class MultisigCreateResult {
   readonly creator: AccountId;
   readonly tokenSupply: Balance;
 
-    constructor ({
-        id,
-        account,
-        metadata,
-        minimumSupport,
-        requiredApproval,
-        creator,
-        tokenSupply
-    }: {
-        id: u32;
-        account: AccountId;
-        metadata: Text;
-        minimumSupport: Perbill;
-        requiredApproval: Perbill;
-        creator: AccountId;
-        tokenSupply: Balance;
-    }) {
-        this.id = id;
-        this.account = account;
-        this.metadata = metadata;
-        this.minimumSupport = minimumSupport;
-        this.requiredApproval = requiredApproval;
-        this.creator = creator;
-        this.tokenSupply = tokenSupply;
-    }
+  constructor({
+    id,
+    account,
+    metadata,
+    minimumSupport,
+    requiredApproval,
+    creator,
+    tokenSupply,
+  }: {
+    id: u32;
+    account: AccountId;
+    metadata: Text;
+    minimumSupport: Perbill;
+    requiredApproval: Perbill;
+    creator: AccountId;
+    tokenSupply: Balance;
+  }) {
+    this.id = id;
+    this.account = account;
+    this.metadata = metadata;
+    this.minimumSupport = minimumSupport;
+    this.requiredApproval = requiredApproval;
+    this.creator = creator;
+    this.tokenSupply = tokenSupply;
+  }
 
-    public toHuman (): AnyJson {
-        return {
-            id: this.id.toHuman(),
-            account: this.account.toHuman(),
-            metadata: this.metadata.toHuman(),
-            minimumSupport: this.minimumSupport.toHuman(),
-            requiredApproval: this.requiredApproval.toHuman(),
-            creator: this.creator.toHuman(),
-            tokenSupply: this.tokenSupply.toHuman()
-        }
-    }
-};
+  public toHuman(): AnyJson {
+    return {
+      id: this.id.toHuman(),
+      account: this.account.toHuman(),
+      metadata: this.metadata.toHuman(),
+      minimumSupport: this.minimumSupport.toHuman(),
+      requiredApproval: this.requiredApproval.toHuman(),
+      creator: this.creator.toHuman(),
+      tokenSupply: this.tokenSupply.toHuman(),
+    };
+  }
+}
 
 export class MultisigCallResult {
     readonly isVoteStarted: boolean
@@ -227,6 +236,31 @@ export class MultisigCall {
                 throw new Error("SOMETHING_WENT_WRONG");
               }
 
+export class MultisigCall {
+  readonly call: SubmittableExtrinsic<"promise", ISubmittableResult>;
+
+  constructor(call: SubmittableExtrinsic<"promise", ISubmittableResult>) {
+    this.call = call;
+  }
+
+  public async signAndSend(
+    address: string,
+    signer: Signer
+  ): Promise<MultisigCallResult> {
+    return new Promise((resolve, reject) => {
+      try {
+        this.call.signAndSend(address, { signer }, ({ events, status }) => {
+          if (status.isInBlock) {
+            const event = events.find(
+              ({ event }) =>
+                event.method == "MultisigExecuted" ||
+                event.method == "MultisigVoteStarted"
+            )?.event;
+
+            if (!event) {
+              throw new Error("SOMETHING_WENT_WRONG");
+            }
+            
               const method = event.method;
 
               switch (method) {
@@ -246,10 +280,10 @@ export class MultisigCall {
 
                   resolve(result);
 
-                  break;
-                }
-                case "MultisigVoteStarted": {
-                    const args = event.data;
+                break;
+              }
+              case "MultisigVoteStarted": {
+                const args = event.data;
 
                     const result = new MultisigCallResult({
                       isVoteStarted: true,
@@ -264,11 +298,10 @@ export class MultisigCall {
 
                   resolve(result);
 
-                  break;
-                }
-                default:
-                  break;
+                break;
               }
+              default:
+                break;
             }
           }
         );
@@ -300,6 +333,15 @@ export interface Vote extends Enum {
     readonly type: 'Aye' | 'Nay';
 }
 
+type GetTotalIssuance = DefaultMultisigParams & {
+  id: string;
+};
+
+type GetMemberBalance = DefaultMultisigParams & {
+  id: string;
+  address: string;
+};
+
 export type {
   DefaultMultisigParams,
   GetPendingMultisigCallsParams,
@@ -315,4 +357,6 @@ export type {
   TransferExternalAssetMultisigCallParams,
   ApiAndId,
   GetMultisigsForAccountParams,
+  GetTotalIssuance,
+  GetMemberBalance,
 };

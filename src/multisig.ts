@@ -1,6 +1,13 @@
 import { ApiPromise } from "@polkadot/api";
 import { SubmittableExtrinsic } from "@polkadot/api/types";
-import { AccountId, DispatchResult, Call, Hash, Perbill, Balance } from "@polkadot/types/interfaces";
+import {
+  AccountId,
+  DispatchResult,
+  Call,
+  Hash,
+  Perbill,
+  Balance,
+} from "@polkadot/types/interfaces";
 import { ISubmittableResult, Signer } from "@polkadot/types/types";
 import type { BN } from "@polkadot/util";
 import { AnyJson } from "@polkadot/types-codec/types";
@@ -25,6 +32,8 @@ import {
   getMultisigsForAccount,
   getMultisigMembers,
   bridgeExternalMultisigAssetCall,
+  getTotalIssuance,
+  getMemberBalance,
 } from "./rpc";
 
 import {
@@ -140,11 +149,7 @@ class Saturn {
     }[];
   }[];
 
-  constructor({
-    api
-  }: {
-    api: ApiPromise
-  }) {
+  constructor({ api }: { api: ApiPromise }) {
     if (!api.tx.inv4) {
       throw new Error("API_PROMISE_DOES_NOT_CONTAIN_INV4_MODULE");
     }
@@ -181,30 +186,28 @@ class Saturn {
           requiredApproval,
         }).signAndSend(address, { signer }, ({ events, status }) => {
           if (status.isInBlock) {
-            const event = events
-              .find(({ event }) => event.method === "CoreCreated")
-              ?.event.data;
+            const event = events.find(
+              ({ event }) => event.method === "CoreCreated"
+            )?.event.data;
 
-            const assetsEvent = events
-              .find(
-                ({ event }) =>
-                  event.section === "coreAssets" && event.method === "Endowed"
-              )
-              ?.event.data;
+            const assetsEvent = events.find(
+              ({ event }) =>
+                event.section === "coreAssets" && event.method === "Endowed"
+            )?.event.data;
 
             if (!event || !assetsEvent) {
               throw new Error("SOMETHING_WENT_WRONG");
             }
 
-              const result = new MultisigCreateResult({
-                  id: event[1] as u32,
-                  account: event[0] as AccountId,
-                  metadata: event[2] as Text,
-                  minimumSupport: event[3] as Perbill,
-                  requiredApproval: event[4] as Perbill,
-                  creator: this.api.createType("AccountId", address),
-                  tokenSupply: assetsEvent[2] as Balance,
-              });
+            const result = new MultisigCreateResult({
+              id: event[1] as u32,
+              account: event[0] as AccountId,
+              metadata: event[2] as Text,
+              minimumSupport: event[3] as Perbill,
+              requiredApproval: event[4] as Perbill,
+              creator: this.api.createType("AccountId", address),
+              tokenSupply: assetsEvent[2] as Balance,
+            });
 
             resolve(result);
           }
@@ -226,6 +229,10 @@ class Saturn {
 
     if (!multisig) throw new Error("MULTISIG_DOES_NOT_EXIST");
 
+    const totalIssuance = (
+      await this._getTotalIssuance(id)
+    ).toPrimitive() as number;
+
     return {
       id,
       account: multisig.account,
@@ -233,6 +240,7 @@ class Saturn {
       minimumSupport: multisig.minimumSupport / 100,
       requiredApproval: multisig.requiredApproval / 100,
       frozenTokens: multisig.frozenTokens,
+      totalIssuance: totalIssuance,
     };
   };
 
@@ -317,6 +325,20 @@ class Saturn {
     return mapped;
   };
 
+  public getMultisigMemberBalance = async ({
+    id,
+    address,
+  }: {
+    id: string;
+    address: string;
+  }) => {
+    const balance = await this._getMemberBalance({ id, address });
+
+    const { free } = balance.toPrimitive() as { free: number };
+
+    return free;
+  };
+
   public proposeNewMember = ({
     id,
     address,
@@ -338,7 +360,7 @@ class Saturn {
     });
   };
 
-  public proposeMemberRemoval = async ({
+  public proposeMemberRemoval = ({
     id,
     address,
     amount,
@@ -397,11 +419,13 @@ class Saturn {
     metadata?: string;
     call: SubmittableExtrinsic<"promise", ISubmittableResult>;
   }): MultisigCall => {
-      return new MultisigCall(this._createMultisigCall({
-          id,
-          metadata,
-          call,
-      }));
+    return new MultisigCall(
+      this._createMultisigCall({
+        id,
+        metadata,
+        call,
+      })
+    );
   };
 
   public sendXCMCall = ({
@@ -599,6 +623,20 @@ class Saturn {
       amount,
       to,
     });
+  };
+
+  private _getTotalIssuance = (id: string) => {
+    return getTotalIssuance({ api: this.api, id: id });
+  };
+
+  private _getMemberBalance = ({
+    id,
+    address,
+  }: {
+    id: string;
+    address: string;
+  }) => {
+    return getMemberBalance({ api: this.api, id, address });
   };
 }
 
