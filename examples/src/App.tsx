@@ -4,7 +4,6 @@ import {
   web3Enable,
   web3FromAddress,
 } from "@polkadot/extension-dapp";
-import { GenericCall, GenericExtrinsic } from "@polkadot/types";
 import { InjectedAccountWithMeta } from "@polkadot/extension-inject/types";
 import { FormEvent, useEffect, useState } from "react";
 import { Saturn, MultisigCallResult } from "../../src";
@@ -211,7 +210,7 @@ const App = () => {
   const handleGetOpenCalls = async () => {
     if (!saturn) return;
 
-    const openCalls = await saturn.getOpenCalls(id);
+    const openCalls = await saturn.getPendingCalls(id);
 
     setOpenCalls(openCalls);
   };

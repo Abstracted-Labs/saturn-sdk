@@ -1,4 +1,3 @@
-import "../typegen";
 import { ApiPromise } from "@polkadot/api";
 import { SubmittableExtrinsic } from "@polkadot/api/types";
 import {
@@ -14,6 +13,9 @@ import type { BN } from "@polkadot/util";
 import { AnyJson } from "@polkadot/types-codec/types";
 import { u32 } from "@polkadot/types-codec/primitive";
 import { Text } from "@polkadot/types-codec/native";
+import { Option } from "@polkadot/types-codec";
+import { PalletInv4MultisigMultisigOperation } from "@polkadot/types/lookup";
+import { stringToU8a, hexToU8a } from "@polkadot/util"
 
 import {
   createCore,
@@ -43,18 +45,18 @@ import {
   MintTokenMultisigParams,
   BurnTokenMultisigParams,
   GetPendingMultisigCallParams,
-  SendExternalMultisigCallParams,
   TransferExternalAssetMultisigCallParams,
   MultisigCreateResult,
   ApiAndId,
   GetMultisigsForAccountParams,
-  CallDetails,
   MultisigCallResult,
-  VotesAdded,
-  MultisigCall,
+    Vote,
+    MultisigCall,
+    Tally
 } from "./types";
 
 import { getSignAndSendCallback } from "./utils";
+import { BTreeMap, StorageKey } from "@polkadot/types";
 
 const PARACHAINS_KEY = "TinkernetRuntimeRingsChains";
 const PARACHAINS_ASSETS = "TinkernetRuntimeRingsChainAssets";
@@ -250,31 +252,27 @@ class Saturn {
     return supply;
   };
 
-  public getOpenCalls = async (id: string) => {
-    const pendingCalls = await this._getPendingMultisigCalls(id);
+    public getPendingCalls = async (id: string): Promise<{callHash: Hash, details: PalletInv4MultisigMultisigOperation}[]> => {
+        const pendingCalls: [
+            StorageKey<[u32, Hash]>,
+            Option<PalletInv4MultisigMultisigOperation>
+        ][] = await this._getPendingMultisigCalls(id);
 
-    const openCalls = pendingCalls.map((call) => {
-      const callHash = call[0].args[1].toHex() as string;
+        const openCalls = pendingCalls
+            .reduce((newCalls: {callHash: Hash, details: PalletInv4MultisigMultisigOperation}[], call) => {
+                const callHash = call[0] as Hash;
 
-      const callDetails = call[1].toPrimitive() as unknown as {
-        tally: {
-          ayes: BN;
-          nays: BN;
-          records: Record<string, Record<"aye" | "nay", BN>>;
-        };
-        originalCaller: string;
-        actualCall: Call;
-        metadata: string | null;
-      };
+                const maybeCallDetails = call[1].unwrap()
 
-      return {
-        callHash,
-        tally: callDetails.tally,
-        originalCaller: callDetails.originalCaller,
-        actualCall: callDetails.actualCall,
-        metadata: callDetails.metadata,
-      };
-    });
+                if (maybeCallDetails) {
+                    newCalls.push({
+                        callHash,
+                        details: maybeCallDetails,
+                    });
+                }
+
+                return newCalls;
+            }, []);
 
     return openCalls;
   };
@@ -285,27 +283,14 @@ class Saturn {
   }: {
     id: string;
     callHash: string;
-  }) => {
-    const call = await this._getPendingMultisigCall({ id, callHash });
+  }): Promise<PalletInv4MultisigMultisigOperation | null> => {
+      const maybeCall: Option<PalletInv4MultisigMultisigOperation> = await this._getPendingMultisigCall({ id, callHash });
 
-    const callDetails = call.toPrimitive() as {
-      signers: [string, null][];
-      originalCaller: string;
-      actualCall: string;
-      callMetadata: string;
-      callWeight: number;
-      metadata?: string;
-    };
+      const call: PalletInv4MultisigMultisigOperation = maybeCall.unwrap();
 
-    return {
-      callHash,
-      signers: callDetails.signers.map((signer) => signer[0]),
-      originalCaller: callDetails.originalCaller,
-      actualCall: callDetails.actualCall,
-      callMetadata: callDetails.callMetadata,
-      callWeight: callDetails.callWeight,
-      metadata: callDetails.metadata,
-    };
+      if (!call) return null;
+
+      return call;
   };
 
   public getMultisigMembers = async (id: string): Promise<AccountId[]> => {
@@ -461,11 +446,11 @@ class Saturn {
     metadata?: string;
   }) => {
     const call = this._sendExternalMultisigCall({
-      destination,
-      weight,
-      callData,
-      feeAsset,
-      fee,
+        destination,
+        weight,
+        callData: hexToU8a(callData),
+        feeAsset,
+        fee,
     });
 
     return this.buildMultisigCall({ id, call, metadata });
@@ -488,15 +473,15 @@ class Saturn {
     fee: BN;
     metadata?: string;
   }) => {
-    const call = this._transferExternalAssetMultisigCall({
-      asset,
-      amount,
-      to,
-      feeAsset,
-      fee,
-    });
+      const call = this._transferExternalAssetMultisigCall({
+          asset,
+          amount,
+          to,
+          feeAsset,
+          fee,
+      });
 
-    return this.buildMultisigCall({ id, call, metadata });
+      return this.buildMultisigCall({ id, call, metadata });
   };
 
   private _getMultisig = (id: string) => {
@@ -515,8 +500,8 @@ class Saturn {
     return createMultisigCall({ api: this.api, id, metadata, call });
   };
 
-  private _getPendingMultisigCalls = (id: string) => {
-    return getPendingMultisigCalls({ api: this.api, id });
+    private _getPendingMultisigCalls = (id: string): Promise<[StorageKey<[u32, Hash]>, Option<PalletInv4MultisigMultisigOperation>][]> => {
+        return getPendingMultisigCalls({ api: this.api, id });
   };
 
   private _getPendingMultisigCall = ({
@@ -525,7 +510,7 @@ class Saturn {
   }: {
     id: string;
     callHash: string;
-  }) => {
+  }): Promise<Option<PalletInv4MultisigMultisigOperation>> => {
     return getPendingMultisigCall({ api: this.api, id, callHash });
   };
 
@@ -580,7 +565,7 @@ class Saturn {
   }: {
     destination: string;
     weight: BN;
-    callData: string;
+    callData: Uint8Array;
     feeAsset: Object;
     fee: BN;
   }) => {
@@ -624,8 +609,8 @@ class Saturn {
     amount,
     to,
   }: {
-    asset: string;
-    destination: string;
+    asset: Object;
+      destination: string;
     fee: BN;
     amount: BN;
     to: string;

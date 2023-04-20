@@ -1,18 +1,22 @@
 import type { ApiPromise } from "@polkadot/api";
-import { SubmittableExtrinsic } from "@polkadot/api/types";
+import { SubmittableExtrinsic, ApiTypes } from "@polkadot/api/types";
 import { ISubmittableResult, AnyJson, Signer } from "@polkadot/types/types";
 import {
   AccountId,
+  AccountId32,
   DispatchResult,
   Call,
   Hash,
   Perbill,
   Balance,
+  DispatchError,
 } from "@polkadot/types/interfaces";
 import type { BN } from "@polkadot/util";
-import { u32 } from "@polkadot/types-codec/primitive";
+import { u32, u128 } from "@polkadot/types-codec/primitive";
 import { Text } from "@polkadot/types-codec/native";
-import { Enum } from "@polkadot/types-codec";
+import { Enum, Struct, BTreeMap, Option, Bytes, bool, Result, Null, Vec } from "@polkadot/types-codec";
+import type { AddressOrPair, AugmentedEvent, AugmentedEvents, SignerOptions, SubmittablePaymentResult } from "@polkadot/api-base/types";
+import { FrameSystemEventRecord, PalletInv4Event } from "@polkadot/types/lookup";
 
 type GetSignAndSendCallbackParams = {
   onInvalid?: (payload: ISubmittableResult) => void;
@@ -84,14 +88,6 @@ type BurnTokenMultisigParams = DefaultMultisigParams & {
   amount: number;
 };
 
-type SendExternalMultisigCallParams = DefaultMultisigParams & {
-  destination: string;
-  weight: BN;
-  callData: string;
-  feeAsset: Object;
-  fee: BN;
-};
-
 type TransferExternalAssetMultisigCallParams = DefaultMultisigParams & {
   asset: Object;
   amount: BN;
@@ -148,78 +144,97 @@ export class MultisigCreateResult {
   }
 }
 
-export interface VotesAdded extends Enum {
-  readonly isAye: boolean;
-  readonly isNay: boolean;
-  readonly asAye: Balance;
-  readonly asNay: Balance;
-  readonly type: "Aye" | "Nay";
-}
-
 export class MultisigCallResult {
-  readonly isVoteStarted: boolean;
-  readonly votesAdded?: VotesAdded;
-  readonly isExecuted: boolean;
-  readonly executionResult?: DispatchResult;
+    readonly isVoteStarted: boolean
+    readonly votesAdded?: Vote;
+    readonly isExecuted: boolean;
+    readonly executionResult?: DispatchResult;
 
-  readonly id: u32;
-  readonly account: AccountId;
-  readonly callHash: Hash;
-  readonly call: Call;
-  readonly voter: AccountId;
+    readonly id: u32;
+    readonly account: AccountId;
+    readonly callHash: Hash;
+    readonly call: Call;
+    readonly voter: AccountId;
 
-  constructor({
-    isVoteStarted,
-    votesAdded,
-    isExecuted,
-    executionResult,
+    constructor ({
+        isVoteStarted,
+        votesAdded,
+        isExecuted,
+        executionResult,
 
-    id,
-    account,
-    callHash,
-    call,
-    voter,
-  }: {
-    isVoteStarted: boolean;
-    votesAdded?: VotesAdded;
-    isExecuted: boolean;
-    executionResult?: DispatchResult;
+        id,
+        account,
+        callHash,
+        call,
+        voter,
+    }: {
+        isVoteStarted: boolean,
+        votesAdded?: Vote,
+        isExecuted: boolean,
+        executionResult?: DispatchResult,
 
-    id: u32;
-    account: AccountId;
-    callHash: Hash;
-    call: Call;
-    voter: AccountId;
-  }) {
-    this.isVoteStarted = isVoteStarted;
-    this.votesAdded = votesAdded;
-    this.isExecuted = isExecuted;
-    this.executionResult = executionResult;
+        id: u32;
+        account: AccountId;
+        callHash: Hash;
+        call: Call;
+        voter: AccountId;
+    }) {
+        this.isVoteStarted = isVoteStarted;
+        this.votesAdded = votesAdded;
+        this.isExecuted = isExecuted;
+        this.executionResult = executionResult;
 
-    this.id = id;
-    this.account = account;
-    this.callHash = callHash;
-    this.call = call;
-    this.voter = voter;
-  }
+        this.id = id;
+        this.account = account;
+        this.callHash = callHash;
+        this.call = call;
+        this.voter = voter;
+    }
 
-  public toHuman(): AnyJson {
-    return {
-      isVoteStarted: this.isVoteStarted,
-      isExecuted: this.isExecuted,
-      votesAdded: this.votesAdded?.toHuman(),
-      executionResult: this.executionResult?.isErr
-        ? this.executionResult.asErr.toHuman()
-        : this.executionResult?.asOk.toHuman(),
+    public toHuman (): AnyJson {
+        return {
+            isVoteStarted: this.isVoteStarted,
+            isExecuted: this.isExecuted,
+            votesAdded: this.votesAdded?.toHuman(),
+            executionResult: this.executionResult?.isErr ? this.executionResult.asErr.toHuman() : this.executionResult?.asOk.toHuman(),
 
-      id: this.id.toHuman(),
-      account: this.account.toHuman(),
-      callHash: this.callHash.toHuman(),
-      call: this.call.toHuman(),
-      voter: this.voter.toHuman(),
+            id: this.id.toHuman(),
+            account: this.account.toHuman(),
+            callHash: this.callHash.toHuman(),
+            call: this.call.toHuman(),
+            voter: this.voter.toHuman(),
+        }
+    }
+};
+
+export class MultisigCall {
+    readonly call: SubmittableExtrinsic<ApiTypes>;
+
+    constructor (call: SubmittableExtrinsic<ApiTypes>) {
+        this.call = call;
+    }
+
+    public paymentInfo (account: AddressOrPair, options?: Partial<SignerOptions>): SubmittablePaymentResult<ApiTypes> {
+        return this.call.paymentInfo(account, options);
     };
-  }
-}
+
+    public async signAndSend (address: string, signer: Signer): Promise<MultisigCallResult> {
+        return new Promise((resolve, reject) => {
+            try {
+        this.call.signAndSend(
+            address,
+            { signer },
+          ({ events, status }) => {
+            if (status.isInBlock) {
+              const event = events.find(
+                ({ event }) =>
+                  event.method == "MultisigExecuted" ||
+                  event.method == "MultisigVoteStarted"
+              )?.event;
+
+              if (!event) {
+                throw new Error("SOMETHING_WENT_WRONG");
+              }
 
 export class MultisigCall {
   readonly call: SubmittableExtrinsic<"promise", ISubmittableResult>;
@@ -245,56 +260,43 @@ export class MultisigCall {
             if (!event) {
               throw new Error("SOMETHING_WENT_WRONG");
             }
+            
+              const method = event.method;
 
-            const method = event.method;
+              switch (method) {
+                case "MultisigExecuted": {
+                    const args = event.data;
 
-            switch (method) {
-              case "MultisigExecuted": {
-                console.log("event typ: ", event.typeDef);
+                    const result = new MultisigCallResult({
+                        isExecuted: true,
+                        isVoteStarted: false,
+                        id: args[0] as u32,
+                        account: args[1] as AccountId,
+                        voter: args[2] as AccountId,
+                        callHash: args[3] as Hash,
+                        call: args[4] as Call,
+                        executionResult: args[5] as DispatchResult,
+                    });
 
-                console.log("as Call: ", event.data[4] as Call);
-                const test = this.call.registry.createType(
-                  "Call",
-                  event.data[4]
-                );
-                console.log("test: ", test);
-
-                const args = event.data;
-
-                const result = new MultisigCallResult({
-                  isExecuted: true,
-                  isVoteStarted: false,
-                  id: args[0] as u32,
-                  account: args[1] as AccountId,
-                  voter: args[2] as AccountId,
-                  callHash: args[3] as Hash,
-                  call: args[4] as Call,
-                  executionResult: args[5] as DispatchResult,
-                });
-
-                console.log("result: ", result);
-
-                resolve(result);
+                  resolve(result);
 
                 break;
               }
               case "MultisigVoteStarted": {
                 const args = event.data;
 
-                const result = new MultisigCallResult({
-                  isVoteStarted: true,
-                  isExecuted: false,
-                  id: args[0] as unknown as u32,
-                  account: args[1] as AccountId,
-                  voter: args[2] as AccountId,
-                  votesAdded: args[3] as unknown as VotesAdded,
-                  callHash: args[4] as Hash,
-                  call: args[5] as Call,
-                });
+                    const result = new MultisigCallResult({
+                      isVoteStarted: true,
+                      isExecuted: false,
+                      id: args[0] as u32,
+                      account: args[1] as AccountId,
+                      voter: args[2] as AccountId,
+                      votesAdded: args[3] as Vote,
+                      callHash: args[4] as Hash,
+                      call: args[5] as Call,
+                    });
 
-                console.log("result: ", result);
-
-                resolve(result);
+                  resolve(result);
 
                 break;
               }
@@ -302,32 +304,34 @@ export class MultisigCall {
                 break;
             }
           }
+        );
+            } catch (e) {
+                reject(e);
+            }
         });
-      } catch (e) {
-        reject(e);
-      }
-    });
-  }
+    }
 }
 
-type CallDetails = {
-  tally: {
-    ayes: BN;
-    nays: BN;
-    records: Record<string, Record<"aye" | "nay", BN>>;
-  };
-  originalCaller: string;
-  actualCall: Call;
-  metadata: string | null;
-};
+export interface CallDetails extends Struct {
+    readonly tally: Tally;
+    readonly originalCaller: AccountId32;
+    readonly actualCall: Call;
+    readonly metadata: Text;
+}
 
-type BridgeExternalMultisigAssetCallParams = DefaultMultisigParams & {
-  asset: string;
-  destination: string;
-  fee: BN;
-  amount: BN;
-  to: string;
-};
+export interface Tally extends Struct {
+    readonly ayes: Balance;
+    readonly nays: Balance;
+    readonly records: BTreeMap<AccountId, Vote>;
+}
+
+export interface Vote extends Enum {
+    readonly isAye: boolean;
+    readonly asAye: Balance;
+    readonly isNay: boolean;
+    readonly asNay: Balance;
+    readonly type: 'Aye' | 'Nay';
+}
 
 type GetTotalIssuance = DefaultMultisigParams & {
   id: string;
@@ -350,12 +354,9 @@ export type {
   WithdrawVoteMultisigCallParams,
   MintTokenMultisigParams,
   BurnTokenMultisigParams,
-  SendExternalMultisigCallParams,
   TransferExternalAssetMultisigCallParams,
   ApiAndId,
   GetMultisigsForAccountParams,
-  CallDetails,
-  BridgeExternalMultisigAssetCallParams,
   GetTotalIssuance,
   GetMemberBalance,
 };

@@ -1,4 +1,4 @@
-import "@polkadot/api-augment";
+//import "@polkadot/api-augment";
 
 export * from "./inv4/query";
 export * from "./inv4/extrinsic";
