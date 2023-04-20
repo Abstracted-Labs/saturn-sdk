@@ -137,12 +137,10 @@ const App = () => {
 
     const injector = await web3FromAddress(selectedAccount.address);
 
-    const multisig = await saturn.create({
-      address: selectedAccount.address,
-      signer: injector.signer,
-      minimumSupport: 510000000,
-      requiredApproval: 510000000,
-    });
+    const multisig = await saturn.createMultisig({
+        minimumSupport: 510000000,
+        requiredApproval: 510000000,
+    }).signAndSend(selectedAccount.address, injector.signer);
 
     console.log("created multisig: ", multisig);
 

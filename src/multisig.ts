@@ -54,6 +54,7 @@ import {
     MultisigCall,
     Tally,
     MultisigDetails,
+    MultisigCreator,
 } from "./types";
 
 import { getSignAndSendCallback } from "./utils";
@@ -167,56 +168,18 @@ class Saturn {
     this.api.disconnect();
   };
 
-  public create = async ({
+  public createMultisig = ({
     metadata,
     minimumSupport,
     requiredApproval,
-    address,
-    signer,
-  }: Omit<CreateMultisigParams, "api"> &
-    GetSignAndSendCallbackParams & {
-      address: string;
-      signer: Signer;
-    }): Promise<MultisigCreateResult> => {
-    return new Promise((resolve, reject) => {
-      try {
-        createCore({
-          api: this.api,
-          metadata,
-          minimumSupport,
-          requiredApproval,
-        }).signAndSend(address, { signer }, ({ events, status }) => {
-          if (status.isInBlock) {
-            const event = events.find(
-              ({ event }) => event.method === "CoreCreated"
-            )?.event.data;
+  }: {
+      metadata?: string | Uint8Array;
+      minimumSupport: Perbill | BN | number;
+      requiredApproval: Perbill | BN | number;
+  }): MultisigCreator => {
+      const creator = new MultisigCreator({ api: this.api, metadata, minimumSupport, requiredApproval });
 
-            const assetsEvent = events.find(
-              ({ event }) =>
-                event.section === "coreAssets" && event.method === "Endowed"
-            )?.event.data;
-
-            if (!event || !assetsEvent) {
-              throw new Error("SOMETHING_WENT_WRONG");
-            }
-
-            const result = new MultisigCreateResult({
-              id: (event[1] as u32).toNumber(),
-              account: event[0] as AccountId,
-              metadata: event[2] as Text,
-              minimumSupport: event[3] as Perbill,
-              requiredApproval: event[4] as Perbill,
-              creator: this.api.createType("AccountId", address),
-              tokenSupply: assetsEvent[2] as Balance,
-            });
-
-            resolve(result);
-          }
-        });
-      } catch (e) {
-        reject(e);
-      }
-    });
+      return creator;
   };
 
     public getDetails = async (id: number): Promise<MultisigDetails | null> => {

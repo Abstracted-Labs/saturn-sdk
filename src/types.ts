@@ -17,6 +17,7 @@ import { Text } from "@polkadot/types-codec/native";
 import { Enum, Struct, BTreeMap, Option, Bytes, bool, Result, Null, Vec } from "@polkadot/types-codec";
 import type { AddressOrPair, AugmentedEvent, AugmentedEvents, SignerOptions, SubmittablePaymentResult } from "@polkadot/api-base/types";
 import { FrameSystemEventRecord, PalletInv4Event } from "@polkadot/types/lookup";
+import { createCore } from "./rpc";
 
 type GetSignAndSendCallbackParams = {
   onInvalid?: (payload: ISubmittableResult) => void;
@@ -56,7 +57,7 @@ type GetPendingMultisigCallParams = DefaultMultisigParams & {
 
 type CreateMultisigParams = {
   api: DefaultMultisigParams["api"];
-  metadata?: string;
+  metadata?: string | Uint8Array;
   minimumSupport: Perbill | BN | number;
   requiredApproval: Perbill | BN | number;
 };
@@ -281,6 +282,70 @@ export class MultisigCall {
             }
           }
         );
+            } catch (e) {
+                reject(e);
+            }
+        });
+    }
+}
+
+export class MultisigCreator {
+    readonly call: SubmittableExtrinsic<ApiTypes>;
+
+    constructor ({
+        api,
+        metadata,
+        minimumSupport,
+        requiredApproval,
+    }: {
+        api: ApiPromise;
+        metadata?: string | Uint8Array;
+        minimumSupport: Perbill | BN | number;
+        requiredApproval: Perbill | BN | number;
+    }) {
+        this.call = createCore({
+            api,
+            metadata,
+            minimumSupport,
+            requiredApproval,
+        });
+    }
+
+    public paymentInfo (account: AddressOrPair, options?: Partial<SignerOptions>): SubmittablePaymentResult<ApiTypes> {
+        return this.call.paymentInfo(account, options);
+    };
+
+    public async signAndSend (address: string, signer: Signer): Promise<MultisigCreateResult> {
+        return new Promise((resolve, reject) => {
+            try {
+                this.call.signAndSend(address, { signer }, ({ events, status }) => {
+                    if (status.isInBlock) {
+                        const event = events.find(
+                            ({ event }) => event.method === "CoreCreated"
+                        )?.event.data;
+
+                        const assetsEvent = events.find(
+                            ({ event }) =>
+                                event.section === "coreAssets" && event.method === "Endowed"
+                        )?.event.data;
+
+                        if (!event || !assetsEvent) {
+                            throw new Error("SOMETHING_WENT_WRONG");
+                        }
+
+                        const result = new MultisigCreateResult({
+                            id: (event[1] as u32).toNumber(),
+                            account: event[0] as AccountId,
+                            metadata: event[2] as Text,
+                            minimumSupport: event[3] as Perbill,
+                            requiredApproval: event[4] as Perbill,
+                            creator: this.call.registry.createType("AccountId", address),
+                            tokenSupply: assetsEvent[2] as Balance,
+                        });
+
+                        resolve(result);
+                    }
+                });
             } catch (e) {
                 reject(e);
             }
