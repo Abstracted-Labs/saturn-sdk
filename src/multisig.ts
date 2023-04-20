@@ -212,11 +212,9 @@ class Saturn {
   };
 
   public getSupply = async (id: number) => {
-    const { supply } = (await this._getMultisig(id)).toPrimitive() as {
-      supply: number;
-    };
+      const supply: BN = await this._getTotalIssuance(id);
 
-    return supply;
+      return supply;
   };
 
   public getPendingCalls = async (
@@ -272,7 +270,7 @@ class Saturn {
 
     const mapped = keys.map(
       ({ args: [_, member] }) =>
-        member.toPrimitive() as unknown as AccountId
+        member
     );
 
     return mapped;
