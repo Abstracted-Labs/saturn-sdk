@@ -1,13 +1,33 @@
 {
   "compilerOptions": {
-    "target": "ESNext",
-    "module": "ESNext",
+    "target": "esnext",
+    "module": "esnext",
     "outDir": "./build",
-    "moduleResolution": "Node",
+    "moduleResolution": "node",
+      "skipLibCheck": true,
     "declaration": true,
     "declarationMap": true,
-    "allowSyntheticDefaultImports": true
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "baseUrl": ".",
+      "paths": {
+          "@polkadot/api/augment": [
+              "src/typegen/augment-api.ts"
+          ],
+          "@polkadot/types/augment": [
+              "src/typegen/augment-types.ts"
+          ],
+          "@polkadot/types/lookup": [
+              "src/typegen/types-lookup.ts"
+          ],
+          "@invarch/saturn-sdk/*": [
+              "src/*"
+          ]
+      }
   },
-  "include": ["src/**/*"],
-  "exclude": ["node_modules"]
+    "ts-node": {
+        "experimentalSpecifierResolution": "node"
+    },
+    "include": ["src/**/*"],
+    "exclude": ["node_modules"]
 }

@@ -1,9 +1,14 @@
 import { ApiPromise } from "@polkadot/api";
 import { SubmittableExtrinsic } from "@polkadot/api/types";
-import { AccountId, DispatchResult, Call } from "@polkadot/types/interfaces";
+import { AccountId, DispatchResult, Call, Hash, Perbill, Balance } from "@polkadot/types/interfaces";
 import { ISubmittableResult, Signer } from "@polkadot/types/types";
 import type { BN } from "@polkadot/util";
 import { AnyJson } from "@polkadot/types-codec/types";
+import { u32 } from "@polkadot/types-codec/primitive";
+import { Text } from "@polkadot/types-codec/native";
+import { Option } from "@polkadot/types-codec";
+import { PalletInv4MultisigMultisigOperation } from "@polkadot/types/lookup";
+import { stringToU8a, hexToU8a } from "@polkadot/util"
 
 import {
   createCore,
@@ -31,16 +36,18 @@ import {
   MintTokenMultisigParams,
   BurnTokenMultisigParams,
   GetPendingMultisigCallParams,
-  SendExternalMultisigCallParams,
   TransferExternalAssetMultisigCallParams,
   MultisigCreateResult,
   ApiAndId,
   GetMultisigsForAccountParams,
-  CallDetails,
   MultisigCallResult,
+    Vote,
+    MultisigCall,
+    Tally
 } from "./types";
 
 import { getSignAndSendCallback } from "./utils";
+import { BTreeMap, StorageKey } from "@polkadot/types";
 
 const PARACHAINS_KEY = "TinkernetRuntimeRingsChains";
 const PARACHAINS_ASSETS = "TinkernetRuntimeRingsChainAssets";
@@ -133,17 +140,10 @@ class Saturn {
     }[];
   }[];
 
-  address: string;
-  signer: Signer;
-
   constructor({
-    api,
-    address,
-    signer,
+    api
   }: {
-    api: ApiPromise;
-    address: string;
-    signer: Signer;
+    api: ApiPromise
   }) {
     if (!api.tx.inv4) {
       throw new Error("API_PROMISE_DOES_NOT_CONTAIN_INV4_MODULE");
@@ -155,17 +155,7 @@ class Saturn {
 
     this.api = api;
     this.chains = setupTypes({ api });
-    this.address = address;
-    this.signer = signer;
   }
-
-  public setAddress = (address: string) => {
-    this.address = address;
-  };
-
-  public setSigner = (signer: Signer) => {
-    this.signer = signer;
-  };
 
   public disconnect = () => {
     this.api.disconnect();
@@ -193,28 +183,30 @@ class Saturn {
           if (status.isInBlock) {
             const event = events
               .find(({ event }) => event.method === "CoreCreated")
-              ?.event.data.toPrimitive() as [string, number, string, BN, BN];
+              ?.event.data;
 
             const assetsEvent = events
               .find(
                 ({ event }) =>
                   event.section === "coreAssets" && event.method === "Endowed"
               )
-              ?.event.data.toPrimitive() as [string, string, BN];
+              ?.event.data;
 
             if (!event || !assetsEvent) {
               throw new Error("SOMETHING_WENT_WRONG");
             }
 
-            resolve({
-              id: event[1],
-              account: event[0],
-              metadata: event[2],
-              minimumSupport: event[3],
-              requiredApproval: event[4],
-              creator: address,
-              tokenSupply: assetsEvent[2],
-            } as MultisigCreateResult);
+              const result = new MultisigCreateResult({
+                  id: event[1] as u32,
+                  account: event[0] as AccountId,
+                  metadata: event[2] as Text,
+                  minimumSupport: event[3] as Perbill,
+                  requiredApproval: event[4] as Perbill,
+                  creator: this.api.createType("AccountId", address),
+                  tokenSupply: assetsEvent[2] as Balance,
+              });
+
+            resolve(result);
           }
         });
       } catch (e) {
@@ -252,31 +244,27 @@ class Saturn {
     return supply;
   };
 
-  public getOpenCalls = async (id: string) => {
-    const pendingCalls = await this._getPendingMultisigCalls(id);
+    public getPendingCalls = async (id: string): Promise<{callHash: Hash, details: PalletInv4MultisigMultisigOperation}[]> => {
+        const pendingCalls: [
+            StorageKey<[u32, Hash]>,
+            Option<PalletInv4MultisigMultisigOperation>
+        ][] = await this._getPendingMultisigCalls(id);
 
-    const openCalls = pendingCalls.map((call) => {
-      const callHash = call[0].args[1].toHex() as string;
+        const openCalls = pendingCalls
+            .reduce((newCalls: {callHash: Hash, details: PalletInv4MultisigMultisigOperation}[], call) => {
+                const callHash = call[0] as Hash;
 
-      const callDetails = call[1].toPrimitive() as unknown as {
-        tally: {
-          ayes: BN;
-          nays: BN;
-          records: Record<string, Record<"aye" | "nay", BN>>;
-        };
-        originalCaller: string;
-        actualCall: Call;
-        metadata: string | null;
-      };
+                const maybeCallDetails = call[1].unwrap()
 
-      return {
-        callHash,
-        tally: callDetails.tally,
-        originalCaller: callDetails.originalCaller,
-        actualCall: callDetails.actualCall,
-        metadata: callDetails.metadata,
-      };
-    });
+                if (maybeCallDetails) {
+                    newCalls.push({
+                        callHash,
+                        details: maybeCallDetails,
+                    });
+                }
+
+                return newCalls;
+            }, []);
 
     return openCalls;
   };
@@ -287,27 +275,14 @@ class Saturn {
   }: {
     id: string;
     callHash: string;
-  }) => {
-    const call = await this._getPendingMultisigCall({ id, callHash });
+  }): Promise<PalletInv4MultisigMultisigOperation | null> => {
+      const maybeCall: Option<PalletInv4MultisigMultisigOperation> = await this._getPendingMultisigCall({ id, callHash });
 
-    const callDetails = call.toPrimitive() as {
-      signers: [string, null][];
-      originalCaller: string;
-      actualCall: string;
-      callMetadata: string;
-      callWeight: number;
-      metadata?: string;
-    };
+      const call: PalletInv4MultisigMultisigOperation = maybeCall.unwrap();
 
-    return {
-      callHash,
-      signers: callDetails.signers.map((signer) => signer[0]),
-      originalCaller: callDetails.originalCaller,
-      actualCall: callDetails.actualCall,
-      callMetadata: callDetails.callMetadata,
-      callWeight: callDetails.callWeight,
-      metadata: callDetails.metadata,
-    };
+      if (!call) return null;
+
+      return call;
   };
 
   public getMultisigMembers = async (id: string): Promise<AccountId[]> => {
@@ -346,16 +321,14 @@ class Saturn {
     id,
     address,
     amount,
-    token = null,
     metadata,
   }: {
     id: string;
     address: string;
     amount: number;
-    token?: string;
     metadata?: string;
   }) => {
-    return this.proposeMultisigCall({
+    return this.buildMultisigCall({
       id,
       call: this._mintTokenMultisig({
         address,
@@ -369,16 +342,14 @@ class Saturn {
     id,
     address,
     amount,
-    token = null,
     metadata,
   }: {
     id: string;
     address: string;
     amount: number;
-    token?: string;
     metadata?: string;
   }) => {
-    return this.proposeMultisigCall({
+    return this.buildMultisigCall({
       id,
       call: this._burnTokenMultisig({
         address,
@@ -417,7 +388,7 @@ class Saturn {
     });
   };
 
-  public proposeMultisigCall = async ({
+  public buildMultisigCall = ({
     id,
     metadata,
     call,
@@ -425,93 +396,12 @@ class Saturn {
     id: string;
     metadata?: string;
     call: SubmittableExtrinsic<"promise", ISubmittableResult>;
-  }): Promise<MultisigCallResult> => {
-    return new Promise((resolve, reject) => {
-      try {
-        this._createMultisigCall({
+  }): MultisigCall => {
+      return new MultisigCall(this._createMultisigCall({
           id,
           metadata,
           call,
-        }).signAndSend(
-          this.address,
-          { signer: this.signer },
-          ({ events, status }) => {
-            if (status.isInBlock) {
-              const event = events.find(
-                ({ event }) =>
-                  event.method == "MultisigExecuted" ||
-                  event.method == "MultisigVoteStarted"
-              )?.event;
-
-              if (!event) {
-                throw new Error("SOMETHING_WENT_WRONG");
-              }
-
-              const method = event.method;
-
-              switch (method) {
-                case "MultisigExecuted": {
-                  const args = event.data.toPrimitive() as [
-                    number,
-                    string,
-                    string,
-                    string,
-                    Call,
-                    DispatchResult
-                  ];
-
-                  const result: MultisigCallResult = {
-                    executed: true,
-                    result: {
-                      id: args[0],
-                      account: args[1],
-                      voter: args[2],
-                      callHash: args[3],
-                      call: args[4],
-                      executionResult: args[5],
-                    },
-                  };
-
-                  resolve(result);
-
-                  break;
-                }
-                case "MultisigVoteStarted": {
-                  const args = event.data.toPrimitive() as [
-                    number,
-                    string,
-                    string,
-                    { aye: BN } | { nay: BN },
-                    string,
-                    Call
-                  ];
-
-                  const result: MultisigCallResult = {
-                    executed: false,
-                    result: {
-                      id: args[0],
-                      account: args[1],
-                      voter: args[2],
-                      votesAdded: args[3],
-                      callHash: args[4],
-                      call: args[5],
-                    },
-                  };
-
-                  resolve(result);
-
-                  break;
-                }
-                default:
-                  break;
-              }
-            }
-          }
-        );
-      } catch (e) {
-        reject(e);
-      }
-    });
+      }));
   };
 
   public sendXCMCall = ({
@@ -527,19 +417,19 @@ class Saturn {
     destination: string;
     weight: BN;
     callData: string;
-    feeAsset: string;
+    feeAsset: Object;
     fee: BN;
     metadata?: string;
   }) => {
     const call = this._sendExternalMultisigCall({
-      destination,
-      weight,
-      callData,
-      feeAsset,
-      fee,
+        destination,
+        weight,
+        callData: hexToU8a(callData),
+        feeAsset,
+        fee,
     });
 
-    return this.proposeMultisigCall({ id, call, metadata });
+    return this.buildMultisigCall({ id, call, metadata });
   };
 
   public transferXcmAsset = ({
@@ -552,52 +442,22 @@ class Saturn {
     metadata,
   }: {
     id: string;
-    asset: string;
+    asset: Object;
     amount: BN;
     to: string;
-    feeAsset: string;
+    feeAsset: Object;
     fee: BN;
     metadata?: string;
   }) => {
-    const call = this._transferExternalAssetMultisigCall({
-      asset,
-      amount,
-      to,
-      feeAsset,
-      fee,
-    });
+      const call = this._transferExternalAssetMultisigCall({
+          asset,
+          amount,
+          to,
+          feeAsset,
+          fee,
+      });
 
-    return this.proposeMultisigCall({ id, call, metadata });
-  };
-
-  public getExternalAssets = () => {
-    const { types } = this.api.registry.knownTypes;
-
-    // TODO fix this
-    // @ts-ignore
-    const parachains = types.ParachainsAssets._enum;
-
-    let assets = {};
-
-    for (const key in parachains) {
-      // TODO fix this
-      // @ts-ignore
-      assets[key] = types[parachains[key]]._enum;
-    }
-
-    return assets;
-  };
-
-  public getParachains = () => {
-    const { types } = this.api.registry.knownTypes;
-
-    // TODO fix this
-    // @ts-ignore
-    const parachains = types.ParachainsAssets._enum;
-
-    const names = Object.keys(parachains);
-
-    return names;
+      return this.buildMultisigCall({ id, call, metadata });
   };
 
   private _getMultisig = (id: string) => {
@@ -616,8 +476,8 @@ class Saturn {
     return createMultisigCall({ api: this.api, id, metadata, call });
   };
 
-  private _getPendingMultisigCalls = (id: string) => {
-    return getPendingMultisigCalls({ api: this.api, id });
+    private _getPendingMultisigCalls = (id: string): Promise<[StorageKey<[u32, Hash]>, Option<PalletInv4MultisigMultisigOperation>][]> => {
+        return getPendingMultisigCalls({ api: this.api, id });
   };
 
   private _getPendingMultisigCall = ({
@@ -626,7 +486,7 @@ class Saturn {
   }: {
     id: string;
     callHash: string;
-  }) => {
+  }): Promise<Option<PalletInv4MultisigMultisigOperation>> => {
     return getPendingMultisigCall({ api: this.api, id, callHash });
   };
 
@@ -681,8 +541,8 @@ class Saturn {
   }: {
     destination: string;
     weight: BN;
-    callData: string;
-    feeAsset: string;
+    callData: Uint8Array;
+    feeAsset: Object;
     fee: BN;
   }) => {
     return sendExternalMultisigCall({
@@ -702,10 +562,10 @@ class Saturn {
     feeAsset,
     fee,
   }: {
-    asset: string;
+    asset: Object;
     amount: BN;
     to: string;
-    feeAsset: string;
+    feeAsset: Object;
     fee: BN;
   }) => {
     return transferExternalAssetMultisigCall({
@@ -725,8 +585,8 @@ class Saturn {
     amount,
     to,
   }: {
-    asset: string;
-    destination: string;
+    asset: Object;
+      destination: string;
     fee: BN;
     amount: BN;
     to: string;
