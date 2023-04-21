@@ -1,8 +1,0 @@
-{
-  "create": "Create a Multisig",
-  "get": "Get a Multisig",
-  "createCall": "Create a Multisig call",
-  "getPendingCalls": "Get Pending Multisig calls",
-  "voteMultisigCall": "Vote on a Multisig call",
-  "withdrawVoteMultisigCall": "Withdraw Vote on a Multisig call"
-}
