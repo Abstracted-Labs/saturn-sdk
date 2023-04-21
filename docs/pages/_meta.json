@@ -1,6 +1,10 @@
 {
   "index": "Getting Started",
-  "concepts": "Concepts",
-  "multisig": "Multisig",
-  "usage": "Usage"
+  "saturn": "Overview of Saturn as a whole",
+  "create": "Creating a Multisig",
+  "query": "Query functions",
+  "wrapped": "Wrapped multisig calls",
+  "usage": "Usage",
+  "data": "Data related to the multisig",
+  "pending": "Pending calls"
 }
