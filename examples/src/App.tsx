@@ -158,6 +158,8 @@ const App = () => {
 
     const members = await saturn.getMultisigMembers(multisig.id);
 
+    console.log(members);
+
     setMultisigMembers(members.map((acc) => acc.toString()));
   };
 
@@ -467,6 +469,8 @@ const App = () => {
       setAssetTransfer(c.assets[0]);
     }
   }, [saturn]);
+
+  console.log(multisigMembers);
 
   return (
     <div className="flex flex-col gap-4 p-8 max-w-2xl items-center justify-center mx-auto">
