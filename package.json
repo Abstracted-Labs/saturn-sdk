@@ -8,19 +8,19 @@
   ],
   "main": "index.js",
   "scripts": {
-      "build": "tsc --outDir ./dist",
-      "typegen": "yarn generate:defs && yarn generate:meta",
-      "generate:defs": "ts-node-esm node_modules/.bin/polkadot-types-from-defs --package @invarch/saturn-sdk/interfaces --input ./src/typegen --endpoint ./src/typegen/tinkernet.json",
-      "generate:meta": "ts-node-esm node_modules/.bin/polkadot-types-from-chain --package @invarch/saturn-sdk/interfaces --endpoint ./src/typegen/tinkernet.json --output ./src/typegen --strict"
+    "build": "tsc --outDir ./dist",
+    "typegen": "yarn generate:defs && yarn generate:meta",
+    "generate:defs": "ts-node-esm node_modules/.bin/polkadot-types-from-defs --package @invarch/saturn-sdk/interfaces --input ./src/typegen --endpoint ./src/typegen/tinkernet.json",
+    "generate:meta": "ts-node-esm node_modules/.bin/polkadot-types-from-chain --package @invarch/saturn-sdk/interfaces --endpoint ./src/typegen/tinkernet.json --output ./src/typegen --strict"
   },
   "author": "",
   "license": "ISC",
   "devDependencies": {
-      "@types/node": "^18.15.11",
-      "typescript": "^5.0.4",
-      "@polkadot/typegen": "10.3.4",
-      "prettier": "2.8.1",
-      "ts-node": "10.9.1"
+    "@polkadot/typegen": "10.3.4",
+    "@types/node": "^18.15.13",
+    "prettier": "2.8.7",
+    "ts-node": "10.9.1",
+    "typescript": "^5.0.4"
   },
   "dependencies": {
     "@polkadot/api": "^10.3.4",
