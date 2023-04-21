@@ -37,7 +37,7 @@ A Promise that resolves to a BN representing the total issuance.
 Get the pending calls for a multisig.
 
 ```typescript
-public getPendingCalls(id: number): Promise<{ callHash: Hash; details: CallDetails }[]>
+public getPendingCalls(id: number): Promise<CallDetailsWithHash[]>
 ```
 
 **Parameters:**

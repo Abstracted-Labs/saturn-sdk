@@ -58,6 +58,7 @@ import {
   MultisigDetails,
   MultisigCreator,
   CallDetails,
+  CallDetailsWithHash,
 } from "./types";
 
 import { getSignAndSendCallback } from "./utils";
@@ -219,7 +220,7 @@ class Saturn {
 
   public getPendingCalls = async (
     id: number
-  ): Promise<{ callHash: Hash; details: CallDetails }[]> => {
+  ): Promise<CallDetailsWithHash[]> => {
     const pendingCalls: [
       StorageKey<[u32, Hash]>,
       Option<PalletInv4MultisigMultisigOperation>

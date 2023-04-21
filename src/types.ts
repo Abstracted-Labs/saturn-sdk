@@ -436,6 +436,11 @@ export class CallDetails {
   }
 }
 
+export type CallDetailsWithHash = {
+    callHash: Hash;
+    details: CallDetails;
+};
+
 export interface Tally extends Struct {
   readonly ayes: Balance;
   readonly nays: Balance;
