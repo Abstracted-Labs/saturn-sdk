@@ -613,10 +613,7 @@ const App = () => {
                   <p>
                     <b>Minimum support:</b>{" "}
                     {api.registry
-                      .createType(
-                        "Perbill",
-                        details.minimumSupport.toNumber()
-                      )
+                      .createType("Perbill", details.minimumSupport.toNumber())
                       .toHuman()}
                   </p>
                   <p>
