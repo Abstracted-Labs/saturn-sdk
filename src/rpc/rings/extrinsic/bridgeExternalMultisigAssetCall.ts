@@ -15,9 +15,9 @@ const bridgeExternalMultisigAssetCall = ({
   destination: string;
   fee: BN;
   amount: BN;
-  to: string | AccountId;
+  to?: string | AccountId;
 }) => {
-  return api.tx.rings.bridgeAssets(asset, destination, fee, amount, to);
+  return api.tx.rings.bridgeAssets(asset, destination, fee, amount, to || null);
 };
 
 export { bridgeExternalMultisigAssetCall };

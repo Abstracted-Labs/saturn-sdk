@@ -39,6 +39,7 @@ import {
   PalletInv4VotingTally,
 } from "@polkadot/types/lookup";
 import { createCore, getTotalIssuance, getMultisig } from "./rpc";
+import { u8aToString } from "@polkadot/util";
 
 type GetSignAndSendCallbackParams = {
   onInvalid?: (payload: ISubmittableResult) => void;
@@ -389,7 +390,7 @@ export class CallDetails {
   readonly tally: PalletInv4VotingTally;
   readonly originalCaller: AccountId;
   readonly actualCall: Call;
-  readonly proposalMetadata?: string;
+  readonly proposalMetadata?: string | Uint8Array;
 
   constructor({
     id,
@@ -405,7 +406,7 @@ export class CallDetails {
       "Call",
       details.actualCall
     );
-    this.proposalMetadata = details.metadata.toString();
+      this.proposalMetadata = details.metadata.unwrap();
   }
 
   public async canExecute(api: ApiPromise, votes: BN): Promise<boolean> {
@@ -431,7 +432,7 @@ export class CallDetails {
       tally: this.tally.toHuman(),
       originalCaller: this.originalCaller.toHuman(),
       actualCall: this.actualCall.toHuman(),
-      proposalMetadata: this.proposalMetadata,
+      proposalMetadata: typeof this.proposalMetadata == "string" ? this.proposalMetadata : u8aToString(this.proposalMetadata),
     };
   }
 }

@@ -468,7 +468,7 @@ class Saturn {
     asset: Object;
     amount: BN;
     destination: string;
-    to: string | AccountId;
+    to?: string | AccountId;
     fee: BN;
     proposalMetadata?: string | Uint8Array;
   }) => {
@@ -663,7 +663,7 @@ class Saturn {
     destination: string;
     fee: BN;
     amount: BN;
-    to: string | AccountId;
+    to?: string | AccountId;
   }) => {
     return bridgeExternalMultisigAssetCall({
       api: this.api,
