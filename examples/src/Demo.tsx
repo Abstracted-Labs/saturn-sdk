@@ -14,9 +14,9 @@ import { SubmittableExtrinsic, ApiTypes } from "@polkadot/api/types";
 import { PalletInv4MultisigMultisigOperation } from "@polkadot/types/lookup";
 import { u8aToHex } from "@polkadot/util";
 
-const host = "ws://127.0.0.1:9944";
+const host = "wss://6bfa-2601-140-827f-8200-1c11-837-22ec-e128.ngrok.io";
 
-const bsxHost = "ws://127.0.0.1:9933";
+const bsxHost = "wss://681b-2601-140-827f-8200-1c11-837-22ec-e128.ngrok.io";
 
 const Demo = () => {
   const [accounts, setAccounts] = useState<InjectedAccountWithMeta[]>([]);
