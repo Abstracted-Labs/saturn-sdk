@@ -411,7 +411,7 @@ class Saturn {
     id: number;
     destination: string;
     weight: BN;
-    callData: string | Uint8Array;
+    callData: `0x{string}` | Uint8Array;
     feeAsset: Object;
     fee: BN;
     proposalMetadata?: string | Uint8Array;
@@ -615,7 +615,7 @@ class Saturn {
   }: {
     destination: string;
     weight: BN;
-    callData: string | Uint8Array;
+    callData: `0x{string}` | Uint8Array;
     feeAsset: Object;
     fee: BN;
   }) => {

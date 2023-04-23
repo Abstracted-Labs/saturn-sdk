@@ -12,10 +12,11 @@ import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import YAML from "yaml";
 import { SubmittableExtrinsic, ApiTypes } from "@polkadot/api/types";
 import { PalletInv4MultisigMultisigOperation } from "@polkadot/types/lookup";
+import { u8aToHex } from "@polkadot/util";
 
 const host = "ws://127.0.0.1:9944";
 
-const bsxHost = "wss://rpc.basilisk.cloud";//"ws://127.0.0.1:9933";
+const bsxHost = "ws://127.0.0.1:9933";
 
 const Demo = () => {
   const [accounts, setAccounts] = useState<InjectedAccountWithMeta[]>([]);
@@ -250,28 +251,32 @@ const Demo = () => {
         if (!saturn) return;
         if (!selectedAccount) return;
         if (!id?.toString()) return;
-
-        const bsxApi = await ApiPromise.create({ provider:  new WsProvider(bsxHost) });
+        if (!bsxApi) return;
 
         const swapCall = bsxApi.tx.router.sell(1, 0, ksmAmount, 0, [{ pool: "XYK", assetIn: 1, assetOut: 0 }]);
 
-        console.log("swapCall: ", swapCall);
+        console.log("swapCall: ", u8aToHex(swapCall.unwrap().toU8a()));
 
         const address = selectedAccount.address;
         const signer = (await web3FromAddress(address)).signer;
 
-        const ksm = saturn.chains.find(chain => chain.chain === "Kusama" )?.assets[0].registerType;
+        const bsx = saturn
+            .chains
+            .find(chain => chain.chain === "Basilisk" )
+            ?.assets
+            .find(({label}: {label: string}) => label == "BSX")
+            ?.registerType;
 
-        if (!ksm) return;
+        if (!bsx) return;
 
         const result = await saturn
             .sendXCMCall({
                 id,
                 destination: "Basilisk",
-                fee: new BN("2000000000000"),
-                feeAsset: ksm,
+                fee: new BN("500000000000000"),
+                feeAsset: bsx,
                 weight: new BN("5000000000"),
-                callData: swapCall.toU8a(),
+                callData: swapCall.unwrap().toU8a(),
                 proposalMetadata: "swap"
             })
             .signAndSend(address, signer);
