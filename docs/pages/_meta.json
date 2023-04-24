@@ -6,5 +6,6 @@
   "wrapped": "Wrapped multisig calls",
   "usage": "Usage",
   "data": "Data related to the multisig",
-  "pending": "Pending calls"
+  "pending": "Pending calls",
+  "rings": "XCM operations using the rings functions"
 }

@@ -1,5 +1,7 @@
 # Getting pending calls
 
+The `getPendingCalls` function allows you to retrieve a list of pending multisig calls for a given multisig ID.
+
 ```typescript
 await saturn.getPendingCalls(id);
 ```
