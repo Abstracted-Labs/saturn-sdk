@@ -11,12 +11,16 @@ import { BN } from "@polkadot/util";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import YAML from "yaml";
 import { SubmittableExtrinsic, ApiTypes } from "@polkadot/api/types";
+import { ISubmittableResult } from "@polkadot/types/types";
 import { PalletInv4MultisigMultisigOperation } from "@polkadot/types/lookup";
 import { u8aToHex } from "@polkadot/util";
+import { Call } from "@polkadot/types/interfaces";
+import { Bytes } from "@polkadot/types-codec";
+import { ChakraProvider, Grid, GridItem, NumberInput, NumberInputField, FormControl, FormLabel, Button } from '@chakra-ui/react';
 
-const host = "wss://6bfa-2601-140-827f-8200-1c11-837-22ec-e128.ngrok.io";
+const host = "wss://brainstorm.invarch.network/rococo";
 
-const bsxHost = "wss://681b-2601-140-827f-8200-1c11-837-22ec-e128.ngrok.io";
+const bsxHost = "wss://basilisk-rococo-rpc.play.hydration.cloud";
 
 const Demo = () => {
   const [accounts, setAccounts] = useState<InjectedAccountWithMeta[]>([]);
@@ -211,12 +215,13 @@ const Demo = () => {
     e: FormEvent<HTMLFormElement>
   ) => {
     e.preventDefault();
-      const ksmAmount = new BN(e.currentTarget?.ksm.value).mul(new BN("1000000000000"));
+      const amount = new BN(e.currentTarget?.tnkr.value).mul(new BN("1000000000000"));
 
     if (!api) return;
     if (!saturn) return;
     if (!selectedAccount) return;
     if (!id?.toString()) return;
+    if (!details) return;
 
     const address = selectedAccount.address;
     const signer = (await web3FromAddress(address)).signer;
@@ -225,16 +230,42 @@ const Demo = () => {
 
       if (!ksm) return;
 
-    const result = await saturn
-        .bridgeXcmAsset({
-            id,
-            asset: ksm,
-            amount: ksmAmount,
-            destination: "Basilisk",
-            fee: new BN("2000000000000"),
-            proposalMetadata: "bridge"
-        })
-        .signAndSend(address, signer);
+      const result = await saturn.buildMultisigCall({
+          id,
+          proposalMetadata: "bridge",
+          call: api.tx.xTokens.transfer(
+              0,
+              amount,
+              {
+                  V1: {
+                      parents: 1,
+                      interior: {
+                          X2: [
+                              { Parachain: 2090 },
+                              {
+                                  AccountId32: {
+                                      network: "Any",
+                                      id: details.account,
+                                  },
+                              },
+                          ],
+                      },
+                  },
+              },
+              'Unlimited'
+          ),
+      }).signAndSend(address, signer);
+
+    // const result = await saturn
+    //     .bridgeXcmAsset({
+    //         id,
+    //         asset: ksm,
+    //         amount: ksmAmount,
+    //         destination: "Basilisk",
+    //         fee: new BN("2000000000000"),
+    //         proposalMetadata: "bridge"
+    //     })
+    //     .signAndSend(address, signer);
 
     console.log("result toHuman: ", result.toHuman());
 
@@ -242,10 +273,15 @@ const Demo = () => {
   };
 
     const handleSwap = async (
-        e: FormEvent<HTMLFormElement>
+        e: FormEvent<HTMLFormElement>,
+        inputAsset: string,
     ) => {
         e.preventDefault();
-        const ksmAmount = new BN(e.currentTarget?.ksm.value).mul(new BN("1000000000000"));
+
+        const assetIn = inputAsset === "tnkr" ? 9 : 0;
+        const assetOut = inputAsset === "tnkr" ? 0 : 9;
+
+        const amount = new BN(e.currentTarget?.amount.value).mul(new BN("1000000000000"));
 
         if (!api) return;
         if (!saturn) return;
@@ -253,7 +289,7 @@ const Demo = () => {
         if (!id?.toString()) return;
         if (!bsxApi) return;
 
-        const swapCall = bsxApi.tx.router.sell(1, 0, ksmAmount, 0, [{ pool: "XYK", assetIn: 1, assetOut: 0 }]);
+        const swapCall = bsxApi.tx.router.sell(assetIn, assetOut, amount, 0, [{ pool: "XYK", assetIn, assetOut }]);
 
         console.log("swapCall: ", u8aToHex(swapCall.unwrap().toU8a()));
 
@@ -286,14 +322,23 @@ const Demo = () => {
         setLastCallResult(result);
     };
 
-    const processBsxSwap = (call: Uint8Array): { amountIn: BN } => {
-        if (!bsxApi) return { amountIn: new BN("") };
+    const processBsxSwap = (call: Uint8Array): { assetIn: string, assetOut: string, amountIn: BN } => {
+        if (!bsxApi) return { assetIn: "", assetOut: "", amountIn: new BN("") };
 
-        const swapCall = bsxApi.tx(call);
+        console.log("call hex: ", u8aToHex(call));
+        const swapCall = bsxApi.createType('Call', u8aToHex(call));
+
+        console.log("extrinsicCall: ", swapCall.toHuman());
 
         const amountIn = new BN(swapCall.args[2].toPrimitive() as string);
 
-        return { amountIn };
+        const assetInId = swapCall.args[0].toPrimitive() as number;
+        const assetOutId = swapCall.args[1].toPrimitive() as number;
+
+        const assetIn = assetInId == 9 ? "TNKR" : "BSX";
+        const assetOut = assetOutId == 9 ? "TNKR" : "BSX";
+
+        return { assetIn, assetOut, amountIn };
     }
 
     const handleVote = async (aye: boolean) => {
@@ -371,7 +416,8 @@ const Demo = () => {
     }, [id]);
 
   return (
-    <div className="flex flex-col gap-4 p-8 max-w-2xl items-center justify-center mx-auto">
+      <ChakraProvider>
+    <div className="flex flex-col p-8 items-center mx-auto">
       <>
         {accounts.length === 0 ? (
           <div className="w-full flex justify-center items-center">
@@ -496,7 +542,19 @@ const Demo = () => {
               </>
             ) : null}
 
-            {id?.toString() ? (
+                <Grid
+            templateColumns='repeat(2, 1fr)'
+            templateRows='repeat(4, 1fr)'
+            templateAreas={`"header header"
+                            "ops data"
+                            "ops data"
+                            "ops data"`}
+            gap={6}
+                >
+
+                <GridItem area={"header"}>
+
+                {id?.toString() ? (
               <div className="w-full flex flex-col gap-4 justify-center items-center">
                 <div className="border rounded-md p-4 w-full">
                   <span className="font-bold">Multisig ID: </span>{" "}
@@ -526,44 +584,13 @@ const Demo = () => {
                       )
                       .toHuman()}
                   </p>
-                  <p>
-                    <b>Total Issuance:</b> {details.totalIssuance.toNumber()}
-                  </p>
                 </div>
               </div>
             ) : null}
 
-            {multisigMembers && saturn ? (
-              <div className="w-full flex flex-col gap-4 justify-center items-center">
-                <div className="border rounded-md p-4 w-full">
-                  <div>
-                      <p><b>Members:</b></p>
-                    {multisigMembers.map((m) => (
-                      <p key={m}>{m}</p>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            ) : null}
+                </GridItem>
 
-            {balance ? (
-              <div className="w-full flex flex-col gap-4 justify-center items-center">
-                <div className="border rounded-md p-4 w-full">
-                  <span className="font-bold">User Balance: </span>{" "}
-                  <span>{balance.toString()}</span>
-                </div>
-              </div>
-            ) : null}
-
-            {allBalances ? (
-              <div className="w-full flex flex-col gap-4 justify-center items-center">
-                <div className="border rounded-md p-4 w-full">
-                  <pre className="overflow-auto">
-                    {JSON.stringify(allBalances, null, 2)}
-                  </pre>
-                </div>
-              </div>
-            ) : null}
+                <GridItem area={"ops"}>
 
             {id?.toString() && saturn ? (
               <div className="w-full flex flex-col gap-4 justify-center items-center">
@@ -573,25 +600,14 @@ const Demo = () => {
                     onSubmit={handleBridge}
                   >
                     <div>
-                      <label
-                        htmlFor="externalWeight"
-                        className="block text-sm font-medium text-neutral-700"
-                      >
-                    KSM -{'>'} Basilisk
-                      </label>
-                      <div className="mt-1">
-                        <input
-                          type="text"
-                          name="text"
-                          id="ksm"
-                          className="block w-full rounded-md border-neutral-300 shadow-sm focus:border-neutral-500 focus:ring-neutral-500 sm:text-sm"
-                        />
+                    <FormLabel>TNKR -{'>'} Basilisk</FormLabel>
+                    <div className="mt-1">
+                    <NumberInput id="tnkr">
+                    <NumberInputField />
+                    </NumberInput>
                       </div>
                     </div>
-
-                    <button className="shadow-sm py-2 px-4 rounded-md transition-all duration-300 bg-neutral-900 text-neutral-50 hover:shadow-lg hover:bg-neutral-800">
-                      Bridge
-                    </button>
+                    <button className="shadow-sm py-2 px-4 rounded-md transition-all duration-300 bg-neutral-900 text-neutral-50 hover:shadow-lg hover:bg-neutral-800">Bridge</button>
                   </form>
                 </div>
               </div>
@@ -602,32 +618,61 @@ const Demo = () => {
                 <div className="border rounded-md p-4 w-full flex gap-4">
                   <form
                     className="flex w-full flex-col gap-4"
-                    onSubmit={handleSwap}
+                onSubmit={(e) => handleSwap(e, "tnkr")}
                   >
                     <div>
-                      <label
-                        htmlFor="externalWeight"
-                        className="block text-sm font-medium text-neutral-700"
-                      >
-                    KSM
-                      </label>
+                    <FormLabel>TNKR</FormLabel>
                       <div className="mt-1">
-                        <input
-                          type="text"
-                          name="text"
-                          id="ksm"
-                          className="block w-full rounded-md border-neutral-300 shadow-sm focus:border-neutral-500 focus:ring-neutral-500 sm:text-sm"
-                        />
+                    <NumberInput id="amount">
+                    <NumberInputField />
+                    </NumberInput>
                       </div>
                     </div>
 
                     <button className="shadow-sm py-2 px-4 rounded-md transition-all duration-300 bg-neutral-900 text-neutral-50 hover:shadow-lg hover:bg-neutral-800">
-                      Swap KSM for BSX
+                      Swap for BSX
                     </button>
                   </form>
                 </div>
+
+                    <div className="border rounded-md p-4 w-full flex gap-4">
+                    <form
+                className="flex w-full flex-col gap-4"
+                onSubmit={(e) => handleSwap(e, "bsx")}
+                    >
+                    <div>
+                    <FormLabel>BSX</FormLabel>
+                    <div className="mt-1">
+                    <NumberInput id="amount">
+                    <NumberInputField />
+                    </NumberInput>
+                    </div>
+                    </div>
+
+                    <button className="shadow-sm py-2 px-4 rounded-md transition-all duration-300 bg-neutral-900 text-neutral-50 hover:shadow-lg hover:bg-neutral-800">
+                    Swap for TNKR
+                </button>
+                    </form>
+                    </div>
               </div>
             ) : null}
+
+            </GridItem>
+
+                <GridItem area={"data"}>
+
+                {multisigMembers && saturn ? (
+                    <div className="w-full flex flex-col gap-4 justify-center items-center">
+                        <div className="border rounded-md p-4 w-full">
+                        <div>
+                        <p><b>Members:</b></p>
+                        {multisigMembers.map((m) => (
+                            <p key={m}>{m}</p>
+                        ))}
+                    </div>
+                        </div>
+                        </div>
+                ) : null}
 
             {latestCall ? (
               <div className="w-full flex flex-col gap-4 justify-center items-center">
@@ -649,18 +694,19 @@ const Demo = () => {
                                     return (
                                         <div>
                                             <p><b>Bridge</b></p>
-                                            <p>{new BN(latestCall.details.actualCall.args[3].toPrimitive() as string).div(new BN("1000000000000")).toString()} KSM</p>
-                                            <p>From {Object.keys((latestCall.details.actualCall.args[0].toHuman() as Object))[0]}</p>
-                                            <p>To {latestCall.details.actualCall.args[1].toHuman()?.toString()}</p>
+                                            <p>{new BN(latestCall.details.actualCall.args[1].toPrimitive() as string).div(new BN("1000000000000")).toString()} TNKR</p>
+                                            <p>From Tinkernet</p>
+                                            <p>To Basilisk</p>
                                             </div>
                                     );
                                 case "swap":
-                                    const { amountIn } = processBsxSwap(latestCall.details.actualCall.args[4].toU8a());
+                                    const sub = latestCall.details.actualCall.args[4].toU8a();
+                                    const { assetIn, assetOut, amountIn } = processBsxSwap(sub.slice(1));
                                     return (
                                         <div>
                                             <p><b>Swap</b></p>
-                                            <p>{amountIn.div(new BN("1000000000000")).toString()} KSM</p>
-                                            <p>To BSX</p>
+                                            <p>{amountIn.div(new BN("1000000000000")).toString()} {assetIn}</p>
+                                            <p>To {assetOut}</p>
                                             </div>
                                     );
                                 default:
@@ -690,10 +736,13 @@ const Demo = () => {
                 </div>
               </div>
             ) : null}
+            </GridItem>
+            </Grid>
           </>
         ) : null}
       </>
     </div>
+          </ChakraProvider>
   );
 };
 
