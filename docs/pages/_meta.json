@@ -1,7 +1,7 @@
 {
   "index": "Getting Started",
   "saturn": "Overview of Saturn",
-  "getting-started": "Getting Started",
+  "getting-started": "Setting up a Saturn instance",
   "create": "Creating a Multisig",
   "query": "Querying",
   "wrapped": "Wrapped multisig calls",
