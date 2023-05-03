@@ -41,7 +41,7 @@ A Promise that resolves to a MultisigDetails object or null.
 Get the total issuance of a multisig.
 
 ```typescript
-public getSupply(id: number): Promise<BN>
+getSupply(id: number): Promise<BN>
 ```
 
 **Parameters:**
@@ -57,7 +57,7 @@ A Promise that resolves to a BN representing the total issuance.
 Get the pending calls for a multisig.
 
 ```typescript
-public getPendingCalls(id: number): Promise<CallDetailsWithHash[]>
+getPendingCalls(id: number): Promise<CallDetailsWithHash[]>
 ```
 
 **Parameters:**
@@ -73,7 +73,7 @@ A Promise that resolves to an array of objects containing the callHash and CallD
 Get the details of a pending multisig call.
 
 ```typescript
-public getPendingCall({
+getPendingCall({
   id: number;
   callHash: string | Hash;
 }): Promise<CallDetails | null>
@@ -93,7 +93,7 @@ A Promise that resolves to a CallDetails object or null.
 Get the members of a multisig.
 
 ```typescript
-public getMultisigMembers(id: number): Promise<AccountId[]>
+getMultisigMembers(id: number): Promise<AccountId[]>
 ```
 
 **Parameters:**
@@ -109,7 +109,7 @@ A Promise that resolves to an array of AccountId objects.
 Get the multisigs associated with an account.
 
 ```typescript
-public getMultisigsForAccount(account: string | AccountId): Promise<{ multisigId: number; tokens: BN }[]>
+getMultisigsForAccount(account: string | AccountId): Promise<{ multisigId: number; tokens: BN }[]>
 ```
 
 **Parameters:**
@@ -125,7 +125,7 @@ A Promise that resolves to an array of objects containing the multisigId and tok
 Get the balance of a multisig member.
 
 ```typescript
-public getMultisigMemberBalance({
+getMultisigMemberBalance({
   id: number;
   address: string | AccountId;
 }): Promise<BN>
@@ -140,12 +140,40 @@ public getMultisigMemberBalance({
 
 A Promise that resolves to a BN representing the member's balance.
 
+### setMultisigParameters
+
+Set the parameters for a multisig.
+
+```typescript
+setMultisigParameters({
+  id: number;
+  proposalMetadata: string | Uint8Array;
+  metadata?: string | Uint8Array;
+  minimumSupport: Perbill | BN | number;
+  requiredApproval: Perbill | BN | number;
+  frozenTokens: boolean;
+}): Promise<MultisigCall>
+```
+
+**Parameters:**
+
+- `id` (number): The multisig ID.
+- `proposalMetadata` (string | Uint8Array): The proposal metadata.
+- `metadata` (string | Uint8Array, optional): The multisig metadata.
+- `minimumSupport` (Perbill | BN | number): The minimum support required for approval.
+- `requiredApproval` (Perbill | BN | number): The required approval percentage.
+- `frozenTokens` (boolean): Whether tokens should be frozen.
+
+**Returns:**
+
+A Promise that resolves to a MultisigCall object.
+
 ### proposeNewMember
 
 Propose adding a new member to a multisig.
 
 ```typescript
-public proposeNewMember({
+proposeNewMember({
   id: number;
   address: string | AccountId;
   amount: BN;
@@ -169,7 +197,7 @@ A Promise that resolves to a MultisigCall object.
 Propose removing a member from a multisig.
 
 ```typescript
-public proposeMemberRemoval({
+proposeMemberRemoval({
   id: number;
   address: string | AccountId;
   amount: BN;
@@ -193,7 +221,7 @@ A Promise that resolves to a MultisigCall object.
 Vote on a multisig call.
 
 ```typescript
-public vote({
+vote({
   id: number;
   callHash: string | Hash;
   aye: boolean;
@@ -215,7 +243,7 @@ A Promise that resolves to a SubmittableResult.
 Withdraw a vote for a multisig call.
 
 ```typescript
-public withdrawVote({
+withdrawVote({
   id: number;
   callHash: string | Hash;
 }): Promise<SubmittableResult>
@@ -235,7 +263,7 @@ A Promise that resolves to a SubmittableResult.
 Build a multisig call object.
 
 ```typescript
-public buildMultisigCall({
+buildMultisigCall({
   id: number;
   proposalMetadata?: string | Uint8Array;
   call: SubmittableExtrinsic<ApiTypes> | Uint8Array | Call;
@@ -257,7 +285,7 @@ A MultisigCall object.
 Create and send an XCM call.
 
 ```typescript
-public sendXCMCall({
+sendXCMCall({
   id: number;
   destination: string;
   weight: BN;
@@ -287,7 +315,7 @@ A Promise that resolves to a MultisigCall object.
 Create and send an XCM asset transfer.
 
 ```typescript
-public transferXcmAsset({
+transferXcmAsset({
   id: number;
   asset: Object;
   amount: BN;
@@ -317,7 +345,7 @@ A Promise that resolves to a MultisigCall object.
 Bridge an asset from one chain to another.
 
 ```typescript
-public bridgeXcmAsset({
+bridgeXcmAsset({
   id: number;
   asset: Object;
   amount: BN;
@@ -342,40 +370,12 @@ public bridgeXcmAsset({
 
 A Promise that resolves to a MultisigCall object.
 
-### setMultisigParameters
-
-Set the parameters for a multisig.
-
-```typescript
-public setMultisigParameters({
-  id: number;
-  proposalMetadata: string | Uint8Array;
-  metadata?: string | Uint8Array;
-  minimumSupport: Perbill | BN | number;
-  requiredApproval: Perbill | BN | number;
-  frozenTokens: boolean;
-}): Promise<MultisigCall>
-```
-
-**Parameters:**
-
-- `id` (number): The multisig ID.
-- `proposalMetadata` (string | Uint8Array): The proposal metadata.
-- `metadata` (string | Uint8Array, optional): The multisig metadata.
-- `minimumSupport` (Perbill | BN | number): The minimum support required for approval.
-- `requiredApproval` (Perbill | BN | number): The required approval percentage.
-- `frozenTokens` (boolean): Whether tokens should be frozen.
-
-**Returns:**
-
-A Promise that resolves to a MultisigCall object.
-
 ### getXcmStatus
 
 Get the XCM status of chains.
 
 ```typescript
-public async getXcmStatus(): Promise<{
+async getXcmStatus(): Promise<{
   chainMultilocation: XcmV1MultiLocation;
   isUnderMaintenance: boolean;
 }[]>
