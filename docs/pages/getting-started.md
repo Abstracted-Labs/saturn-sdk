@@ -1,4 +1,4 @@
-# Getting started
+# Setting up a `Saturn` instance
 
 To start using the SDK, you will first need to instantiate a Saturn class object, which provides access to the necessary methods for creating and managing multisigs.
 
