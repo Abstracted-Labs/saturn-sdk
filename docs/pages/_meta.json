@@ -6,7 +6,6 @@
   "query": "Querying",
   "wrapped": "Wrapped multisig calls",
   "voting": "Voting",
-  "usage": "Usage",
   "data": "Data related to the multisig",
   "pending": "Pending calls",
   "rings": "XCM operations"
