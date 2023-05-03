@@ -2,7 +2,7 @@
 
 ## Overview
 
-Saturn enables users to create, manage, and interact with multisigs in a decentralized and secure manner. It offers various functionalities, including adding or removing members, voting on proposals, transferring assets, and bridging assets across different chains. Saturn aims to provide an easy-to-use interface for managing multisig wallets, while maintaining the highest level of security and transparency.
+Saturn enables users to create, manage, and interact with multisigs in a decentralized and secure manner. It offers various functionalities, including adding or removing members, voting on proposals, transferring assets, and bridging assets across different chains. Saturn aims to provide an easy-to-use interface for managing multisig accounts, while maintaining the highest level of security and transparency.
 
 The core features of Saturn include:
 
