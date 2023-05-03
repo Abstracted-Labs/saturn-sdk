@@ -62,9 +62,9 @@ const multisigs = await saturn.getMultisigsForAccount(account);
 console.log("Multisigs for account:", multisigs);
 ```
 
-### Get the balance of a specific account
+### Get the voting balance of a specific account
 
-This function returns the balance of a specific account in a multisig. Pass the multisig ID and the address of the account as arguments.
+This function returns the voting balance of a specific account in a multisig. Pass the multisig ID and the address of the account as arguments.
 
 ```typescript
 const balance = await saturn.getMultisigMemberBalance({
