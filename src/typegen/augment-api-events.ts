@@ -19,6 +19,13 @@ declare module '@polkadot/api-base/types/events' {
       RegisteredAsset: AugmentedEvent<ApiType, [assetId: u32, metadata: OrmlTraitsAssetRegistryAssetMetadata], { assetId: u32, metadata: OrmlTraitsAssetRegistryAssetMetadata }>;
       UpdatedAsset: AugmentedEvent<ApiType, [assetId: u32, metadata: OrmlTraitsAssetRegistryAssetMetadata], { assetId: u32, metadata: OrmlTraitsAssetRegistryAssetMetadata }>;
     };
+    assetTxPayment: {
+      /**
+       * A transaction fee `actual_fee`, of which `tip` was added to the minimum inclusion fee,
+       * has been paid by `who` in an asset `asset_id`.
+       **/
+      AssetTxFeePaid: AugmentedEvent<ApiType, [who: AccountId32, actualFee: u128, tip: u128, assetId: Option<u32>], { who: AccountId32, actualFee: u128, tip: u128, assetId: Option<u32> }>;
+    };
     balances: {
       /**
        * A balance was set by root.

@@ -6,7 +6,7 @@ import {
 } from "@polkadot/extension-dapp";
 import { InjectedAccountWithMeta } from "@polkadot/extension-inject/types";
 import { FormEvent, useEffect, useState } from "react";
-import { Saturn, MultisigCallResult, MultisigDetails } from "../../src";
+import { Saturn, MultisigCallResult, MultisigDetails, FeeAsset } from "../../src";
 import { BN } from "@polkadot/util";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import YAML from "yaml";
@@ -142,7 +142,7 @@ const App = () => {
         minimumSupport: 510000000,
         requiredApproval: 510000000,
       })
-      .signAndSend(selectedAccount.address, injector.signer);
+      .signAndSend(selectedAccount.address, injector.signer, FeeAsset.KSM);
 
     console.log("created multisig: ", multisig);
 

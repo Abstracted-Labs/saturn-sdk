@@ -1,6 +1,6 @@
 import type { ApiPromise } from "@polkadot/api";
 import { SubmittableExtrinsic, ApiTypes } from "@polkadot/api/types";
-import { ISubmittableResult, AnyJson, Signer } from "@polkadot/types/types";
+import { ISubmittableResult, AnyJson, Signer, Registry } from "@polkadot/types/types";
 import {
   AccountId,
   AccountId32,
@@ -11,7 +11,7 @@ import {
   Balance,
   DispatchError,
 } from "@polkadot/types/interfaces";
-import type { BN } from "@polkadot/util";
+import { BN } from "@polkadot/util";
 import { u32, u128 } from "@polkadot/types-codec/primitive";
 import { Text } from "@polkadot/types-codec/native";
 import {
@@ -24,6 +24,7 @@ import {
   Result,
   Null,
   Vec,
+  UInt,
 } from "@polkadot/types-codec";
 import type {
   AddressOrPair,
@@ -234,9 +235,11 @@ export class MultisigCallResult {
 
 export class MultisigCall {
   readonly call: SubmittableExtrinsic<ApiTypes>;
+  readonly feeAsset: FeeAsset;
 
-  constructor(call: SubmittableExtrinsic<ApiTypes>) {
-    this.call = call;
+    constructor(call: SubmittableExtrinsic<ApiTypes>, feeAsset: FeeAsset) {
+        this.call = call;
+        this.feeAsset = feeAsset;
   }
 
   public paymentInfo(
@@ -248,11 +251,12 @@ export class MultisigCall {
 
   public async signAndSend(
     address: string,
-    signer: Signer
+    signer: Signer,
+    feeAsset?: FeeAsset
   ): Promise<MultisigCallResult> {
     return new Promise((resolve, reject) => {
       try {
-        this.call.signAndSend(address, { signer }, ({ events, status }) => {
+          this.call.signAndSend(address, { signer, assetId: processFeeAsset(this.call.registry, feeAsset || this.feeAsset) }, ({ events, status }) => {
           if (status.isInBlock) {
             const event = events.find(
               ({ event }) =>
@@ -317,14 +321,17 @@ export class MultisigCall {
 
 export class MultisigCreator {
   readonly call: SubmittableExtrinsic<ApiTypes>;
+  readonly feeAsset: FeeAsset;
 
   constructor({
     api,
+    feeAsset,
     metadata,
     minimumSupport,
     requiredApproval,
   }: {
     api: ApiPromise;
+    feeAsset: FeeAsset;
     metadata?: string | Uint8Array;
     minimumSupport: Perbill | BN | number;
     requiredApproval: Perbill | BN | number;
@@ -335,6 +342,8 @@ export class MultisigCreator {
       minimumSupport,
       requiredApproval,
     });
+
+    this.feeAsset = feeAsset;
   }
 
   public paymentInfo(
@@ -346,11 +355,15 @@ export class MultisigCreator {
 
   public async signAndSend(
     address: string,
-    signer: Signer
+    signer: Signer,
+    feeAsset?: FeeAsset,
   ): Promise<MultisigCreateResult> {
     return new Promise((resolve, reject) => {
       try {
-        this.call.signAndSend(address, { signer }, ({ events, status }) => {
+          this.call.signAndSend(address, { signer, assetId: processFeeAsset(this.call.registry, feeAsset || this.feeAsset) }, ({ events, status }) => {
+              console.log("status: ", status.toHuman());
+              console.log("events: ", events);
+
           if (status.isInBlock) {
             const event = events.find(
               ({ event }) => event.method === "CoreCreated"
@@ -512,6 +525,20 @@ type GetMemberBalance = DefaultMultisigParams & {
   id: number;
   address: string | AccountId;
 };
+
+export enum FeeAsset {
+    TNKR,
+    KSM
+}
+
+function processFeeAsset(registry: Registry, feeAsset: FeeAsset): string | null {
+    switch (feeAsset) {
+        case FeeAsset.TNKR:
+            return null;
+        case FeeAsset.KSM:
+            return registry.createType("Option<u32>", 1).toHex();
+    }
+}
 
 export type {
   DefaultMultisigParams,

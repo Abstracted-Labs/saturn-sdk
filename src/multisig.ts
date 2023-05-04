@@ -59,6 +59,7 @@ import {
   MultisigCreator,
   CallDetails,
   CallDetailsWithHash,
+  FeeAsset
 } from "./types";
 
 import { getSignAndSendCallback } from "./utils";
@@ -155,6 +156,7 @@ class Saturn {
       registerType: Object;
     }[];
   }[];
+  feeAsset: FeeAsset;
 
   constructor({ api }: { api: ApiPromise }) {
     if (!api.tx.inv4) {
@@ -167,7 +169,12 @@ class Saturn {
 
     this.api = api;
     this.chains = setupTypes({ api });
+    this.feeAsset = FeeAsset.TNKR;
   }
+
+    public setFeeAsset = (feeAsset: FeeAsset) => {
+        this.feeAsset = feeAsset;
+    }
 
   public disconnect = () => {
     this.api.disconnect();
@@ -184,6 +191,7 @@ class Saturn {
   }): MultisigCreator => {
     const creator = new MultisigCreator({
       api: this.api,
+      feeAsset: this.feeAsset,
       metadata,
       minimumSupport,
       requiredApproval,
@@ -395,7 +403,8 @@ class Saturn {
         id,
         proposalMetadata,
         call,
-      })
+      }),
+      this.feeAsset,
     );
   };
 
