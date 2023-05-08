@@ -2,6 +2,8 @@
 
 ## Propose a new member
 
+To propose adding a new member to the multisig, you can use the proposeNewMember function. The function accepts the multisig ID, the new member's address, and the initial amount of tokens for the new member's balance.
+
 ```typescript
 const UNIQUE_SUPPLY_AMOUNT = new BN("1000000");
 
@@ -18,6 +20,8 @@ saturn
 ```
 
 ## Propose member removal
+
+To propose the removal of a member from the multisig, you can use the proposeMemberRemoval function. The function accepts the multisig ID and the address of the member to be removed.
 
 ```typescript
 const address = selectedAccount.address;
