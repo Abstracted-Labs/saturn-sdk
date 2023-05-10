@@ -26,6 +26,7 @@ import {
   Vec,
   UInt,
 } from "@polkadot/types-codec";
+import { AnyNumber } from "@polkadot/types-codec/types";
 import type {
   AddressOrPair,
   AugmentedEvent,
@@ -83,6 +84,7 @@ type CreateMultisigParams = {
   metadata?: string | Uint8Array;
   minimumSupport: Perbill | BN | number;
   requiredApproval: Perbill | BN | number;
+  creationFeeAsset: "TNKR" | "KSM";
 };
 
 type CreateMultisigCallParams = DefaultMultisigParams & {
@@ -256,7 +258,7 @@ export class MultisigCall {
   ): Promise<MultisigCallResult> {
     return new Promise((resolve, reject) => {
       try {
-          this.call.signAndSend(address, { signer, assetId: processFeeAsset(this.call.registry, feeAsset || this.feeAsset) }, ({ events, status }) => {
+          this.call.signAndSend(address, { signer, assetId: processFeeAssetAsHex(this.call.registry, feeAsset || this.feeAsset) }, ({ events, status }) => {
           if (status.isInBlock) {
             const event = events.find(
               ({ event }) =>
@@ -329,18 +331,21 @@ export class MultisigCreator {
     metadata,
     minimumSupport,
     requiredApproval,
+    creationFeeAsset,
   }: {
     api: ApiPromise;
     feeAsset: FeeAsset;
     metadata?: string | Uint8Array;
     minimumSupport: Perbill | BN | number;
     requiredApproval: Perbill | BN | number;
+    creationFeeAsset: FeeAsset;
   }) {
     this.call = createCore({
       api,
       metadata,
       minimumSupport,
       requiredApproval,
+      creationFeeAsset: processFeeAssetAsName(creationFeeAsset),
     });
 
     this.feeAsset = feeAsset;
@@ -348,9 +353,9 @@ export class MultisigCreator {
 
   public paymentInfo(
     account: AddressOrPair,
-    options?: Partial<SignerOptions>
+    feeAsset?: FeeAsset,
   ): SubmittablePaymentResult<ApiTypes> {
-    return this.call.paymentInfo(account, options);
+      return this.call.paymentInfo(account, {assetId: processFeeAssetAsNumber(this.call.registry, feeAsset || this.feeAsset)});
   }
 
   public async signAndSend(
@@ -360,7 +365,7 @@ export class MultisigCreator {
   ): Promise<MultisigCreateResult> {
     return new Promise((resolve, reject) => {
       try {
-          this.call.signAndSend(address, { signer, assetId: processFeeAsset(this.call.registry, feeAsset || this.feeAsset) }, ({ events, status }) => {
+          this.call.signAndSend(address, { signer, assetId: processFeeAssetAsHex(this.call.registry, feeAsset || this.feeAsset) }, ({ events, status }) => {
               console.log("status: ", status.toHuman());
               console.log("events: ", events);
 
@@ -531,12 +536,30 @@ export enum FeeAsset {
     KSM
 }
 
-function processFeeAsset(registry: Registry, feeAsset: FeeAsset): string | null {
+function processFeeAssetAsHex(registry: Registry, feeAsset: FeeAsset): `0x${string}` | null {
     switch (feeAsset) {
         case FeeAsset.TNKR:
             return null;
         case FeeAsset.KSM:
             return registry.createType("Option<u32>", 1).toHex();
+    }
+}
+
+function processFeeAssetAsNumber(registry: Registry, feeAsset: FeeAsset): number | null {
+    switch (feeAsset) {
+        case FeeAsset.TNKR:
+            return null;
+        case FeeAsset.KSM:
+            return 1;
+    }
+}
+
+function processFeeAssetAsName(feeAsset: FeeAsset): "TNKR" | "KSM" {
+    switch (feeAsset) {
+        case FeeAsset.TNKR:
+            return "TNKR";
+        case FeeAsset.KSM:
+            return "KSM";
     }
 }
 

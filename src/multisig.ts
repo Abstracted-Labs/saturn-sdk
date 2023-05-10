@@ -167,6 +167,41 @@ class Saturn {
       throw new Error("API_PROMISE_DOES_NOT_CONTAIN_INV4_MODULE");
     }
 
+      // api.registry.setSignedExtensions([], {
+      //     ChargeAssetTxPayment: {
+      //         extrinsic: {
+      //             tip: "Compact<Balance>",
+      //             assetId: "Option<TinkernetRuntimeFeeHandlingExternalFeeAsset>"
+      //         },
+      //         payload: {},
+      //     }
+      // });
+
+      // const signedExtensionIdentifiers = api.registry.signedExtensions;
+      // const newSignedExtensions = {};
+
+      // for (const ext of api.registry.metadata.extrinsic.signedExtensions) {
+      //     const identifier = ext.identifier.toString();
+      //     const typ = api.registry.lookup.getTypeDef(ext.type).type;
+      //     console.log("add: ", api.registry.lookup.getTypeDef(ext.type));
+      //     const extrinsic = typ != "Null" ? typ.startsWith("{") ? JSON.parse(typ) : {[typ.toLowerCase()]: typ} : {};
+      //     //const additionalSigned = api.registry.lookup.getTypeDef(ext.additionalSigned).type;
+      //     //console.log("add: ", api.registry.lookup.getTypeDef(ext.additionalSigned));
+      //     //const payload = additionalSigned != "Null" ? JSON.parse(additionalSigned) : {};
+
+      //     newSignedExtensions[identifier] = {
+      //         extrinsic,
+      //         payload: {}
+      //     }
+      // }
+
+      // api.registry.setSignedExtensions(signedExtensionIdentifiers, newSignedExtensions);
+
+     // console.log("signedExtensionNew: ", newSignedExtensions);
+
+      console.log("registry: ", api.registry.getSignedExtensionTypes());
+      console.log("registry: ", api.registry.metadata.extrinsic.signedExtensions.toHuman());
+
     this.api = api;
     this.chains = setupTypes({ api });
     this.feeAsset = FeeAsset.TNKR;
@@ -184,10 +219,12 @@ class Saturn {
     metadata,
     minimumSupport,
     requiredApproval,
+    creationFeeAsset,
   }: {
     metadata?: string | Uint8Array;
     minimumSupport: Perbill | BN | number;
     requiredApproval: Perbill | BN | number;
+    creationFeeAsset: FeeAsset;
   }): MultisigCreator => {
     const creator = new MultisigCreator({
       api: this.api,
@@ -195,6 +232,7 @@ class Saturn {
       metadata,
       minimumSupport,
       requiredApproval,
+      creationFeeAsset,
     });
 
     return creator;

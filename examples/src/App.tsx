@@ -137,11 +137,31 @@ const App = () => {
 
     const injector = await web3FromAddress(selectedAccount.address);
 
-    const multisig = await saturn
-      .createMultisig({
-        minimumSupport: 510000000,
-        requiredApproval: 510000000,
-      })
+      const fee = await saturn
+          .createMultisig({
+              minimumSupport: 510000000,
+              requiredApproval: 510000000,
+              creationFeeAsset: FeeAsset.KSM,
+          }).paymentInfo(selectedAccount.address, FeeAsset.KSM);
+
+      console.log("fee: ", fee.toHuman());
+
+
+      const fee1 = await saturn
+          .createMultisig({
+              minimumSupport: 510000000,
+              requiredApproval: 510000000,
+              creationFeeAsset: FeeAsset.KSM,
+          }).call.paymentInfo(selectedAccount.address, { assetId: null });
+
+      console.log("fee1: ", fee1.toHuman());
+
+      const multisig = await saturn
+          .createMultisig({
+              minimumSupport: 510000000,
+              requiredApproval: 510000000,
+              creationFeeAsset: FeeAsset.KSM,
+          })
       .signAndSend(selectedAccount.address, injector.signer, FeeAsset.KSM);
 
     console.log("created multisig: ", multisig);

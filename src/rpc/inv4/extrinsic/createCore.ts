@@ -5,11 +5,13 @@ const createCore = ({
   metadata,
   minimumSupport,
   requiredApproval,
+  creationFeeAsset,
 }: CreateMultisigParams) => {
   return api.tx.inv4.createCore(
     JSON.stringify(metadata),
     minimumSupport,
-    requiredApproval
+    requiredApproval,
+    creationFeeAsset,
   );
 };
 

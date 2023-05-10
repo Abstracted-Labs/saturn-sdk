@@ -10,7 +10,7 @@ import type { Data } from '@polkadot/types';
 import type { Bytes, Compact, Option, U8aFixed, Vec, bool, i128, u128, u16, u32, u64, u8 } from '@polkadot/types-codec';
 import type { AnyNumber, IMethod, ITuple } from '@polkadot/types-codec/types';
 import type { AccountId32, Call, H256, MultiAddress, Perbill } from '@polkadot/types/interfaces/runtime';
-import type { CumulusPrimitivesParachainInherentParachainInherentData, OrmlTraitsAssetRegistryAssetMetadata, OrmlVestingVestingSchedule, PalletIdentityBitFlags, PalletIdentityIdentityInfo, PalletIdentityJudgement, PalletMultisigTimepoint, SpRuntimeHeader, SpWeightsWeightV2Weight, TinkernetRuntimeAssetsCustomAssetMetadata, TinkernetRuntimeOriginCaller, TinkernetRuntimeRingsChainAssets, TinkernetRuntimeRingsChains, TinkernetRuntimeSessionKeys, XcmV1MultiLocation, XcmV2WeightLimit, XcmVersionedMultiAsset, XcmVersionedMultiAssets, XcmVersionedMultiLocation, XcmVersionedXcm } from '@polkadot/types/lookup';
+import type { CumulusPrimitivesParachainInherentParachainInherentData, OrmlTraitsAssetRegistryAssetMetadata, OrmlVestingVestingSchedule, PalletIdentityBitFlags, PalletIdentityIdentityInfo, PalletIdentityJudgement, PalletInv4FeeHandlingFeeAsset, PalletMultisigTimepoint, SpRuntimeHeader, SpWeightsWeightV2Weight, TinkernetRuntimeAssetsCustomAssetMetadata, TinkernetRuntimeOriginCaller, TinkernetRuntimeRingsChainAssets, TinkernetRuntimeRingsChains, TinkernetRuntimeSessionKeys, XcmV1MultiLocation, XcmV2WeightLimit, XcmVersionedMultiAsset, XcmVersionedMultiAssets, XcmVersionedMultiLocation, XcmVersionedXcm } from '@polkadot/types/lookup';
 
 export type __AugmentedSubmittable = AugmentedSubmittable<() => unknown>;
 export type __SubmittableExtrinsic<ApiType extends ApiTypes> = SubmittableExtrinsic<ApiType>;
@@ -534,8 +534,8 @@ declare module '@polkadot/api-base/types/submittable' {
       /**
        * Create IP (Intellectual Property) Set (IPS)
        **/
-      createCore: AugmentedSubmittable<(metadata: Bytes | string | Uint8Array, minimumSupport: Perbill | AnyNumber | Uint8Array, requiredApproval: Perbill | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>, [Bytes, Perbill, Perbill]>;
-      operateMultisig: AugmentedSubmittable<(coreId: u32 | AnyNumber | Uint8Array, metadata: Option<Bytes> | null | Uint8Array | Bytes | string, call: Call | IMethod | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [u32, Option<Bytes>, Call]>;
+      createCore: AugmentedSubmittable<(metadata: Bytes | string | Uint8Array, minimumSupport: Perbill | AnyNumber | Uint8Array, requiredApproval: Perbill | AnyNumber | Uint8Array, creationFeeAsset: PalletInv4FeeHandlingFeeAsset | 'TNKR' | 'KSM' | number | Uint8Array) => SubmittableExtrinsic<ApiType>, [Bytes, Perbill, Perbill, PalletInv4FeeHandlingFeeAsset]>;
+      operateMultisig: AugmentedSubmittable<(coreId: u32 | AnyNumber | Uint8Array, metadata: Option<Bytes> | null | Uint8Array | Bytes | string, feeAsset: PalletInv4FeeHandlingFeeAsset | 'TNKR' | 'KSM' | number | Uint8Array, call: Call | IMethod | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [u32, Option<Bytes>, PalletInv4FeeHandlingFeeAsset, Call]>;
       setParameters: AugmentedSubmittable<(metadata: Option<Bytes> | null | Uint8Array | Bytes | string, minimumSupport: Option<Perbill> | null | Uint8Array | Perbill | AnyNumber, requiredApproval: Option<Perbill> | null | Uint8Array | Perbill | AnyNumber, frozenTokens: Option<bool> | null | Uint8Array | bool | boolean) => SubmittableExtrinsic<ApiType>, [Option<Bytes>, Option<Perbill>, Option<Perbill>, Option<bool>]>;
       /**
        * Burn `amount` of specified token from `target` account
