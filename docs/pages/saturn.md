@@ -20,7 +20,7 @@ Saturn's comprehensive set of features and ease of use make it an ideal solution
 
 ## Methods
 
-### getDetails
+### [getDetails](https://saturn-typedocs.invarch.network/classes/Saturn.html#getDetails)
 
 Get the details of a multisig.
 
@@ -36,7 +36,7 @@ public getDetails(id: number): Promise<MultisigDetails | null>
 
 A Promise that resolves to a MultisigDetails object or null.
 
-### getSupply
+### [getSupply](https://saturn-typedocs.invarch.network/classes/Saturn.html#getSupply)
 
 Get the total issuance of a multisig.
 
@@ -52,7 +52,7 @@ getSupply(id: number): Promise<BN>
 
 A Promise that resolves to a BN representing the total issuance.
 
-### getPendingCalls
+### [getPendingCalls](https://saturn-typedocs.invarch.network/classes/Saturn.html#getPendingCalls)
 
 Get the pending calls for a multisig.
 
@@ -68,7 +68,7 @@ getPendingCalls(id: number): Promise<CallDetailsWithHash[]>
 
 A Promise that resolves to an array of objects containing the callHash and CallDetails.
 
-### getPendingCall
+### [getPendingCall](https://saturn-typedocs.invarch.network/classes/Saturn.html#getPendingCall)
 
 Get the details of a pending multisig call.
 
@@ -88,7 +88,7 @@ getPendingCall({
 
 A Promise that resolves to a CallDetails object or null.
 
-### getMultisigMembers
+### [getMultisigMembers](https://saturn-typedocs.invarch.network/classes/Saturn.html#getMultisigMembers)
 
 Get the members of a multisig.
 
@@ -104,7 +104,7 @@ getMultisigMembers(id: number): Promise<AccountId[]>
 
 A Promise that resolves to an array of AccountId objects.
 
-### getMultisigsForAccount
+### [getMultisigsForAccount](https://saturn-typedocs.invarch.network/classes/Saturn.html#getMultisigsForAccount)
 
 Get the multisigs associated with an account.
 
@@ -120,7 +120,7 @@ getMultisigsForAccount(account: string | AccountId): Promise<{ multisigId: numbe
 
 A Promise that resolves to an array of objects containing the multisigId and tokens.
 
-### getMultisigMemberBalance
+### [getMultisigMemberBalance](https://saturn-typedocs.invarch.network/classes/Saturn.html#getMultisigMemberbalance)
 
 Get the balance of a multisig member.
 
@@ -140,7 +140,7 @@ getMultisigMemberBalance({
 
 A Promise that resolves to a BN representing the member's balance.
 
-### setMultisigParameters
+### [setMultisigParameters](https://saturn-typedocs.invarch.network/classes/Saturn.html#setMultisigParameters)
 
 Set the parameters for a multisig.
 
@@ -168,7 +168,7 @@ setMultisigParameters({
 
 A Promise that resolves to a MultisigCall object.
 
-### proposeNewMember
+### [proposeNewMember](https://saturn-typedocs.invarch.network/classes/Saturn.html#proposeNewMember)
 
 Propose adding a new member to a multisig.
 
@@ -192,7 +192,7 @@ proposeNewMember({
 
 A Promise that resolves to a MultisigCall object.
 
-### proposeMemberRemoval
+### [proposeMemberRemoval](https://saturn-typedocs.invarch.network/classes/Saturn.html#proposeMemberRemoval)
 
 Propose removing a member from a multisig.
 
@@ -216,7 +216,7 @@ proposeMemberRemoval({
 
 A Promise that resolves to a MultisigCall object.
 
-### vote
+### [vote](https://saturn-typedocs.invarch.network/classes/Saturn.html#vote)
 
 Vote on a multisig call.
 
@@ -238,7 +238,7 @@ vote({
 
 A Promise that resolves to a SubmittableResult.
 
-### withdrawVote
+### [withdrawVote](https://saturn-typedocs.invarch.network/classes/Saturn.html#withdrawVote)
 
 Withdraw a vote for a multisig call.
 
@@ -258,7 +258,7 @@ withdrawVote({
 
 A Promise that resolves to a SubmittableResult.
 
-### buildMultisigCall
+### [buildMultisigCall](https://saturn-typedocs.invarch.network/classes/Saturn.html#buildMultisigCall)
 
 Build a multisig call object.
 
@@ -280,7 +280,7 @@ buildMultisigCall({
 
 A MultisigCall object.
 
-### sendXCMCall
+### [sendXCMCall](https://saturn-typedocs.invarch.network/classes/Saturn.html#sendXCMCall)
 
 Create and send an XCM call.
 
@@ -310,7 +310,7 @@ sendXCMCall({
 
 A Promise that resolves to a MultisigCall object.
 
-### transferXcmAsset
+### [transferXcmAsset](https://saturn-typedocs.invarch.network/classes/Saturn.html#transferXcmAsset)
 
 Create and send an XCM asset transfer.
 
@@ -340,7 +340,7 @@ transferXcmAsset({
 
 A Promise that resolves to a MultisigCall object.
 
-### bridgeXcmAsset
+### [bridgeXcmAsset](https://saturn-typedocs.invarch.network/classes/Saturn.html#bridgeXcmAsset)
 
 Bridge an asset from one chain to another.
 
@@ -370,7 +370,7 @@ bridgeXcmAsset({
 
 A Promise that resolves to a MultisigCall object.
 
-### getXcmStatus
+### [getXcmStatus](https://saturn-typedocs.invarch.network/classes/Saturn.html#getXcmStatus)
 
 Get the XCM status of chains.
 
