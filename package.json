@@ -11,7 +11,8 @@
     "build": "tsc --outDir ./dist",
     "typegen": "yarn generate:defs && yarn generate:meta",
     "generate:defs": "ts-node-esm node_modules/.bin/polkadot-types-from-defs --package @invarch/saturn-sdk/interfaces --input ./src/typegen --endpoint ./src/typegen/tinkernet.json",
-    "generate:meta": "ts-node-esm node_modules/.bin/polkadot-types-from-chain --package @invarch/saturn-sdk/interfaces --endpoint ./src/typegen/tinkernet.json --output ./src/typegen --strict"
+      "generate:meta": "ts-node-esm node_modules/.bin/polkadot-types-from-chain --package @invarch/saturn-sdk/interfaces --endpoint ./src/typegen/tinkernet.json --output ./src/typegen --strict",
+      "typedocs": "typedoc --excludePrivate --out typedocs/ src/index.ts"
   },
   "author": "",
   "license": "ISC",
@@ -20,6 +21,7 @@
     "@types/node": "^18.15.13",
     "prettier": "2.8.7",
     "ts-node": "10.9.1",
+    "typedoc": "^0.24.7",
     "typescript": "^5.0.4"
   },
   "dependencies": {
