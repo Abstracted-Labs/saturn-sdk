@@ -3,40 +3,26 @@ import { SubmittableExtrinsic, ApiTypes } from "@polkadot/api/types";
 import { ISubmittableResult, AnyJson, Signer, Registry } from "@polkadot/types/types";
 import {
   AccountId,
-  AccountId32,
   DispatchResult,
   Call,
   Hash,
   Perbill,
   Balance,
-  DispatchError,
 } from "@polkadot/types/interfaces";
 import { BN } from "@polkadot/util";
-import { u32, u128 } from "@polkadot/types-codec/primitive";
+import { u32 } from "@polkadot/types-codec/primitive";
 import { Text } from "@polkadot/types-codec/native";
 import {
   Enum,
   Struct,
   BTreeMap,
-  Option,
-  Bytes,
-  bool,
-  Result,
-  Null,
-  Vec,
-  UInt,
 } from "@polkadot/types-codec";
-import { AnyNumber } from "@polkadot/types-codec/types";
 import type {
   AddressOrPair,
-  AugmentedEvent,
-  AugmentedEvents,
   SignerOptions,
   SubmittablePaymentResult,
 } from "@polkadot/api-base/types";
 import {
-  FrameSystemEventRecord,
-  PalletInv4Event,
   PalletInv4MultisigMultisigOperation,
   PalletInv4VotingTally,
 } from "@polkadot/types/lookup";
@@ -115,13 +101,34 @@ type BurnTokenMultisigParams = DefaultMultisigParams & {
   amount: BN;
 };
 
-type TransferExternalAssetMultisigCallParams = DefaultMultisigParams & {
-  asset: Object;
-  amount: BN;
-  to: string | AccountId;
-  feeAsset: Object;
-  fee: BN;
+type TransferExternalAssetMultisigCallParams = {
+    api: ApiPromise;
+    asset: XcmAssetRepresentation;
+    amount: BN;
+    to: string | AccountId;
+    xcmFeeAsset: XcmAssetRepresentation;
+    xcmFee: BN;
 };
+
+type SendExternalMultisigCallParams = {
+    api: ApiPromise;
+    destination: string;
+    weight: BN;
+    callData: `0x{string}` | Uint8Array;
+    xcmFeeAsset: XcmAssetRepresentation;
+    xcmFee: BN;
+};
+
+type BridgeExternalMultisigAssetParams = {
+    api: ApiPromise;
+    asset: XcmAssetRepresentation;
+    destination: string;
+    xcmFee: BN;
+    amount: BN;
+    to?: string | AccountId;
+};
+
+type XcmAssetRepresentation = { [key: string]: any };
 
 export class MultisigCreateResult {
   readonly id: number;
@@ -581,4 +588,7 @@ export type {
   GetMultisigsForAccountParams,
   GetTotalIssuance,
   GetMemberBalance,
+  XcmAssetRepresentation,
+  SendExternalMultisigCallParams,
+  BridgeExternalMultisigAssetParams,
 };

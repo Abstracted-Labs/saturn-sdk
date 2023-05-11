@@ -1,27 +1,19 @@
-import { BN } from "@polkadot/util";
-import { ApiPromise } from "@polkadot/api";
 import { u8aToHex } from "@polkadot/util";
+import { SendExternalMultisigCallParams } from "../../../types";
 
 const sendExternalMultisigCall = ({
   api,
   destination,
   weight,
   callData,
-  feeAsset,
-  fee,
-}: {
-  api: ApiPromise;
-  destination: string;
-  weight: BN;
-  callData: `0x{string}` | Uint8Array;
-  feeAsset: Object;
-  fee: BN;
-}) => {
+  xcmFeeAsset,
+  xcmFee,
+}: SendExternalMultisigCallParams) => {
     return api.tx.rings.sendCall(
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
         destination,
-        weight, feeAsset, fee, typeof callData === "string" ? callData : u8aToHex(callData));
+        weight, xcmFeeAsset, xcmFee, typeof callData === "string" ? callData : u8aToHex(callData));
 };
 
 export { sendExternalMultisigCall };

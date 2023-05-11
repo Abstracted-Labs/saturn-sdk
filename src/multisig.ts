@@ -39,7 +39,8 @@ import {
   MultisigCreator,
   CallDetails,
   CallDetailsWithHash,
-  FeeAsset
+    FeeAsset,
+    XcmAssetRepresentation
 } from "./types";
 
 import { StorageKey } from "@polkadot/types";
@@ -56,7 +57,7 @@ const setupTypes = ({
   chain: string;
   assets: {
     label: string;
-    registerType: { [key: string]: any };
+    registerType: XcmAssetRepresentation;
   }[];
 }[] => {
   const parachainsTypeId = api.registry.getDefinition(
@@ -132,7 +133,7 @@ class Saturn {
     chain: string;
     assets: {
       label: string;
-      registerType: Object;
+      registerType: XcmAssetRepresentation;
     }[];
   }[];
   feeAsset: FeeAsset;
@@ -145,41 +146,6 @@ class Saturn {
     if (!api.query.inv4) {
       throw new Error("API_PROMISE_DOES_NOT_CONTAIN_INV4_MODULE");
     }
-
-      // api.registry.setSignedExtensions([], {
-      //     ChargeAssetTxPayment: {
-      //         extrinsic: {
-      //             tip: "Compact<Balance>",
-      //             assetId: "Option<TinkernetRuntimeFeeHandlingExternalFeeAsset>"
-      //         },
-      //         payload: {},
-      //     }
-      // });
-
-      // const signedExtensionIdentifiers = api.registry.signedExtensions;
-      // const newSignedExtensions = {};
-
-      // for (const ext of api.registry.metadata.extrinsic.signedExtensions) {
-      //     const identifier = ext.identifier.toString();
-      //     const typ = api.registry.lookup.getTypeDef(ext.type).type;
-      //     console.log("add: ", api.registry.lookup.getTypeDef(ext.type));
-      //     const extrinsic = typ != "Null" ? typ.startsWith("{") ? JSON.parse(typ) : {[typ.toLowerCase()]: typ} : {};
-      //     //const additionalSigned = api.registry.lookup.getTypeDef(ext.additionalSigned).type;
-      //     //console.log("add: ", api.registry.lookup.getTypeDef(ext.additionalSigned));
-      //     //const payload = additionalSigned != "Null" ? JSON.parse(additionalSigned) : {};
-
-      //     newSignedExtensions[identifier] = {
-      //         extrinsic,
-      //         payload: {}
-      //     }
-      // }
-
-      // api.registry.setSignedExtensions(signedExtensionIdentifiers, newSignedExtensions);
-
-     // console.log("signedExtensionNew: ", newSignedExtensions);
-
-      console.log("registry: ", api.registry.getSignedExtensionTypes());
-      console.log("registry: ", api.registry.metadata.extrinsic.signedExtensions.toHuman());
 
     this.api = api;
     this.chains = setupTypes({ api });
@@ -433,24 +399,24 @@ class Saturn {
     destination,
     weight,
     callData,
-    feeAsset,
-    fee,
+    xcmFeeAsset,
+    xcmFee,
     proposalMetadata,
   }: {
     id: number;
     destination: string;
     weight: BN;
     callData: `0x{string}` | Uint8Array;
-    feeAsset: Object;
-    fee: BN;
+    xcmFeeAsset: XcmAssetRepresentation;
+    xcmFee: BN;
     proposalMetadata?: string | Uint8Array;
   }) => {
     const call = this._sendExternalMultisigCall({
       destination,
       weight,
       callData,
-      feeAsset,
-      fee,
+      xcmFeeAsset,
+      xcmFee,
     });
 
     return this.buildMultisigCall({ id, call, proposalMetadata });
@@ -461,24 +427,24 @@ class Saturn {
     asset,
     amount,
     to,
-    feeAsset,
-    fee,
+    xcmFeeAsset,
+    xcmFee,
     proposalMetadata,
   }: {
     id: number;
-    asset: Object;
+    asset: XcmAssetRepresentation;
     amount: BN;
     to: string | AccountId;
-    feeAsset: Object;
-    fee: BN;
+    xcmFeeAsset: XcmAssetRepresentation;
+    xcmFee: BN;
     proposalMetadata?: string | Uint8Array;
   }) => {
     const call = this._transferExternalAssetMultisigCall({
       asset,
       amount,
       to,
-      feeAsset,
-      fee,
+      xcmFeeAsset,
+      xcmFee,
     });
 
     return this.buildMultisigCall({ id, call, proposalMetadata });
@@ -490,15 +456,15 @@ class Saturn {
     amount,
     destination,
     to,
-    fee,
+    xcmFee,
     proposalMetadata,
   }: {
     id: number;
-    asset: Object;
+    asset: XcmAssetRepresentation;
     amount: BN;
     destination: string;
     to?: string | AccountId;
-    fee: BN;
+    xcmFee: BN;
     proposalMetadata?: string | Uint8Array;
   }) => {
     const call = this._bridgeExternalMultisigAssetCall({
@@ -506,7 +472,7 @@ class Saturn {
       amount,
       to,
       destination,
-      fee,
+      xcmFee,
     });
 
     return this.buildMultisigCall({ id, call, proposalMetadata });
@@ -641,22 +607,22 @@ class Saturn {
     destination,
     weight,
     callData,
-    feeAsset,
-    fee,
+    xcmFeeAsset,
+    xcmFee,
   }: {
     destination: string;
     weight: BN;
     callData: `0x{string}` | Uint8Array;
-    feeAsset: Object;
-    fee: BN;
+    xcmFeeAsset: XcmAssetRepresentation;
+    xcmFee: BN;
   }) => {
     return sendExternalMultisigCall({
       api: this.api,
       destination,
       weight,
       callData,
-      feeAsset,
-      fee,
+      xcmFeeAsset,
+      xcmFee,
     });
   };
 
@@ -664,35 +630,35 @@ class Saturn {
     asset,
     amount,
     to,
-    feeAsset,
-    fee,
+    xcmFeeAsset,
+    xcmFee,
   }: {
-    asset: Object;
+    asset: XcmAssetRepresentation;
     amount: BN;
     to: string | AccountId;
-    feeAsset: Object;
-    fee: BN;
+    xcmFeeAsset: XcmAssetRepresentation;
+    xcmFee: BN;
   }) => {
     return transferExternalAssetMultisigCall({
       api: this.api,
       asset,
       amount,
       to,
-      feeAsset,
-      fee,
+      xcmFeeAsset,
+      xcmFee,
     });
   };
 
   private _bridgeExternalMultisigAssetCall = ({
     asset,
     destination,
-    fee,
+    xcmFee,
     amount,
     to,
   }: {
-    asset: Object;
+    asset: XcmAssetRepresentation;
     destination: string;
-    fee: BN;
+    xcmFee: BN;
     amount: BN;
     to?: string | AccountId;
   }) => {
@@ -700,7 +666,7 @@ class Saturn {
       api: this.api,
       asset,
       destination,
-      fee,
+      xcmFee,
       amount,
       to,
     });
