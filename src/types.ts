@@ -1,40 +1,28 @@
 import type { ApiPromise } from "@polkadot/api";
 import { SubmittableExtrinsic, ApiTypes } from "@polkadot/api/types";
-import { ISubmittableResult, AnyJson, Signer } from "@polkadot/types/types";
+import { ISubmittableResult, AnyJson, Signer, Registry } from "@polkadot/types/types";
 import {
   AccountId,
-  AccountId32,
   DispatchResult,
   Call,
   Hash,
   Perbill,
   Balance,
-  DispatchError,
 } from "@polkadot/types/interfaces";
-import type { BN } from "@polkadot/util";
-import { u32, u128 } from "@polkadot/types-codec/primitive";
+import { BN } from "@polkadot/util";
+import { u32 } from "@polkadot/types-codec/primitive";
 import { Text } from "@polkadot/types-codec/native";
 import {
   Enum,
   Struct,
   BTreeMap,
-  Option,
-  Bytes,
-  bool,
-  Result,
-  Null,
-  Vec,
 } from "@polkadot/types-codec";
 import type {
   AddressOrPair,
-  AugmentedEvent,
-  AugmentedEvents,
   SignerOptions,
   SubmittablePaymentResult,
 } from "@polkadot/api-base/types";
 import {
-  FrameSystemEventRecord,
-  PalletInv4Event,
   PalletInv4MultisigMultisigOperation,
   PalletInv4VotingTally,
 } from "@polkadot/types/lookup";
@@ -82,11 +70,13 @@ type CreateMultisigParams = {
   metadata?: string | Uint8Array;
   minimumSupport: Perbill | BN | number;
   requiredApproval: Perbill | BN | number;
+  creationFeeAsset: "TNKR" | "KSM";
 };
 
 type CreateMultisigCallParams = DefaultMultisigParams & {
   proposalMetadata?: string | Uint8Array;
   id: number;
+  feeAsset: FeeAsset;
   call: SubmittableExtrinsic<ApiTypes> | Uint8Array | Call;
 };
 
@@ -111,13 +101,34 @@ type BurnTokenMultisigParams = DefaultMultisigParams & {
   amount: BN;
 };
 
-type TransferExternalAssetMultisigCallParams = DefaultMultisigParams & {
-  asset: Object;
-  amount: BN;
-  to: string | AccountId;
-  feeAsset: Object;
-  fee: BN;
+type TransferExternalAssetMultisigCallParams = {
+    api: ApiPromise;
+    asset: XcmAssetRepresentation;
+    amount: BN;
+    to: string | AccountId;
+    xcmFeeAsset: XcmAssetRepresentation;
+    xcmFee: BN;
 };
+
+type SendExternalMultisigCallParams = {
+    api: ApiPromise;
+    destination: string;
+    weight: BN;
+    callData: `0x{string}` | Uint8Array;
+    xcmFeeAsset: XcmAssetRepresentation;
+    xcmFee: BN;
+};
+
+type BridgeExternalMultisigAssetParams = {
+    api: ApiPromise;
+    asset: XcmAssetRepresentation;
+    destination: string;
+    xcmFee: BN;
+    amount: BN;
+    to?: string | AccountId;
+};
+
+type XcmAssetRepresentation = { [key: string]: any };
 
 export class MultisigCreateResult {
   readonly id: number;
@@ -234,9 +245,11 @@ export class MultisigCallResult {
 
 export class MultisigCall {
   readonly call: SubmittableExtrinsic<ApiTypes>;
+  readonly feeAsset: FeeAsset;
 
-  constructor(call: SubmittableExtrinsic<ApiTypes>) {
-    this.call = call;
+    constructor(call: SubmittableExtrinsic<ApiTypes>, feeAsset: FeeAsset) {
+        this.call = call;
+        this.feeAsset = feeAsset;
   }
 
   public paymentInfo(
@@ -248,11 +261,12 @@ export class MultisigCall {
 
   public async signAndSend(
     address: string,
-    signer: Signer
+    signer: Signer,
+    feeAsset?: FeeAsset
   ): Promise<MultisigCallResult> {
     return new Promise((resolve, reject) => {
       try {
-        this.call.signAndSend(address, { signer }, ({ events, status }) => {
+          this.call.signAndSend(address, { signer, assetId: processFeeAssetAsHex(this.call.registry, feeAsset || this.feeAsset) }, ({ events, status }) => {
           if (status.isInBlock) {
             const event = events.find(
               ({ event }) =>
@@ -317,40 +331,52 @@ export class MultisigCall {
 
 export class MultisigCreator {
   readonly call: SubmittableExtrinsic<ApiTypes>;
+  readonly feeAsset: FeeAsset;
 
   constructor({
     api,
+    feeAsset,
     metadata,
     minimumSupport,
     requiredApproval,
+    creationFeeAsset,
   }: {
     api: ApiPromise;
+    feeAsset: FeeAsset;
     metadata?: string | Uint8Array;
     minimumSupport: Perbill | BN | number;
     requiredApproval: Perbill | BN | number;
+    creationFeeAsset: FeeAsset;
   }) {
     this.call = createCore({
       api,
       metadata,
       minimumSupport,
       requiredApproval,
+      creationFeeAsset: processFeeAssetAsName(creationFeeAsset),
     });
+
+    this.feeAsset = feeAsset;
   }
 
   public paymentInfo(
     account: AddressOrPair,
-    options?: Partial<SignerOptions>
+    feeAsset?: FeeAsset,
   ): SubmittablePaymentResult<ApiTypes> {
-    return this.call.paymentInfo(account, options);
+      return this.call.paymentInfo(account, {assetId: processFeeAssetAsNumber(this.call.registry, feeAsset || this.feeAsset)});
   }
 
   public async signAndSend(
     address: string,
-    signer: Signer
+    signer: Signer,
+    feeAsset?: FeeAsset,
   ): Promise<MultisigCreateResult> {
     return new Promise((resolve, reject) => {
       try {
-        this.call.signAndSend(address, { signer }, ({ events, status }) => {
+          this.call.signAndSend(address, { signer, assetId: processFeeAssetAsHex(this.call.registry, feeAsset || this.feeAsset) }, ({ events, status }) => {
+              console.log("status: ", status.toHuman());
+              console.log("events: ", events);
+
           if (status.isInBlock) {
             const event = events.find(
               ({ event }) => event.method === "CoreCreated"
@@ -513,6 +539,38 @@ type GetMemberBalance = DefaultMultisigParams & {
   address: string | AccountId;
 };
 
+export enum FeeAsset {
+    TNKR,
+    KSM
+}
+
+function processFeeAssetAsHex(registry: Registry, feeAsset: FeeAsset): `0x${string}` | null {
+    switch (feeAsset) {
+        case FeeAsset.TNKR:
+            return null;
+        case FeeAsset.KSM:
+            return registry.createType("Option<u32>", 1).toHex();
+    }
+}
+
+function processFeeAssetAsNumber(registry: Registry, feeAsset: FeeAsset): number | null {
+    switch (feeAsset) {
+        case FeeAsset.TNKR:
+            return null;
+        case FeeAsset.KSM:
+            return 1;
+    }
+}
+
+function processFeeAssetAsName(feeAsset: FeeAsset): "TNKR" | "KSM" {
+    switch (feeAsset) {
+        case FeeAsset.TNKR:
+            return "TNKR";
+        case FeeAsset.KSM:
+            return "KSM";
+    }
+}
+
 export type {
   DefaultMultisigParams,
   GetPendingMultisigCallsParams,
@@ -530,4 +588,7 @@ export type {
   GetMultisigsForAccountParams,
   GetTotalIssuance,
   GetMemberBalance,
+  XcmAssetRepresentation,
+  SendExternalMultisigCallParams,
+  BridgeExternalMultisigAssetParams,
 };

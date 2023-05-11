@@ -6,7 +6,7 @@ import {
 } from "@polkadot/extension-dapp";
 import { InjectedAccountWithMeta } from "@polkadot/extension-inject/types";
 import { FormEvent, useEffect, useState } from "react";
-import { Saturn, MultisigCallResult, MultisigDetails } from "../../src";
+import { Saturn, MultisigCallResult, MultisigDetails, FeeAsset } from "../../src";
 import { BN } from "@polkadot/util";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import YAML from "yaml";
@@ -137,12 +137,32 @@ const App = () => {
 
     const injector = await web3FromAddress(selectedAccount.address);
 
-    const multisig = await saturn
-      .createMultisig({
-        minimumSupport: 510000000,
-        requiredApproval: 510000000,
-      })
-      .signAndSend(selectedAccount.address, injector.signer);
+      const fee = await saturn
+          .createMultisig({
+              minimumSupport: 510000000,
+              requiredApproval: 510000000,
+              creationFeeAsset: FeeAsset.KSM,
+          }).paymentInfo(selectedAccount.address, FeeAsset.KSM);
+
+      console.log("fee: ", fee.toHuman());
+
+
+      const fee1 = await saturn
+          .createMultisig({
+              minimumSupport: 510000000,
+              requiredApproval: 510000000,
+              creationFeeAsset: FeeAsset.KSM,
+          }).call.paymentInfo(selectedAccount.address, { assetId: null });
+
+      console.log("fee1: ", fee1.toHuman());
+
+      const multisig = await saturn
+          .createMultisig({
+              minimumSupport: 510000000,
+              requiredApproval: 510000000,
+              creationFeeAsset: FeeAsset.KSM,
+          })
+      .signAndSend(selectedAccount.address, injector.signer, FeeAsset.KSM);
 
     console.log("created multisig: ", multisig);
 

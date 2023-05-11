@@ -1,23 +1,18 @@
-import { ApiPromise } from "@polkadot/api";
-import { BN } from "@polkadot/util";
-import { AccountId } from "@polkadot/types/interfaces";
+import { BridgeExternalMultisigAssetParams } from "../../../types";
 
 const bridgeExternalMultisigAssetCall = ({
   api,
   asset,
   destination,
-  fee,
+  xcmFee,
   amount,
   to,
-}: {
-  api: ApiPromise;
-  asset: Object;
-  destination: string;
-  fee: BN;
-  amount: BN;
-  to?: string | AccountId;
-}) => {
-  return api.tx.rings.bridgeAssets(asset, destination, fee, amount, to || null);
+}: BridgeExternalMultisigAssetParams) => {
+    return api.tx.rings.bridgeAssets(
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        asset,
+        destination, xcmFee, amount, to || null);
 };
 
 export { bridgeExternalMultisigAssetCall };

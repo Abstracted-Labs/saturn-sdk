@@ -1,23 +1,18 @@
-import { ApiPromise } from "@polkadot/api";
-import { BN } from "@polkadot/util";
-import { AccountId } from "@polkadot/types/interfaces";
+import { TransferExternalAssetMultisigCallParams } from "../../../types";
 
 const transferExternalAssetMultisigCall = ({
   api,
   asset,
   amount,
   to,
-  feeAsset,
-  fee,
-}: {
-  api: ApiPromise;
-  asset: Object;
-  amount: BN;
-  to: string | AccountId;
-  feeAsset: Object;
-  fee: BN;
-}) => {
-  return api.tx.rings.transferAssets(asset, amount, to, feeAsset, fee);
+  xcmFeeAsset,
+  xcmFee,
+}: TransferExternalAssetMultisigCallParams) => {
+  return api.tx.rings.transferAssets(
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      asset,
+      amount, to, xcmFeeAsset, xcmFee);
 };
 
 export { transferExternalAssetMultisigCall };
