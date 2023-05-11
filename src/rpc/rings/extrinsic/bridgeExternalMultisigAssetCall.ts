@@ -11,13 +11,17 @@ const bridgeExternalMultisigAssetCall = ({
   to,
 }: {
   api: ApiPromise;
-  asset: Object;
+  asset: { [key: string]: any };
   destination: string;
   fee: BN;
   amount: BN;
   to?: string | AccountId;
 }) => {
-  return api.tx.rings.bridgeAssets(asset, destination, fee, amount, to || null);
+    return api.tx.rings.bridgeAssets(
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        asset,
+        destination, fee, amount, to || null);
 };
 
 export { bridgeExternalMultisigAssetCall };

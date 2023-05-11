@@ -90,6 +90,7 @@ type CreateMultisigParams = {
 type CreateMultisigCallParams = DefaultMultisigParams & {
   proposalMetadata?: string | Uint8Array;
   id: number;
+  feeAsset: FeeAsset;
   call: SubmittableExtrinsic<ApiTypes> | Uint8Array | Call;
 };
 

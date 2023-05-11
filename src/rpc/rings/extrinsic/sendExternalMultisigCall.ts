@@ -17,7 +17,11 @@ const sendExternalMultisigCall = ({
   feeAsset: Object;
   fee: BN;
 }) => {
-    return api.tx.rings.sendCall(destination, weight, feeAsset, fee, typeof callData === "string" ? callData : u8aToHex(callData));
+    return api.tx.rings.sendCall(
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        destination,
+        weight, feeAsset, fee, typeof callData === "string" ? callData : u8aToHex(callData));
 };
 
 export { sendExternalMultisigCall };

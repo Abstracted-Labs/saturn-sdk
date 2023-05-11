@@ -2,23 +2,16 @@ import { ApiPromise } from "@polkadot/api";
 import { SubmittableExtrinsic, ApiTypes } from "@polkadot/api/types";
 import {
   AccountId,
-  DispatchResult,
   Call,
   Hash,
   Perbill,
-  Balance,
 } from "@polkadot/types/interfaces";
-import { ISubmittableResult, Signer } from "@polkadot/types/types";
 import type { BN } from "@polkadot/util";
-import { AnyJson } from "@polkadot/types-codec/types";
 import { u32 } from "@polkadot/types-codec/primitive";
-import { Text } from "@polkadot/types-codec/native";
-import { Option, bool } from "@polkadot/types-codec";
+import { Option } from "@polkadot/types-codec";
 import { PalletInv4MultisigMultisigOperation } from "@polkadot/types/lookup";
-import { stringToU8a, hexToU8a } from "@polkadot/util";
 
 import {
-  createCore,
   createMultisigCall,
   getMultisig,
   getPendingMultisigCalls,
@@ -39,22 +32,9 @@ import {
 } from "./rpc";
 
 import {
-  CreateMultisigParams,
-  CreateMultisigCallParams,
-  VoteMultisigCallParams,
-  WithdrawVoteMultisigCallParams,
-  GetSignAndSendCallbackParams,
   MintTokenMultisigParams,
   BurnTokenMultisigParams,
-  GetPendingMultisigCallParams,
-  TransferExternalAssetMultisigCallParams,
-  MultisigCreateResult,
-  ApiAndId,
-  GetMultisigsForAccountParams,
-  MultisigCallResult,
-  Vote,
   MultisigCall,
-  Tally,
   MultisigDetails,
   MultisigCreator,
   CallDetails,
@@ -62,8 +42,7 @@ import {
   FeeAsset
 } from "./types";
 
-import { getSignAndSendCallback } from "./utils";
-import { BTreeMap, StorageKey } from "@polkadot/types";
+import { StorageKey } from "@polkadot/types";
 import { XcmV1MultiLocation } from "@polkadot/types/lookup";
 
 const PARACHAINS_KEY = "TinkernetRuntimeRingsChains";
@@ -77,7 +56,7 @@ const setupTypes = ({
   chain: string;
   assets: {
     label: string;
-    registerType: Object;
+    registerType: { [key: string]: any };
   }[];
 }[] => {
   const parachainsTypeId = api.registry.getDefinition(
@@ -430,19 +409,22 @@ class Saturn {
   public buildMultisigCall = ({
     id,
     proposalMetadata,
+    feeAsset,
     call,
   }: {
     id: number;
     proposalMetadata?: string | Uint8Array;
+    feeAsset?: FeeAsset;
     call: SubmittableExtrinsic<ApiTypes> | Uint8Array | Call;
   }): MultisigCall => {
     return new MultisigCall(
       this._createMultisigCall({
         id,
         proposalMetadata,
+        feeAsset,
         call,
       }),
-      this.feeAsset,
+      feeAsset || this.feeAsset,
     );
   };
 
@@ -580,13 +562,15 @@ class Saturn {
   private _createMultisigCall = ({
     id,
     proposalMetadata,
+    feeAsset,
     call,
   }: {
     id: number;
     proposalMetadata?: string | Uint8Array;
+    feeAsset: FeeAsset;
     call: SubmittableExtrinsic<ApiTypes> | Uint8Array | Call;
   }) => {
-    return createMultisigCall({ api: this.api, id, proposalMetadata, call });
+    return createMultisigCall({ api: this.api, id, proposalMetadata, feeAsset, call });
   };
 
   private _getPendingMultisigCalls = (

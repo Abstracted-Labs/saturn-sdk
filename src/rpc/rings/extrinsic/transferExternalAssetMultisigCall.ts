@@ -11,13 +11,17 @@ const transferExternalAssetMultisigCall = ({
   fee,
 }: {
   api: ApiPromise;
-  asset: Object;
+  asset: { [key: string]: any };
   amount: BN;
   to: string | AccountId;
   feeAsset: Object;
   fee: BN;
 }) => {
-  return api.tx.rings.transferAssets(asset, amount, to, feeAsset, fee);
+  return api.tx.rings.transferAssets(
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      asset,
+      amount, to, feeAsset, fee);
 };
 
 export { transferExternalAssetMultisigCall };
