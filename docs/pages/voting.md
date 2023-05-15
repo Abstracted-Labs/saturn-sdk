@@ -1,13 +1,13 @@
 # Voting
 
-### Vote
+## Cast Your Vote
 
-The `vote` function allows a multisig member to express their support or opposition to a specific multisig call. The vote is recorded as either "aye" (in favor) or "nay" (against), depending on the boolean value provided. Once the multisig call reaches the required level of support and approval, it can be executed.
+The `vote` function in the Saturn library allows multisig members to express their support or opposition to a specific multisig call. The vote is recorded as either "aye" (in favor) or "nay" (against). This is determined by the boolean value provided in the function call. The multisig call can be executed once it has reached the required level of support and approval.
 
 **Example:**
 
 ```typescript
-// Vote in favor of a multisig call
+// Example: Voting in favor of a multisig call
 await saturn.vote({
   id: 1,
   callHash:
@@ -15,7 +15,7 @@ await saturn.vote({
   aye: true,
 });
 
-// Vote against a multisig call
+// Example: Voting against a multisig call
 await saturn.vote({
   id: 1,
   callHash:
@@ -24,14 +24,14 @@ await saturn.vote({
 });
 ```
 
-### Withdraw Vote
+## Withdrawing Your Vote
 
-The `withdrawVote` function allows a multisig member to cancel their previous vote on a specific multisig call. Withdrawing a vote can change the support and approval percentages for the multisig call, potentially affecting its execution.
+The `withdrawVote` function allows a multisig member to retract their previous vote on a specific multisig call. Withdrawing a vote can alter the support and approval percentages for the multisig call, which may influence whether or not it's executed.
 
 **Example:**
 
 ```typescript
-// Withdraw your vote from a multisig call
+// Example: Withdrawing your vote from a multisig call
 await saturn.withdrawVote({
   id: 1,
   callHash:
@@ -39,11 +39,11 @@ await saturn.withdrawVote({
 });
 ```
 
-In the examples above, `saturn` is an instance of the `Saturn` class, and we assume that you have already connected to the Polkadot network and have a valid multisig ID and call hash. The `vote` function is used to cast a vote in favor or against a specific multisig call, while the `withdrawVote` function is used to cancel a previous vote.
+In the examples above, `saturn` is an instance of the `Saturn` class. We are assuming that you have already connected to the Polkadot network and have a valid multisig ID and call hash. The `vote` function is used to cast a vote in favor or against a specific multisig call, while the `withdrawVote` function is used to retract a previous vote.
 
-### Example
+## Practical Example
 
-This is a real example that can be found on our `/example` app.
+Below is an example from our `/example` app, demonstrating how to submit a vote.
 
 ```typescript
 const handleVoteSubmit = async (votingCallHash: string) => {
@@ -61,4 +61,4 @@ const handleVoteSubmit = async (votingCallHash: string) => {
 };
 ```
 
-You'll be able to see if the result was successfull by finding the successful event.
+You'll be able to verify if the voting action was successful by finding the corresponding successful event in the console logs.

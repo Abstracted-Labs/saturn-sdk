@@ -1,76 +1,93 @@
-# Overview of the query functions
+# Query Functions Overview
 
-### Get multisig details
+This document provides an overview of the query functions available for interacting with a multisig.
 
-This function retrieves the details of a multisig, such as minimum support, required approval, and the total number of proposals made. Pass the multisig ID as an argument.
+### Retrieve Multisig Details
+
+The `getDetails` function allows you to obtain specific details about a multisig, such as minimum support, required approval, and the total number of proposals made. You will need to provide the multisig ID as an argument.
+
+**Usage:**
 
 ```typescript
-const details = await saturn.getDetails(id);
+const details = await saturn.getDetails(multisigId);
 
 console.log("Multisig details:", details);
 ```
 
-### Get total supply
+### Retrieve Total Supply
 
-This function returns the total supply of tokens in a multisig. Pass the multisig ID as an argument.
+You can use the `getSupply` function to return the total supply of tokens within a multisig. Again, you will need to provide the multisig ID as an argument.
+
+**Usage:**
 
 ```typescript
-const supply = await saturn.getSupply(id);
+const totalSupply = await saturn.getSupply(multisigId);
 
-console.log("Multisig total supply:", supply.toString());
+console.log("Multisig total supply:", totalSupply.toString());
 ```
 
-### Get pending calls
+### List Pending Calls
 
-This function returns the list of all pending calls in a multisig, which are proposals that have not yet been executed or rejected. Pass the multisig ID as an argument.
+The `getPendingCalls` function is used to retrieve a list of all pending calls in a multisig. These are proposals that are yet to be executed or rejected. You need to provide the multisig ID as an argument.
+
+**Usage:**
 
 ```typescript
-const pendingCalls = await saturn.getPendingCalls(id);
+const pendingCalls = await saturn.getPendingCalls(multisigId);
 
 console.log("Pending calls:", pendingCalls);
 ```
 
-### Get pending call
+### Retrieve Specific Pending Call
 
-This function retrieves the details of a specific pending call in a multisig using the call hash. Pass the multisig ID and the call hash as arguments.
+To fetch the details of a specific pending call in a multisig using the call hash, you can use the `getPendingCall` function. You will need to provide the multisig ID and the call hash as arguments.
+
+**Usage:**
 
 ```typescript
 const callHash = "0x12345...";
-
-const callDetails = await saturn.getPendingCall({ id, callHash });
+const callDetails = await saturn.getPendingCall({ id: multisigId, callHash });
 
 console.log("Pending call details:", callDetails);
 ```
 
-### Get multisig members
+### Retrieve Multisig Members
 
-This function returns a list of all members of a multisig, which are accounts that can vote on proposals. Pass the multisig ID as an argument.
+The `getMultisigMembers` function returns a list of all members of a multisig. These are accounts that are eligible to vote on proposals. You need to provide the multisig ID as an argument.
+
+**Usage:**
 
 ```typescript
-const members = await saturn.getMultisigMembers(id);
+const members = await saturn.getMultisigMembers(multisigId);
 
 console.log("Multisig members:", members);
 ```
 
-### Get all the multisigs of a specific address
+### Retrieve All Multisigs for a Specific Account
 
-This function retrieves all multisigs where a specific account is a member. Pass the account address as an argument.
+You can use the `getMultisigsForAccount` function to fetch all multisigs where a specific account is a member. You will need to provide the account address as an argument.
+
+**Usage:**
 
 ```typescript
-const multisigs = await saturn.getMultisigsForAccount(account);
+const accountMultisigs = await saturn.getMultisigsForAccount(accountAddress);
 
-console.log("Multisigs for account:", multisigs);
+console.log("Multisigs for account:", accountMultisigs);
 ```
 
-### Get the voting balance of a specific account
+### Retrieve Voting Balance of a Specific Account
 
-This function returns the voting balance of a specific account in a multisig. Pass the multisig ID and the address of the account as arguments.
+The `getMultisigMemberBalance` function allows you to retrieve the voting balance of a specific account in a multisig. You will need to provide the multisig ID and the address of the account as arguments.
+
+**Usage:**
 
 ```typescript
 const balance = await saturn.getMultisigMemberBalance({
-  id,
-  address,
+  id: multisigId,
+  address: accountAddress,
 });
 
 console.log("Multisig member balance:", balance.toString());
 ```
+
+These query functions collectively provide you with comprehensive tools for interacting with and managing a multisig.

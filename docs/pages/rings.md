@@ -1,71 +1,92 @@
-# XCM operations using the rings functions
+# XCM Operations with Rings Functions
 
-These three functions allow you to interact with external chains and networks using cross-chain messaging (XCM) within the context of a multisig. They expand the capabilities of a multisigs, enabling them to interact with different chains and networks, and making them more versatile in a cross-chain environment.
+Rings functions provide the ability to interact with external chains and networks using Cross-Chain Messaging (XCM) within the context of a multisig. They extend the capabilities of multisigs, enabling them to interface with different chains and networks, thus increasing their versatility in a cross-chain environment.
 
-1. `sendXCMCall`: This function sends a cross-chain message (XCM) from a multisig to an external destination. It is useful for making cross-chain calls like interacting with smart contracts or other parachains.
+1. **Send XCM Call**
 
-```typescript
-const id = 1;
-const destination = "0x1234..."; // External destination address
-const weight = new BN(1000); // Weight of the call
-const callData = "0x12345..."; // Call data in hex format
-const feeAsset = {
-  /* Fee asset object */
-};
-const fee = new BN(10); // Fee amount
+   `sendXCMCall` is a function that sends a cross-chain message (XCM) from a multisig to an external destination. It can be utilized for making cross-chain interactions such as interacting with smart contracts or other parachains.
 
-await saturn.sendXCMCall({
-  id,
-  destination,
-  weight,
-  callData,
-  feeAsset,
-  fee,
-});
-```
+   **Parameters:**
 
-2. `transferXcmAsset`: This function transfers an asset to an external destination using XCM. It is useful for sending assets to other parachains or relay chains.
+   - `id`: The multisig ID.
+   - `destination`: The external destination address.
+   - `weight`: The weight of the call.
+   - `callData`: The call data in hexadecimal format.
+   - `feeAsset`: The asset used for fee.
+   - `fee`: The fee amount.
 
-```typescript
-const id = 1;
-const asset = {
-  /* Asset object */
-};
-const amount = new BN(100); // Amount to transfer
-const to = "0x1234..."; // Recipient's address
-const feeAsset = {
-  /* Fee asset object */
-};
-const fee = new BN(10); // Fee amount
+   **Usage:**
 
-await saturn.transferXcmAsset({
-  id,
-  asset,
-  amount,
-  to,
-  feeAsset,
-  fee,
-});
-```
+   ```typescript
+   const id = 1;
+   const destination = "5D5PhZQNJzcJXVBxwJxZcsaNWf5eV2XBZFreiSdbrfNy2Hvi";
+   const weight = new BN(1000);
+   const callData = "0x12345...";
+   const feeAsset = FeeAsset.TNKR;
+   const fee = new BN(10);
 
-3. `bridgeXcmAsset`: This function bridges an asset to an external destination using XCM. It is useful for sending assets to other chains or networks like Ethereum.
+   await saturn.sendXCMCall({
+     id,
+     destination,
+     weight,
+     callData,
+     feeAsset,
+     fee,
+   });
+   ```
 
-```typescript
-const id = 1;
-const asset = {
-  /* Asset object */
-};
-const amount = new BN(100); // Amount to bridge
-const destination = "0x1234..."; // External destination address
-const to = "0x5678..."; // Optional recipient's address
-const fee = new BN(10); // Fee amount
+2. **Transfer XCM Asset**
 
-await saturn.bridgeXcmAsset({
-  id,
-  asset,
-  amount,
-  destination,
-  to,
-  fee,
-});
-```
+   `transferXcmAsset` is a function that transfers an asset to an external destination using XCM. This is useful for sending assets to other parachains or relay chains.
+
+   **Parameters:**
+
+   - `id`: The multisig ID.
+   - `asset`: The asset to be transferred.
+   - `amount`: The amount to be transferred.
+   - `to`: The recipient's address.
+   - `feeAsset`: The asset used for fee.
+   - `fee`: The fee amount.
+
+   **Usage:**
+
+   ```typescript
+   const id = 1;
+   const asset = "KSM";
+   const amount = new BN(100);
+   const to = "5D5PhZQNJzcJXVBxwJxZcsaNWf5eV2XBZFreiSdbrfNy2Hvi";
+   const feeAsset = FeeAsset.TNKR;
+   const fee = new BN(10);
+
+   await saturn.transferXcmAsset({
+     id,
+     asset,
+     amount,
+     to,
+     feeAsset,
+     fee,
+   });
+   ```
+
+3. **Bridge XCM Asset**
+
+   `bridgeXcmAsset` is a function that bridges an asset to an external destination using XCM. This is useful for sending assets to other chains or networks, such as Ethereum.
+
+   **Parameters:**
+
+   - `id`: The multisig ID.
+   - `asset`: The asset to be bridged.
+   - `amount`: The amount to be bridged.
+   - `destination`: The external destination address.
+   - `to`: The optional recipient's address.
+   - `fee`: The fee amount.
+
+   **Usage:**
+
+   ```typescript
+   const id = 1;
+   const asset = "KSM";
+   const amount = new BN(100);
+   const destination = "5D5PhZQNJzcJXVBxwJxZcsaNWf5eV2XBZFreiSdbrfNy2Hvi";
+   const to = "5FHneW46
+   ```

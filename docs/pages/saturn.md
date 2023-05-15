@@ -2,43 +2,43 @@
 
 ## Overview
 
-Saturn enables users to create, manage, and interact with multisigs in a decentralized and secure manner. It offers various functionalities, including adding or removing members, voting on proposals, transferring assets, and bridging assets across different chains. Saturn aims to provide an easy-to-use interface for managing multisig accounts, while maintaining the highest level of security and transparency.
+Saturn is a powerful platform that allows users to create, manage, and interact with multisig accounts in a decentralized and secure manner. It offers a range of functionalities, including adding or removing members, voting on proposals, transferring assets, and bridging assets across different chains. Saturn aims to provide an intuitive and user-friendly interface for managing multisig accounts while prioritizing security and transparency.
 
-The core features of Saturn include:
+The key features of Saturn include:
 
-1. **Multisig Management**: Saturn allows users to create and manage multisigs with customizable parameters such as minimum support required for approval, required approval percentage, and token freezing options. Users can easily add or remove members, update multisig parameters, and view multisig details.
+1. **Multisig Management**: Saturn enables users to create and manage multisig accounts with customizable parameters such as minimum support required for approval, required approval percentage, and token freezing options. Users can easily add or remove members, update multisig parameters, and view detailed information about their multisig accounts.
 
-2. **Proposal System**: Saturn's built-in proposal system enables members to propose and vote on any call in any of the connected chains, these include calls for multisig management, like adding or removing multisig members, calls for transferring and bridging assets across chains, and also the ability to execute any transaction a normal user account could call. Members can vote on proposals, and the outcome is determined based on the multisig's configured parameters.
+2. **Proposal System**: Saturn incorporates a built-in proposal system that allows members to propose and vote on various calls across connected chains. These calls can involve multisig management operations, such as adding or removing multisig members, as well as asset transfers and bridging operations. Members can vote on proposals, and the outcome is determined based on the configured parameters of the multisig account.
 
-3. **Cross-chain Asset Management**: With Saturn's cross-chain asset management features, users can easily bridge assets from one chain to another, transfer assets between accounts on different chains, and check the XCM status of various chains.
+3. **Cross-chain Asset Management**: With Saturn, users can seamlessly manage assets across different chains. They can bridge assets from one chain to another, transfer assets between accounts on different chains, and monitor the XCM (Cross-Chain Messaging) status of various chains. This enables efficient and flexible asset management across multiple blockchain networks.
 
-4. **Flexible Integration**: The Saturn SDK is designed to be easily integrated with various blockchain applications and platforms, allowing developers to leverage its powerful multisig capabilities within their projects.
+4. **Flexible Integration**: The Saturn SDK is designed to be easily integrated with various blockchain applications and platforms. Developers can leverage the powerful multisig capabilities of Saturn within their projects, enabling secure and decentralized management of assets and operations.
 
-5. **Security and Transparency**: Saturn leverages blockchain technology to ensure that all actions within the platform are transparent and secure, while maintaining user privacy and control over their assets.
+5. **Security and Transparency**: Saturn leverages the inherent security and transparency of blockchain technology. All actions performed within the platform are recorded on the blockchain, ensuring transparency and immutability. At the same time, Saturn prioritizes user privacy and control over their assets, providing a secure environment for managing multisig accounts.
 
-Saturn's comprehensive set of features and ease of use make it an ideal solution for a wide range of use cases, from decentralized organizations and consortiums to individual users looking for added security and control over their digital assets.
+Saturn's comprehensive set of features and user-friendly interface make it an ideal solution for a wide range of use cases, from decentralized organizations and consortiums to individual users seeking enhanced security and control over their digital assets.
 
 ## Methods
 
 ### [getDetails](https://saturn-typedocs.invarch.network/classes/Saturn.html#getDetails)
 
-Get the details of a multisig.
+Retrieves the details of a multisig account.
 
 ```typescript
-public getDetails(id: number): Promise<MultisigDetails | null>
+getDetails(id: number): Promise<MultisigDetails | null>
 ```
 
 **Parameters:**
 
-- `id` (number): The multisig ID.
+- `id` (number): The ID of the multisig account.
 
 **Returns:**
 
-A Promise that resolves to a MultisigDetails object or null.
+A Promise that resolves to a `MultisigDetails` object representing the details of the multisig account, or `null` if the account does not exist.
 
 ### [getSupply](https://saturn-typedocs.invarch.network/classes/Saturn.html#getSupply)
 
-Get the total issuance of a multisig.
+Retrieves the total issuance of a multisig account.
 
 ```typescript
 getSupply(id: number): Promise<BN>
@@ -46,15 +46,15 @@ getSupply(id: number): Promise<BN>
 
 **Parameters:**
 
-- `id` (number): The multisig ID.
+- `id` (number): The ID of the multisig account.
 
 **Returns:**
 
-A Promise that resolves to a BN representing the total issuance.
+A Promise that resolves to a `BN` (Big Number) representing the total issuance of the multisig account.
 
 ### [getPendingCalls](https://saturn-typedocs.invarch.network/classes/Saturn.html#getPendingCalls)
 
-Get the pending calls for a multisig.
+Retrieves the pending calls for a multisig account.
 
 ```typescript
 getPendingCalls(id: number): Promise<CallDetailsWithHash[]>
@@ -62,15 +62,15 @@ getPendingCalls(id: number): Promise<CallDetailsWithHash[]>
 
 **Parameters:**
 
-- `id` (number): The multisig ID.
+- `id` (number): The ID of the multisig account.
 
 **Returns:**
 
-A Promise that resolves to an array of objects containing the callHash and CallDetails.
+A Promise that resolves to an array of `CallDetailsWithHash` objects representing the pending calls for the multisig account.
 
 ### [getPendingCall](https://saturn-typedocs.invarch.network/classes/Saturn.html#getPendingCall)
 
-Get the details of a pending multisig call.
+Retrieves the details of a pending multisig call.
 
 ```typescript
 getPendingCall({
@@ -81,16 +81,16 @@ getPendingCall({
 
 **Parameters:**
 
-- `id` (number): The multisig ID.
+- `id` (number): The ID of the multisig account.
 - `callHash` (string | Hash): The hash of the multisig call.
 
 **Returns:**
 
-A Promise that resolves to a CallDetails object or null.
+A Promise that resolves to a `CallDetails` object representing the details of the pending multisig call, or `null` if the call is not found.
 
 ### [getMultisigMembers](https://saturn-typedocs.invarch.network/classes/Saturn.html#getMultisigMembers)
 
-Get the members of a multisig.
+Retrieves the members of a multisig account.
 
 ```typescript
 getMultisigMembers(id: number): Promise<AccountId[]>
@@ -98,15 +98,15 @@ getMultisigMembers(id: number): Promise<AccountId[]>
 
 **Parameters:**
 
-- `id` (number): The multisig ID.
+- `id` (number): The ID of the multisig account.
 
 **Returns:**
 
-A Promise that resolves to an array of AccountId objects.
+A Promise that resolves to an array of `AccountId` objects representing the members of the multisig account.
 
 ### [getMultisigsForAccount](https://saturn-typedocs.invarch.network/classes/Saturn.html#getMultisigsForAccount)
 
-Get the multisigs associated with an account.
+Retrieves the multisig accounts associated with an account.
 
 ```typescript
 getMultisigsForAccount(account: string | AccountId): Promise<{ multisigId: number; tokens: BN }[]>
@@ -114,15 +114,15 @@ getMultisigsForAccount(account: string | AccountId): Promise<{ multisigId: numbe
 
 **Parameters:**
 
-- `account` (string | AccountId): The account address.
+- `account` (string | AccountId): The address of the account.
 
 **Returns:**
 
-A Promise that resolves to an array of objects containing the multisigId and tokens.
+A Promise that resolves to an array of objects containing the `multisigId` and `tokens` associated with the account.
 
-### [getMultisigMemberBalance](https://saturn-typedocs.invarch.network/classes/Saturn.html#getMultisigMemberbalance)
+### [getMultisigMemberBalance](https://saturn-typedocs.invarch.network/classes/Saturn.html#getMultisigMemberBalance)
 
-Get the balance of a multisig member.
+Retrieves the balance of a multisig member.
 
 ```typescript
 getMultisigMemberBalance({
@@ -133,16 +133,16 @@ getMultisigMemberBalance({
 
 **Parameters:**
 
-- `id` (number): The multisig ID.
-- `address` (string | AccountId): The member's address.
+- `id` (number): The ID of the multisig account.
+- `address` (string | AccountId): The address of the member.
 
 **Returns:**
 
-A Promise that resolves to a BN representing the member's balance.
+A Promise that resolves to a `BN` (Big Number) representing the balance of the multisig member.
 
 ### [setMultisigParameters](https://saturn-typedocs.invarch.network/classes/Saturn.html#setMultisigParameters)
 
-Set the parameters for a multisig.
+Sets the parameters for a multisig account.
 
 ```typescript
 setMultisigParameters({
@@ -157,20 +157,18 @@ setMultisigParameters({
 
 **Parameters:**
 
-- `id` (number): The multisig ID.
-- `proposalMetadata` (string | Uint8Array): The proposal metadata.
-- `metadata` (string | Uint8Array, optional): The multisig metadata.
+- `id` (number): The ID of the multisig account.
+- `proposalMetadata` (string | Uint8Array): The metadata for the proposal.
+- `metadata` (string | Uint8Array, optional): The metadata for the multisig account.
 - `minimumSupport` (Perbill | BN | number): The minimum support required for approval.
 - `requiredApproval` (Perbill | BN | number): The required approval percentage.
-- `frozenTokens` (boolean): Whether tokens should be frozen.
+- `frozenTokens` (boolean): Indicates whether tokens should be frozen.
 
 **Returns:**
 
-A Promise that resolves to a MultisigCall object.
+A Promise that resolves to a `MultisigCall` object representing the call to set the multisig parameters.
 
-### [proposeNewMember](https://saturn-typedocs.invarch.network/classes/Saturn.html#proposeNewMember)
-
-Propose adding a new member to a multisig.
+### [proposeNewMember](https://saturn-typedocs.invarch.network)
 
 ```typescript
 proposeNewMember({
@@ -183,18 +181,18 @@ proposeNewMember({
 
 **Parameters:**
 
-- `id` (number): The multisig ID.
-- `address` (string | AccountId): The address of the new member.
+- `id` (number): The ID of the multisig account.
+- `address` (string | AccountId): The address of the new member to be added.
 - `amount` (BN): The amount of tokens to mint for the new member.
-- `proposalMetadata` (string | Uint8Array, optional): The proposal metadata.
+- `proposalMetadata` (string | Uint8Array, optional): The metadata for the proposal.
 
 **Returns:**
 
-A Promise that resolves to a MultisigCall object.
+A Promise that resolves to a `MultisigCall` object representing the call to propose adding a new member to the multisig account.
 
 ### [proposeMemberRemoval](https://saturn-typedocs.invarch.network/classes/Saturn.html#proposeMemberRemoval)
 
-Propose removing a member from a multisig.
+Proposes the removal of a member from a multisig account.
 
 ```typescript
 proposeMemberRemoval({
@@ -207,18 +205,18 @@ proposeMemberRemoval({
 
 **Parameters:**
 
-- `id` (number): The multisig ID.
-- `address` (string | AccountId): The address of the member to remove.
+- `id` (number): The ID of the multisig account.
+- `address` (string | AccountId): The address of the member to be removed.
 - `amount` (BN): The amount of tokens to burn from the member.
-- `proposalMetadata` (string | Uint8Array, optional): The proposal metadata.
+- `proposalMetadata` (string | Uint8Array, optional): The metadata for the proposal.
 
 **Returns:**
 
-A Promise that resolves to a MultisigCall object.
+A Promise that resolves to a `MultisigCall` object representing the call to propose removing a member from the multisig account.
 
 ### [vote](https://saturn-typedocs.invarch.network/classes/Saturn.html#vote)
 
-Vote on a multisig call.
+Votes on a multisig call.
 
 ```typescript
 vote({
@@ -230,17 +228,17 @@ vote({
 
 **Parameters:**
 
-- `id` (number): The multisig ID.
+- `id` (number): The ID of the multisig account.
 - `callHash` (string | Hash): The hash of the multisig call.
-- `aye` (boolean): `true` to vote in favor, `false` to vote against.
+- `aye` (boolean): Specifies whether to vote in favor (`true`) or against (`false`) the multisig call.
 
 **Returns:**
 
-A Promise that resolves to a SubmittableResult.
+A Promise that resolves to a `SubmittableResult` object representing the result of the vote.
 
 ### [withdrawVote](https://saturn-typedocs.invarch.network/classes/Saturn.html#withdrawVote)
 
-Withdraw a vote for a multisig call.
+Withdraws a vote for a multisig call.
 
 ```typescript
 withdrawVote({
@@ -251,16 +249,16 @@ withdrawVote({
 
 **Parameters:**
 
-- `id` (number): The multisig ID.
+- `id` (number): The ID of the multisig account.
 - `callHash` (string | Hash): The hash of the multisig call.
 
 **Returns:**
 
-A Promise that resolves to a SubmittableResult.
+A Promise that resolves to a `SubmittableResult` object representing the result of withdrawing the vote.
 
 ### [buildMultisigCall](https://saturn-typedocs.invarch.network/classes/Saturn.html#buildMultisigCall)
 
-Build a multisig call object.
+Builds a multisig call object.
 
 ```typescript
 buildMultisigCall({
@@ -272,115 +270,5 @@ buildMultisigCall({
 
 **Parameters:**
 
-- `id` (number): The multisig ID.
-- `proposalMetadata` (string | Uint8Array, optional): The proposal metadata.
-- `call` (SubmittableExtrinsic<ApiTypes> | Uint8Array | Call): The call to be executed.
-
-**Returns:**
-
-A MultisigCall object.
-
-### [sendXCMCall](https://saturn-typedocs.invarch.network/classes/Saturn.html#sendXCMCall)
-
-Create and send an XCM call.
-
-```typescript
-sendXCMCall({
-  id: number;
-  destination: string;
-  weight: BN;
-  callData: string | Uint8Array;
-  feeAsset: Object;
-  fee: BN;
-  proposalMetadata?: string | Uint8Array;
-}): Promise<MultisigCall>
-```
-
-**Parameters:**
-
-- `id` (number): The multisig ID.
-- `destination` (string): The destination chain.
-- `weight` (BN): The weight of the call.
-- `callData` (string | Uint8Array): The call data.
-- `feeAsset` (Object): The asset used for fees.
-- `fee` (BN): The fee amount.
-- `proposalMetadata` (string | Uint8Array, optional): The proposal metadata.
-
-**Returns:**
-
-A Promise that resolves to a MultisigCall object.
-
-### [transferXcmAsset](https://saturn-typedocs.invarch.network/classes/Saturn.html#transferXcmAsset)
-
-Create and send an XCM asset transfer.
-
-```typescript
-transferXcmAsset({
-  id: number;
-  asset: Object;
-  amount: BN;
-  to: string | AccountId;
-  feeAsset: Object;
-  fee: BN;
-  proposalMetadata?: string | Uint8Array;
-}): Promise<MultisigCall>
-```
-
-**Parameters:**
-
-- `id` (number): The multisig ID.
-- `asset` (Object): The asset to be transferred.
-- `amount` (BN): The amount to be transferred.
-- `to` (string | AccountId): The recipient's address.
-- `feeAsset` (Object): The asset used for fees.
-- `fee` (BN): The fee amount.
-- `proposalMetadata` (string | Uint8Array, optional): The proposal metadata.
-
-**Returns:**
-
-A Promise that resolves to a MultisigCall object.
-
-### [bridgeXcmAsset](https://saturn-typedocs.invarch.network/classes/Saturn.html#bridgeXcmAsset)
-
-Bridge an asset from one chain to another.
-
-```typescript
-bridgeXcmAsset({
-  id: number;
-  asset: Object;
-  amount: BN;
-  destination: string;
-  to: string | AccountId;
-  fee: BN;
-  proposalMetadata?: string | Uint8Array;
-}): Promise<MultisigCall>
-```
-
-**Parameters:**
-
-- `id` (number): The multisig ID.
-- `asset` (Object): The asset to bridge.
-- `amount` (BN): The amount of the asset to bridge.
-- `destination` (string): The destination chain.
-- `to` (string | AccountId): The recipient address on the destination chain.
-- `fee` (BN): The fee for the transaction.
-- `proposalMetadata` (string | Uint8Array, optional): The proposal metadata.
-
-**Returns:**
-
-A Promise that resolves to a MultisigCall object.
-
-### [getXcmStatus](https://saturn-typedocs.invarch.network/classes/Saturn.html#getXcmStatus)
-
-Get the XCM status of chains.
-
-```typescript
-async getXcmStatus(): Promise<{
-  chainMultilocation: XcmV1MultiLocation;
-  isUnderMaintenance: boolean;
-}[]>
-```
-
-**Returns:**
-
-A Promise that resolves to an array of objects containing the chain multilocation and the maintenance status.
+- `id` (number): The ID of the multisig account.
+- `proposalMetadata` (string | Uint8Array, optional): The metadata for

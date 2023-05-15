@@ -1,12 +1,23 @@
-# Getting pending calls
+# Retrieving Pending Calls
 
-The `getPendingCalls` function allows you to retrieve a list of pending multisig calls for a given multisig ID.
+The `getPendingCalls` function serves to extract a list of pending multisig calls associated with a given multisig ID.
+
+**Usage:**
 
 ```typescript
-await saturn.getPendingCalls(id);
+const pendingCalls = await saturn.getPendingCalls(multisigId);
 ```
 
-**Returns**
+In the above example, `multisigId` is the ID of the multisig for which you want to retrieve pending calls.
+
+**Returned Value:**
+
+The function returns an array of objects, where each object represents a pending call with the following properties:
+
+- `callHash`: A unique identifier for the call.
+- `details`: An object containing information about the call.
+
+Here's an example of the returned data:
 
 ```typescript
 [
@@ -52,3 +63,7 @@ await saturn.getPendingCalls(id);
   },
 ];
 ```
+
+In this example, `ayes` and `nays` are the current number of approvals and disapprovals for the call, respectively. `originalCaller` is the account that initiated the call, `methodName` is the function to be executed, and `args` are the arguments to be passed to that function. `proposalMetadata` is an optional field where you can provide additional information about the proposal.
+
+By utilizing `getPendingCalls`, you can keep track of all pending actions that require approval within your multisig.

@@ -1,11 +1,6 @@
 import { ApiPromise } from "@polkadot/api";
 import { SubmittableExtrinsic, ApiTypes } from "@polkadot/api/types";
-import {
-  AccountId,
-  Call,
-  Hash,
-  Perbill,
-} from "@polkadot/types/interfaces";
+import { AccountId, Call, Hash, Perbill } from "@polkadot/types/interfaces";
 import type { BN } from "@polkadot/util";
 import { u32 } from "@polkadot/types-codec/primitive";
 import { Option } from "@polkadot/types-codec";
@@ -39,8 +34,8 @@ import {
   MultisigCreator,
   CallDetails,
   CallDetailsWithHash,
-    FeeAsset,
-    XcmAssetRepresentation
+  FeeAsset,
+  XcmAssetRepresentation,
 } from "./types";
 
 import { StorageKey } from "@polkadot/types";
@@ -152,9 +147,9 @@ class Saturn {
     this.feeAsset = FeeAsset.TNKR;
   }
 
-    public setFeeAsset = (feeAsset: FeeAsset) => {
-        this.feeAsset = feeAsset;
-    }
+  public setFeeAsset = (feeAsset: FeeAsset) => {
+    this.feeAsset = feeAsset;
+  };
 
   public disconnect = () => {
     this.api.disconnect();
@@ -204,9 +199,9 @@ class Saturn {
   };
 
   public getSupply = async (id: number) => {
-      const supply: BN = await this._getTotalIssuance(id);
+    const supply: BN = await this._getTotalIssuance(id);
 
-      return supply;
+    return supply;
   };
 
   public getPendingCalls = async (
@@ -260,10 +255,7 @@ class Saturn {
   public getMultisigMembers = async (id: number): Promise<AccountId[]> => {
     const keys = await this._getMultisigMembers({ id });
 
-    const mapped = keys.map(
-      ({ args: [_, member] }) =>
-        member
-    );
+    const mapped = keys.map(({ args: [_, member] }) => member);
 
     return mapped;
   };
@@ -390,7 +382,7 @@ class Saturn {
         feeAsset,
         call,
       }),
-      feeAsset || this.feeAsset,
+      feeAsset || this.feeAsset
     );
   };
 
@@ -536,7 +528,13 @@ class Saturn {
     feeAsset: FeeAsset;
     call: SubmittableExtrinsic<ApiTypes> | Uint8Array | Call;
   }) => {
-    return createMultisigCall({ api: this.api, id, proposalMetadata, feeAsset, call });
+    return createMultisigCall({
+      api: this.api,
+      id,
+      proposalMetadata,
+      feeAsset,
+      call,
+    });
   };
 
   private _getPendingMultisigCalls = (

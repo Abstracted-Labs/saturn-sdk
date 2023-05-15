@@ -1,8 +1,7 @@
 {
-  "index": "Getting Started",
-  "saturn": "Overview of Saturn",
-  "getting-started": "Setting up a Saturn instance",
+  "getting-started": "Getting Started",
   "create": "Creating a Multisig",
+  "saturn": "Overview of Saturn",
   "member-management": "Managing members",
   "query": "Querying",
   "voting": "Voting",

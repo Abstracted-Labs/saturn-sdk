@@ -1,42 +1,60 @@
-# Overview of the query functions
+# Overview of the Query Functions
 
-## Propose a new member
+## Proposing a New Member
 
-To propose adding a new member to the multisig, you can use the proposeNewMember function. The function accepts the multisig ID, the new member's address, and the initial amount of tokens for the new member's balance.
+If you wish to propose the addition of a new member to the multisig, you can utilize the `proposeNewMember` function. This function takes in the multisig ID, the prospective member's address, and the initial balance of tokens for the new member.
+
+Here is an example of how to use the `proposeNewMember` function:
 
 ```typescript
-const UNIQUE_SUPPLY_AMOUNT = new BN("1000000");
+// Define the initial balance for the new member
+const initialBalance = new BN("1000000");
 
-const address = selectedAccount.address;
-const signer = (await web3FromAddress(address)).signer;
+// Assign the current account's address
+const senderAddress = selectedAccount.address;
 
+// Get the signer associated with the current account
+const signer = (await web3FromAddress(senderAddress)).signer;
+
+// Propose a new member to the multisig
 saturn
   .proposeNewMember({
-    id,
-    address: newMember,
-    amount: UNIQUE_SUPPLY_AMOUNT,
+    id: multisigId,
+    address: newMemberAddress,
+    amount: initialBalance,
   })
-  .signAndSend(address, signer);
+  .signAndSend(senderAddress, signer);
 ```
 
-## Propose member removal
+In this example, `multisigId` is the ID of the multisig to which you want to add a new member, and `newMemberAddress` is the address of the account you want to add to the multisig.
 
-To propose the removal of a member from the multisig, you can use the proposeMemberRemoval function. The function accepts the multisig ID and the address of the member to be removed.
+## Proposing Member Removal
+
+If you need to propose the removal of a member from the multisig, you can make use of the `proposeMemberRemoval` function. This function requires the multisig ID and the address of the member you wish to remove.
+
+Here's an example of how to use the `proposeMemberRemoval` function:
 
 ```typescript
-const address = selectedAccount.address;
-const signer = (await web3FromAddress(address)).signer;
+// Assign the current account's address
+const senderAddress = selectedAccount.address;
 
-const amount = await saturn.getMultisigMemberBalance({
-  id,
-  address: memberToRemove,
+// Get the signer associated with the current account
+const signer = (await web3FromAddress(senderAddress)).signer;
+
+// Retrieve the balance of the member to be removed
+const memberBalance = await saturn.getMultisigMemberBalance({
+  id: multisigId,
+  address: memberToRemoveAddress,
 });
 
+// Propose the removal of a member from the multisig
 saturn
   .proposeMemberRemoval({
-    amount,
-    id,
-    address: memberToRemove,
+    id: multisigId,
+    address: memberToRemoveAddress,
+    amount: memberBalance,
   })
-  .signAndSend(address, signer);
+  .signAndSend(senderAddress, signer);
 ```
+
+In this example, `multisigId` is the ID of the multisig from which you want to remove a member, and `memberToRemoveAddress` is the address of the member you want to remove. The `amount` field should contain the balance of the member to be removed, which can be retrieved using the `getMultisigMemberBalance` function.
