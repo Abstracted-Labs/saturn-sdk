@@ -87,6 +87,7 @@ declare module '@polkadot/api-base/types/consts' {
       coreCreationFee: u128 & AugmentedConst<ApiType>;
       coreSeedBalance: u128 & AugmentedConst<ApiType>;
       genesisHash: H256 & AugmentedConst<ApiType>;
+      ksmAssetId: u32 & AugmentedConst<ApiType>;
       ksmCoreCreationFee: u128 & AugmentedConst<ApiType>;
       /**
        * The maximum numbers of caller accounts on a single Multisig call
