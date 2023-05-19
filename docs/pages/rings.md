@@ -14,8 +14,8 @@ These functions all return a `MultisigCallResult`.
    - `destination`: The external destination address.
    - `weight`: The weight of the call.
    - `callData`: The call data in hexadecimal format.
-   - `feeAsset`: The asset used for fee.
-   - `fee`: The fee amount.
+   - `xcmFeeAsset`: The asset used for fee.
+   - `xcmFee`: The fee amount.
 
    **Usage:**
 
@@ -23,23 +23,25 @@ These functions all return a `MultisigCallResult`.
    const id = 1;
    const destination = "Basilisk";
    const weight = new BN(1000);
-   const callData = fakeCall.toU8a()
-   const feeAsset = FeeAsset.TNKR;
-   const fee = new BN(10);
+   const callData = call.toU8a()
+   const xcmFeeAsset = {"Basilisk": "BSX"};
+   const xcmFee = new BN("10000000000000");
    const proposalMetadata = "swap"
 
    const result = await saturn
      .sendXCMCall({
        id,
        destination,
-       fee,
-       feeAsset,
+       xcmFee,
+       xcmFeeAsset,
        weight,
        callData,,
        proposalMetadata,
      })
      .signAndSend(address, signer);
    ```
+   
+   For more information about sending XCM calls, refer to [Making Calls](./making-calls). 
 
 2. **Transfer XCM Asset**
 
@@ -51,18 +53,18 @@ These functions all return a `MultisigCallResult`.
    - `asset`: The asset to be transferred.
    - `amount`: The amount to be transferred.
    - `to`: The recipient's address.
-   - `feeAsset`: The asset used for fee.
-   - `fee`: The fee amount.
+   - `xcmFeeAsset`: The asset used for fee.
+   - `xcmFee`: The fee amount.
 
    **Usage:**
 
    ```typescript
    const id = 1;
-   const asset = "KSM";
-   const amount = new BN(100);
+   const asset = {"Kusama": "KSM"};
+   const amount = new BN("100000000000000");
    const to = "5D5PhZQNJzcJXVBxwJxZcsaNWf5eV2XBZFreiSdbrfNy2Hvi";
-   const feeAsset = FeeAsset.TNKR;
-   const fee = new BN(10);
+   const xcmFeeAsset = {"Kusama": "KSM"};
+   const xcmFee = new BN("10000000000000");
 
    const result = await saturn
      .transferXcmAsset({
@@ -70,8 +72,8 @@ These functions all return a `MultisigCallResult`.
        asset,
        amount,
        to,
-       feeAsset,
-       fee,
+       xcmFeeAsset,
+       xcmFee,
      })
      .signAndSend(address, signer);
    ```
@@ -87,7 +89,7 @@ These functions all return a `MultisigCallResult`.
    - `amount`: The amount to be bridged.
    - `destination`: The external destination address.
    - `to`: The optional recipient's address.
-   - `fee`: The fee amount.
+   - `xcmFee`: The fee amount.
 
    **Usage:**
 
@@ -96,15 +98,17 @@ These functions all return a `MultisigCallResult`.
    const asset = "KSM";
    const amount = new BN(100);
    const destination = "Basilisk";
-   const fee = new BN("2000000000000");
+   const xcmFee = new BN("2000000000000");
+   const to = "5D5PhZQNJzcJXVBxwJxZcsaNWf5eV2XBZFreiSdbrfNy2Hvi";
 
    const result = await saturn
      .bridgeXcmAsset({
        id,
        asset,
        amount,
-       destination: "Basilisk",
-       fee: new BN("2000000000000"),
+       to,
+       destination,
+       xcmFee,
        proposalMetadata: "bridge",
      })
      .signAndSend(address, signer);
