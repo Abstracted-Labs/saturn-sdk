@@ -70,4 +70,21 @@ saturn.sendXCMCal({
 })
 ```
 
-Using these two methods you can use your Saturn multisig to the fullest of it's abilities and you can flexibly propose any call, both in Tinkernet and in other chains!
+## Submitting
+
+Both of these methods return a [MultisigCall](https://saturn-typedocs.invarch.network/classes/MultisigCall.html) class, this can be then submitted by calling `.signAndSend`.
+A [MultisigCallResult](https://saturn-typedocs.invarch.network/classes/MultisigCallResult.html) is returned after submitting the call.
+
+```typescript
+saturn.sendXCMCal({...}).signAndSend(
+// Address of the multisig member proposing this call.
+address,
+// Signer with the member's account.
+signer
+// Optional FeeAsset used to pay for this transaction in Tinkernet.
+// Will use the one set in the Saturn class if not provided.
+FeeAsset.KSM
+)
+```
+
+The [MultisigCallResult](https://saturn-typedocs.invarch.network/classes/MultisigCallResult.html) contains relevant information about the proposed call, it represents calls both proposed and those that were voted on and thus executed, the methods `.isExecuted` and `.isVoteStarted` help understand the status returned.
