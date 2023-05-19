@@ -6,7 +6,6 @@
   "query": "Querying",
   "voting": "Voting",
   "making-calls": "Making Multisig Calls",
-  "data": "Data related to the multisig",
   "pending": "Pending calls",
   "rings": "XCM operations"
 }

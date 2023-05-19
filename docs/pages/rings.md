@@ -64,7 +64,7 @@ These functions all return a `MultisigCallResult`.
    const feeAsset = FeeAsset.TNKR;
    const fee = new BN(10);
 
-   const result: MultisigCallResult = await saturn
+   const result = await saturn
      .transferXcmAsset({
        id,
        asset,
