@@ -1,21 +1,21 @@
 # Setting up a `Saturn` Instance
 
-To start interacting with the Software Development Kit (SDK), you first need to instantiate a `Saturn` class object. This object will provide you with access to the necessary methods for creating and managing multisigs.
+Getting started with the Saturn Software Development Kit (SDK) is like unlocking a toolbox. Each tool within the toolbox corresponds to a different functionality you can leverage to manage multisigs. To begin, you first need to unlock this toolbox by instantiating a `Saturn` class object.
 
 ## 1. Importing Dependencies:
 
-Start by importing the required classes and functions from the SDK:
+Your journey starts with gathering your tools. The required classes and functions from the SDK are your keys:
 
 ```typescript
 import { ApiPromise, WsProvider } from "@polkadot/api";
 import { Saturn } from "saturn-sdk";
 ```
 
-Here, `ApiPromise` and `WsProvider` are imported from the `@polkadot/api` package, while `Saturn` is imported from the `saturn-sdk` package.
+Think of `ApiPromise` and `WsProvider` as your tool connectors, which are imported from the `@polkadot/api` package. Meanwhile, `Saturn` is your main toolbox from the `saturn-sdk` package.
 
 ## 2. Connecting to Tinkernet/InvArch:
 
-Next, establish a connection to a Tinkernet/InvArch node by creating an instance of `ApiPromise`.
+Now it's time to connect your tools to the workbench, Tinkernet/InvArch, by establishing a connection using an instance of `ApiPromise`.
 
 ```typescript
 const wsProvider = new WsProvider(
@@ -24,11 +24,11 @@ const wsProvider = new WsProvider(
 const api = await ApiPromise.create({ provider: wsProvider });
 ```
 
-In this step, we're creating a WebSocket provider with our node's URL and passing it to `ApiPromise.create()` method to establish the connection.
+In this step, imagine constructing a communication bridge (WebSocket provider) with the address of your node and passing it to the `ApiPromise.create()` method to form a robust connection.
 
 ## 3. Instantiating the Saturn Class:
 
-Create an instance of the `Saturn` class by passing the `api` object (created in step 2) to the constructor. This will give you a `saturn` object that you can use to interact with the SDK.
+You're ready to unlock the toolbox! Create an instance of the `Saturn` class by using your connection (`api` object) as the key.
 
 ```typescript
 const saturn = new Saturn({ api });
@@ -36,6 +36,8 @@ const saturn = new Saturn({ api });
 
 ## 4. Ready to Roll:
 
-Congratulations! You've successfully set up your `Saturn` instance. You can now start using the SDK to create and manage multisigs. Continue reading this documentation for examples on how to perform common operations with your `Saturn` instance.
+Kudos! Your toolbox (Saturn instance) is now unlocked. You can utilize the SDK to create and manage multisigs. Picture each task you perform as using a different tool from this box.
 
-Remember to always ensure your node URL is correct and your connection to it is successful before attempting to interact with the SDK. An incorrect URL or a failed connection could lead to errors in the following steps.
+Remember, ensuring your workbench (node URL) is set up correctly and your bridge (connection) is sturdy before you start using your tools is vital. Any missteps here could cause your tools (methods in the SDK) to malfunction.
+
+Continuing this analogy, the following documentation sections will guide you on how to wield these tools effectively and get the job done.

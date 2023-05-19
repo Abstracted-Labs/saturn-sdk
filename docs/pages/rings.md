@@ -2,6 +2,8 @@
 
 Rings functions provide the ability to interact with external chains and networks using Cross-Chain Messaging (XCM) within the context of a multisig. They extend the capabilities of multisigs, enabling them to interface with different chains and networks, thus increasing their versatility in a cross-chain environment.
 
+These functions all return a `MultisigCallResult`.
+
 1. **Send XCM Call**
 
    `sendXCMCall` is a function that sends a cross-chain message (XCM) from a multisig to an external destination. It can be utilized for making cross-chain interactions such as interacting with smart contracts or other parachains.
@@ -25,14 +27,16 @@ Rings functions provide the ability to interact with external chains and network
    const feeAsset = FeeAsset.TNKR;
    const fee = new BN(10);
 
-   await saturn.sendXCMCall({
-     id,
-     destination,
-     weight,
-     callData,
-     feeAsset,
-     fee,
-   });
+   const result = await saturn
+     .sendXCMCall({
+       id,
+       destination,
+       weight,
+       callData,
+       feeAsset,
+       fee,
+     })
+     .signAndSend(address, signer);
    ```
 
 2. **Transfer XCM Asset**
@@ -58,14 +62,16 @@ Rings functions provide the ability to interact with external chains and network
    const feeAsset = FeeAsset.TNKR;
    const fee = new BN(10);
 
-   await saturn.transferXcmAsset({
-     id,
-     asset,
-     amount,
-     to,
-     feeAsset,
-     fee,
-   });
+   const result: MultisigCallResult = await saturn
+     .transferXcmAsset({
+       id,
+       asset,
+       amount,
+       to,
+       feeAsset,
+       fee,
+     })
+     .signAndSend(address, signer);
    ```
 
 3. **Bridge XCM Asset**
@@ -87,6 +93,17 @@ Rings functions provide the ability to interact with external chains and network
    const id = 1;
    const asset = "KSM";
    const amount = new BN(100);
-   const destination = "5D5PhZQNJzcJXVBxwJxZcsaNWf5eV2XBZFreiSdbrfNy2Hvi";
-   const to = "5FHneW46
+   const destination = "Basilisk";
+   const fee = new BN("2000000000000");
+
+   const result = await saturn
+     .bridgeXcmAsset({
+       id,
+       asset,
+       amount,
+       destination: "Basilisk",
+       fee: new BN("2000000000000"),
+       proposalMetadata: "bridge",
+     })
+     .signAndSend(address, signer);
    ```

@@ -9,6 +9,7 @@ The `getDetails` function allows you to obtain specific details about a multisig
 **Usage:**
 
 ```typescript
+const multisigId = 1; // replace with actual multisig ID
 const details = await saturn.getDetails(multisigId);
 
 console.log("Multisig details:", details);
@@ -45,7 +46,7 @@ To fetch the details of a specific pending call in a multisig using the call has
 **Usage:**
 
 ```typescript
-const callHash = "0x12345...";
+const callHash = "0x12345..."; // replace with actual call hash
 const callDetails = await saturn.getPendingCall({ id: multisigId, callHash });
 
 console.log("Pending call details:", callDetails);
@@ -70,6 +71,7 @@ You can use the `getMultisigsForAccount` function to fetch all multisigs where a
 **Usage:**
 
 ```typescript
+const accountAddress = "5D5PhZQNJzcJXVBxwJxZcsutjKPqUPydrvpu6HeiBfMaeKQu"; // replace with actual account address
 const accountMultisigs = await saturn.getMultisigsForAccount(accountAddress);
 
 console.log("Multisigs for account:", accountMultisigs);

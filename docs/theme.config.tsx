@@ -15,8 +15,8 @@ const config: DocsThemeConfig = {
   },
   useNextSeoProps() {
     return {
-      titleTemplate: '%s - Saturn SDK'
-    }
+      titleTemplate: "%s - Saturn SDK",
+    };
   },
   head: (
     <>
@@ -27,6 +27,7 @@ const config: DocsThemeConfig = {
       <meta name="twitter:site" content="@InvArchNetwork" />
     </>
   ),
+  darkMode: true,
 };
 
 export default config;
