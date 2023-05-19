@@ -21,20 +21,22 @@ These functions all return a `MultisigCallResult`.
 
    ```typescript
    const id = 1;
-   const destination = "5D5PhZQNJzcJXVBxwJxZcsaNWf5eV2XBZFreiSdbrfNy2Hvi";
+   const destination = "Basilisk";
    const weight = new BN(1000);
-   const callData = "0x12345...";
+   const callData = fakeCall.toU8a()
    const feeAsset = FeeAsset.TNKR;
    const fee = new BN(10);
+   const proposalMetadata = "swap"
 
    const result = await saturn
      .sendXCMCall({
        id,
        destination,
-       weight,
-       callData,
-       feeAsset,
        fee,
+       feeAsset,
+       weight,
+       callData,,
+       proposalMetadata,
      })
      .signAndSend(address, signer);
    ```
