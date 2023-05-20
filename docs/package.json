@@ -9,14 +9,14 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@types/node": "18.15.13",
-    "@types/react": "18.0.37",
-    "@types/react-dom": "18.0.11",
-    "eslint": "8.38.0",
-    "eslint-config-next": "13.3.0",
-    "next": "^13.3.0",
-    "nextra": "^2.4.0",
-    "nextra-theme-docs": "^2.4.0",
+    "@types/node": "20.2.1",
+    "@types/react": "18.2.6",
+    "@types/react-dom": "18.2.4",
+    "eslint": "8.41.0",
+    "eslint-config-next": "13.4.3",
+    "next": "^13.4.3",
+    "nextra": "^2.5.2",
+    "nextra-theme-docs": "^2.5.2",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "typescript": "5.0.4"

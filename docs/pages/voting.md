@@ -8,7 +8,7 @@ The `vote` function in the Saturn library allows multisig members to express the
 
 ```typescript
 // Example: Voting in favor of a multisig call
-await saturn.vote({
+const voteAye = await saturn.vote({
   id: 1,
   callHash:
     "0x6d83b6f34d6f4738e2730c1d68cfa35e03c2a8f76f5b4e4d4db3ad07c68a1e17",
@@ -16,7 +16,7 @@ await saturn.vote({
 });
 
 // Example: Voting against a multisig call
-await saturn.vote({
+const voteNay = await saturn.vote({
   id: 1,
   callHash:
     "0x6d83b6f34d6f4738e2730c1d68cfa35e03c2a8f76f5b4e4d4db3ad07c68a1e17",
@@ -32,7 +32,7 @@ The `withdrawVote` function allows a multisig member to retract their previous v
 
 ```typescript
 // Example: Withdrawing your vote from a multisig call
-await saturn.withdrawVote({
+const voteWithdraw = await saturn.withdrawVote({
   id: 1,
   callHash:
     "0x6d83b6f34d6f4738e2730c1d68cfa35e03c2a8f76f5b4e4d4db3ad07c68a1e17",
@@ -49,16 +49,12 @@ Below is an example from our `/example` app, demonstrating how to submit a vote.
 const handleVoteSubmit = async (votingCallHash: string) => {
   const injector = await web3FromAddress(selectedAccount.address);
 
-  saturn
+  const result = saturn
     .vote({ id, callHash: votingCallHash, aye: true })
-    .signAndSend(
-      selectedAccount.address,
-      { signer: injector.signer },
-      ({ events }) => {
-        console.log(events.map((event) => event.toHuman()));
-      }
-    );
+    .signAndSend(selectedAccount.address, { signer: injector.signer });
+
+  console.log(result);
 };
 ```
 
-You'll be able to verify if the voting action was successful by finding the corresponding successful event in the console logs.
+You'll be able to verify if the voting action was successful by getting the MultisigCall result at the end.

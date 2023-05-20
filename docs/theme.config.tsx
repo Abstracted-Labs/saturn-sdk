@@ -9,14 +9,14 @@ const config: DocsThemeConfig = {
   chat: {
     link: "https://discord.com/invite/invarch",
   },
-  docsRepositoryBase: "https://github.com/InvArch/saturn-sdk/docs",
+  docsRepositoryBase: "https://github.com/InvArch/saturn-sdk/tree/main/docs",
   footer: {
     text: "InvArch Corporation",
   },
   useNextSeoProps() {
     return {
-      titleTemplate: '%s - Saturn SDK'
-    }
+      titleTemplate: "%s - Saturn SDK",
+    };
   },
   head: (
     <>
@@ -27,6 +27,7 @@ const config: DocsThemeConfig = {
       <meta name="twitter:site" content="@InvArchNetwork" />
     </>
   ),
+  darkMode: true,
 };
 
 export default config;

@@ -1,45 +1,90 @@
-# Transfer XCM Asset
+# Making calls
 
-The `transferXcmAsset` function facilitates the transfer of assets across various parachains using the XCM (Cross-Chain Message) protocol. This document provides an overview of the parameters necessary for the transfer and how to interpret the function's return value.
+Proposing multisig calls through the SDK is fairly simple and can be done in two different ways, let's go over them.
 
-## Parameters:
+## Saturn specific calls
 
-- `sender`: This is the account address initiating the transfer. It should be a valid account identifier string in the corresponding blockchain network format.
+Within the SDK there are a few functions that are wrappers around the call builder, these are multisig specific operations that have to be called by the multisig account rather than by a member of the multisig. They can be built by calling methods in the `Saturn` class, here are some of them:
 
-- `destination`: This refers to the recipient's account address. Similar to the `sender`, it should be a valid account identifier string.
+```typescript
+// Build a call that sets multisig parameters.
+saturn.setMultisigParameters({...});
 
-- `asset`: This parameter identifies the asset to be transferred. It should be a string representing the asset's symbol or ID.
+// Build a call that adds a new member to the multisig.
+saturn.proposeNewMember({...});
 
-- `amount`: This parameter specifies the amount of the asset to be transferred. This should be a number, BN (Big Number), or a string that can be parsed into a number.
-
-## Return Value:
-
-Upon execution, the function returns a message indicating the outcome of the transfer. It could be a success message if the transfer was successful, or a failure message detailing the reason for the transfer failure.
-
-## Example Usage:
-
-The following example demonstrates how to use the `transferXcmAsset` function. In this scenario, the function transfers 100 units of the asset 'KSM' from the sender's account to the recipient's account.
-
-```javascript
-const sender = "5D5PhZQNJzcJXVBxwJxZcsaNWf5eV2XBZFreiSdbrfNy2Hvi";
-const destination = "5FHneW46xGXgs5mUiveU4sbTyGBzmstUspZC92UhjJM694ty";
-const asset = "KSM";
-const amount = 100;
-
-try {
-  const transferResult = await transferXcmAsset(
-    sender,
-    destination,
-    asset,
-    amount
-  );
-
-  console.log(transferResult);
-} catch (error) {
-  console.error(`Transfer failed with error: ${error}`);
-}
+// Builds a call that bridges an asset over XCM form one chain to another.
+saturn.transferXcmAsset({...});
 ```
 
-In the example above, we wrapped the function call in a try-catch block to handle any potential errors that might occur during the execution of the transfer.
+These are convenience functions that are frequently used in Saturn, you'll find more of them explained in this document.
 
-Please note that the provided `sender`, `destination`, and `asset` values are just examples. Replace them with actual values corresponding to your use case when implementing this in your application.
+## General call builder
+
+For anything that's not necessarily related with maagement of the multisig itself, you'll want to build calls externally and propose them through Saturn, for that we have a call builder method:
+
+```typescript
+// For Tinkernet calls, use .buildMultisigCall
+
+const stakeCall = tinkernetApi.tx.ocifStaking.stake(0, "10000000000000");
+
+saturn.buildMultisigCall({
+  // The multisig id.
+  id: 0,
+  // The call to execute in Tinkernet
+  call: stakeCall,
+  // The asset to pay the transaction fee in Tinkernet.
+  feeAsset: FeeAsset.TNKR,
+  // Optional proposal metadata.
+  proposalMetadata: "This is optional, but can be rather useful!"
+});
+
+
+// For other chains, use .sendXCMCall
+// This is a wrapper that uses .buildMultisigCall internally.
+
+const destination = "Basilisk";
+
+const xcmFeeAsset = saturn.chains.find((c) => c.chain == "Basilisk").assets.find((asset) => asset.label == "BSX").registerType;
+
+const swapCall = basiliskApi.tx.router.sell("KSM", "TNKR", "10000000000000", 0, [{ pool: "XYK", assetIn: "KSM", assetOut: "TNKR" }]);
+
+const {weight, partialFee} = swapCall.paymentInfo("any address");
+
+saturn.sendXCMCal({
+    // The multisig id.
+    id: number;
+    // The destination chain.
+    destination,
+    // The actual call on the destination chain.
+    callData: swapCall.toU8a(),
+    // Optional proposal metadata.
+    proposalMetadata: "This is optional, but can be rather useful!",
+    // Weight for the call in the destination chain.
+    weight: new BN(weight),
+    // The fee for the XCM call and the transaction.
+    // Multiplying by 2 is a conservative estimate.
+    xcmFee: new BN(partialFee).mul("2"),
+    // The asset to use when paying the fees in the destination chain.
+    xcmFeeAsset,
+})
+```
+
+## Submitting
+
+Both of these methods return a [MultisigCall](https://saturn-typedocs.invarch.network/classes/MultisigCall.html) class, this can be then submitted by calling `.signAndSend`.
+A [MultisigCallResult](https://saturn-typedocs.invarch.network/classes/MultisigCallResult.html) is returned after submitting the call.
+
+```typescript
+saturn.sendXCMCal({...}).signAndSend(
+// Address of the multisig member proposing this call.
+address,
+// Signer with the member's account.
+signer
+// Optional FeeAsset used to pay for this transaction in Tinkernet.
+// Will use the one set in the Saturn class if not provided.
+FeeAsset.KSM
+)
+```
+
+The [MultisigCallResult](https://saturn-typedocs.invarch.network/classes/MultisigCallResult.html) contains relevant information about the proposed call, it represents calls both proposed and those that were voted on and thus executed, the methods `.isExecuted` and `.isVoteStarted` help understand the status returned.
