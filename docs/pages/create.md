@@ -1,14 +1,14 @@
 # Creating a Multisig
 
-A multisig is a security feature that requires multiple signatures or approvals to authorize transactions. This guide presents a step-by-step procedure to create a multisig using the `saturn` object in TypeScript.
+A multisig is a blockchain primitive that requires multiple approvals to authorize transactions. This guide presents a step-by-step procedure to create a multisig using the Saturn in TypeScript.
 
 ## 1. Initiating a new multisig:
 
-To generate a new multisig, call the `createMultisig` method on the `saturn` object. This method accepts the following parameters:
+To generate a new multisig, call the `createMultisig` method on the `Saturn` class. This method accepts the following parameters:
 
-- `metadata`: A JSON stringifiable object containing information about your multisig. This metadata can later be leveraged in your decentralized application (dApp).
-- `minimumSupport`: The lowest threshold of approvals needed for a transaction. Accepts values in `Perbill`, `BN`, or number formats.
-- `requiredApproval`: The necessary percentage of approvals for a transaction to be deemed valid. Accepts `Perbill`, `BN`, or number.
+- `metadata`: An arbitrary vector of bytes, can be used as a string or as raw bytes. This metadata can later be leveraged in your decentralized application (dApp).
+- `minimumSupport`: The minimum ratio of positive votes to the total supply of vote tokens. Accepts values in `Perbill`, `BN`, or number formats.
+- `requiredApproval`: The minimum ratio of positive to negative votes. Accepts `Perbill`, `BN`, or number.
 - `feeAsset`: Imported from the multisig as `FeeAsset`, this enum can be used as `FeeAsset.TNKR` or `FeeAsset.KSM`.
 
 Below is a sample code block demonstrating the creation of a multisig:
@@ -63,5 +63,3 @@ console.log("Multisig created with ID:", multisig.id);
 ```
 
 By following this guide, you should be able to successfully create a multisig and manage it using the `Saturn` class methods. Always remember to verify the creation of your multisig and monitor the transaction status to ensure successful operations.
-
-If you encounter any issues or need further assistance, please refer to our troubleshooting guide or reach out to our support team.
