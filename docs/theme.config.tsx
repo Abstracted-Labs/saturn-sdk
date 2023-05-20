@@ -9,7 +9,7 @@ const config: DocsThemeConfig = {
   chat: {
     link: "https://discord.com/invite/invarch",
   },
-  docsRepositoryBase: "https://github.com/InvArch/saturn-sdk/docs",
+  docsRepositoryBase: "https://github.com/InvArch/saturn-sdk/tree/main/docs",
   footer: {
     text: "InvArch Corporation",
   },
