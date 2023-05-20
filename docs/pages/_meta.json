@@ -1,11 +1,10 @@
 {
-  "saturn": "Overview of Saturn",
   "index": "Getting Started",
+  "saturn": "Overview of Saturn",
   "create": "Creating a Multisig",
   "member-management": "Managing members",
   "query": "Querying",
   "voting": "Voting",
   "making-calls": "Making Multisig Calls",
-  "pending": "Pending calls",
   "rings": "XCM operations"
 }
