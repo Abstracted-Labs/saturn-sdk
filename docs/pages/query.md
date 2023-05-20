@@ -9,7 +9,7 @@ The `getDetails` function retrieves key details about a multisig such as minimum
 **Example:**
 
 ```typescript
-const multisigId = 1; // Update with actual multisig ID
+const multisigId = 1; // Update with the actual multisig ID
 const details = await saturn.getDetails(multisigId);
 
 console.log("Multisig details:", details);
