@@ -12,7 +12,7 @@
     "typegen": "yarn generate:defs && yarn generate:meta",
     "generate:defs": "ts-node-esm node_modules/.bin/polkadot-types-from-defs --package @invarch/saturn-sdk/interfaces --input ./src/typegen --endpoint ./src/typegen/tinkernet.json",
       "generate:meta": "ts-node-esm node_modules/.bin/polkadot-types-from-chain --package @invarch/saturn-sdk/interfaces --endpoint ./src/typegen/tinkernet.json --output ./src/typegen --strict",
-      "typedocs": "typedoc --excludePrivate --out typedocs/ src/index.ts",
+      "typedocs": "typedoc --excludePrivate --exclude \"**/rpc/**\" --exclude \"**/typegen/**\" --out typedocs/ src/index.ts",
       "postinstall": "tsc --outDir ./dist"
   },
   "author": "",
