@@ -1,6 +1,6 @@
 {
-  "saturn": "Overview of Saturn",
-  "index": "Getting Started",
+  "index": "Overview of Saturn",
+  "getting-started": "Getting Started",
   "create": "Creating a Multisig",
   "member-management": "Managing members",
   "query": "Querying",
