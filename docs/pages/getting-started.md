@@ -8,7 +8,7 @@ Your journey starts with gathering your tools. The required classes and function
 
 ```typescript
 import { ApiPromise, WsProvider } from "@polkadot/api";
-import { Saturn } from "saturn-sdk";
+import { Saturn } from "@invarch/saturn-sdk";
 ```
 
 Think of `ApiPromise` and `WsProvider` as your tool connectors, which are imported from the `@polkadot/api` package. Meanwhile, `Saturn` is your main toolbox from the `saturn-sdk` package.
