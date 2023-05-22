@@ -1,12 +1,12 @@
 {
   "name": "@invarch/saturn-sdk",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "",
   "type": "module",
+  "main": "./dist/index.js",
   "files": [
-    "dist"
+    "dist/**/*"
   ],
-  "main": "index.js",
   "scripts": {
     "build": "tsc --outDir ./dist",
     "typegen": "yarn generate:defs && yarn generate:meta",
@@ -15,8 +15,6 @@
       "typedocs": "typedoc --excludePrivate --exclude \"**/rpc/**\" --exclude \"**/typegen/**\" --out typedocs/ src/index.ts",
       "postinstall": "tsc --outDir ./dist"
   },
-  "author": "",
-  "license": "ISC",
   "devDependencies": {
     "@polkadot/typegen": "10.3.4",
     "@types/node": "^18.15.13",
@@ -28,8 +26,13 @@
   "dependencies": {
     "@polkadot/api": "^10.3.4",
     "@polkadot/api-augment": "^10.3.4",
-    "@polkadot/extension-dapp": "^0.45.5",
-    "@polkadot/types": "^10.3.4",
-    "bn.js": "^5.2.1"
+    "@polkadot/types": "^10.3.4"
+  },
+
+  "author": "InvArch Team",
+  "license": "GPL-3.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/InvArch/saturn-sdk.git"
   }
 }

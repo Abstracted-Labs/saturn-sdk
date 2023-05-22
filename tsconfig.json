@@ -2,7 +2,7 @@
   "compilerOptions": {
     "target": "esnext",
     "module": "esnext",
-    "outDir": "./build",
+    "outDir": "./dist",
     "moduleResolution": "node",
       "skipLibCheck": true,
     "declaration": true,
@@ -21,5 +21,5 @@
         "experimentalSpecifierResolution": "node"
     },
     "include": ["src/**/*"],
-    "exclude": ["node_modules"]
+    "exclude": ["node_modules", "docs", "typedocs", "examples"]
 }
