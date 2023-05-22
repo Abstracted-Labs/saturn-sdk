@@ -214,8 +214,8 @@ class Saturn {
 
       const oc = pendingCalls.map(([hash, call]) => {
           return {
-              callHash: hash,
-              details: new CallDetails({ id, details: call, registry: this.api.registry }),
+              callHash: hash.args[1],
+              details: new CallDetails({ id, details: call, registry: this.api.registry, }),
           };
 
       });
@@ -237,7 +237,7 @@ class Saturn {
 
     if (!call) return null;
 
-      const details = new CallDetails({ id, details: call, registry: this.api.registry });
+      const details = new CallDetails({ id, details: call, registry: this.api.registry, });
 
     return details;
   };
