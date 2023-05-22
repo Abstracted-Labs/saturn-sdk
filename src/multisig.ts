@@ -207,30 +207,20 @@ class Saturn {
   public getPendingCalls = async (
     id: number
   ): Promise<CallDetailsWithHash[]> => {
-    const pendingCalls: [
-      StorageKey<[u32, Hash]>,
-      Option<PalletInv4MultisigMultisigOperation>
-    ][] = await this._getPendingMultisigCalls(id);
+      const pendingCalls: [
+          StorageKey<[u32, Hash]>,
+          PalletInv4MultisigMultisigOperation
+      ][] = await this._getPendingMultisigCalls(id);
 
-    const openCalls = pendingCalls.reduce(
-      (newCalls: { callHash: Hash; details: CallDetails }[], call) => {
-        const callHash = call[0].args[1] as Hash;
+      const oc = pendingCalls.map(([hash, call]) => {
+          return {
+              callHash: hash,
+              details: new CallDetails({ id, details: call, registry: this.api.registry }),
+          };
 
-        const maybeCallDetails = call[1].unwrap();
+      });
 
-        if (maybeCallDetails) {
-          newCalls.push({
-            callHash,
-            details: new CallDetails({ id, details: maybeCallDetails }),
-          });
-        }
-
-        return newCalls;
-      },
-      []
-    );
-
-    return openCalls;
+      return oc;
   };
 
   public getPendingCall = async ({
@@ -247,7 +237,7 @@ class Saturn {
 
     if (!call) return null;
 
-    const details = new CallDetails({ id, details: call });
+      const details = new CallDetails({ id, details: call, registry: this.api.registry });
 
     return details;
   };
@@ -540,7 +530,7 @@ class Saturn {
   private _getPendingMultisigCalls = (
     id: number
   ): Promise<
-    [StorageKey<[u32, Hash]>, Option<PalletInv4MultisigMultisigOperation>][]
+    [StorageKey<[u32, Hash]>, PalletInv4MultisigMultisigOperation][]
   > => {
     return getPendingMultisigCalls({ api: this.api, id });
   };

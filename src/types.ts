@@ -421,18 +421,22 @@ export class CallDetails {
   constructor({
     id,
     details,
+      registry,
   }: {
     id: number;
     details: PalletInv4MultisigMultisigOperation;
+      registry: Registry;
   }) {
     this.id = id;
     this.tally = details.tally;
     this.originalCaller = details.originalCaller;
-    this.actualCall = details.actualCall.registry.createType(
+    this.actualCall = registry.createType(
       "Call",
-      details.actualCall
+        details.toHuman().actualCall
     );
-      this.proposalMetadata = details.metadata.unwrap();
+      const meta = details.metadata?.toString();
+
+      if (meta) this.proposalMetadata = meta;
   }
 
   public async canExecute(api: ApiPromise, votes: BN): Promise<boolean> {
