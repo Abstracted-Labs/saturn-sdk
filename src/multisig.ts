@@ -36,6 +36,7 @@ import {
   CallDetailsWithHash,
   FeeAsset,
   XcmAssetRepresentation,
+  ParsedCallDetails,
 } from "./types";
 
 import { StorageKey } from "@polkadot/types";
@@ -213,9 +214,12 @@ class Saturn {
       ][] = await this._getPendingMultisigCalls(id);
 
       const oc = pendingCalls.map(([hash, call]) => {
+
+          const c = call.toPrimitive() as unknown as ParsedCallDetails;
+
           return {
               callHash: hash.args[1],
-              details: new CallDetails({ id, details: call, registry: this.api.registry, }),
+              details: new CallDetails({ id, details: c, registry: this.api.registry, }),
           };
 
       });
@@ -237,7 +241,9 @@ class Saturn {
 
     if (!call) return null;
 
-      const details = new CallDetails({ id, details: call, registry: this.api.registry, });
+      const c = call.toPrimitive() as unknown as ParsedCallDetails;
+
+      const details = new CallDetails({ id, details: c, registry: this.api.registry, });
 
     return details;
   };

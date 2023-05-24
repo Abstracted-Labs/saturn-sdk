@@ -24,7 +24,8 @@ import type {
 } from "@polkadot/api-base/types";
 import {
   PalletInv4MultisigMultisigOperation,
-  PalletInv4VotingTally,
+    PalletInv4VotingTally,
+    PalletInv4VotingVote,
 } from "@polkadot/types/lookup";
 import { createCore, getTotalIssuance, getMultisig } from "./rpc";
 import { u8aToString } from "@polkadot/util";
@@ -411,10 +412,36 @@ export class MultisigCreator {
   }
 }
 
+export type ParsedTallyRecordsVote = {
+    aye?: BN;
+    nay?: undefined
+} | {
+    aye?: undefined;
+    nay?: BN
+};
+
+export type ParsedTallyRecords = {
+    [voter: string]: ParsedTallyRecordsVote,
+};
+
+export type ParsedTally = {
+    ayes: BN,
+    nays: BN,
+    records: ParsedTallyRecords,
+};
+
+export type ParsedCallDetails = {
+    originalCaller: string,
+    metadata?: string,
+    feeAsset: string,
+    actualCall: `0x${string}`,
+    tally: ParsedTally,
+};
+
 export class CallDetails {
   readonly id: number;
-  readonly tally: PalletInv4VotingTally;
-  readonly originalCaller: AccountId;
+    readonly tally: ParsedTally;
+  readonly originalCaller: string;
   readonly actualCall: Call;
   readonly proposalMetadata?: string | Uint8Array;
 
@@ -424,15 +451,15 @@ export class CallDetails {
       registry,
   }: {
     id: number;
-    details: PalletInv4MultisigMultisigOperation;
+    details: ParsedCallDetails;
       registry: Registry;
   }) {
     this.id = id;
-    this.tally = details.tally;
+      this.tally = details.tally;
     this.originalCaller = details.originalCaller;
     this.actualCall = registry.createType(
       "Call",
-        details.toHuman().actualCall
+        details.actualCall
     );
       const meta = details.metadata?.toString();
 
@@ -459,8 +486,8 @@ export class CallDetails {
   public toHuman(): AnyJson {
     return {
       id: this.id,
-      tally: this.tally.toHuman(),
-      originalCaller: this.originalCaller.toHuman(),
+      //  tally: this.tally,
+      originalCaller: this.originalCaller,
       actualCall: this.actualCall.toHuman(),
       proposalMetadata: typeof this.proposalMetadata == "string" ? this.proposalMetadata : u8aToString(this.proposalMetadata),
     };
