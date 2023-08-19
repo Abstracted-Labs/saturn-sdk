@@ -268,7 +268,7 @@ export class MultisigCall {
     return new Promise((resolve, reject) => {
       try {
           this.call.signAndSend(address, { signer, assetId: processFeeAssetAsHex(this.call.registry, feeAsset || this.feeAsset) }, ({ events, status }) => {
-          if (status.isInBlock) {
+          if (status.isInBlock || status.isFinalized) {
             const event = events.find(
               ({ event }) =>
                 event.method == "MultisigExecuted" ||
@@ -378,7 +378,7 @@ export class MultisigCreator {
               console.log("status: ", status.toHuman());
               console.log("events: ", events);
 
-          if (status.isInBlock) {
+          if (status.isInBlock || status.isFinalized) {
             const event = events.find(
               ({ event }) => event.method === "CoreCreated"
             )?.event.data;
