@@ -1,0 +1,215 @@
+import { Tabs, Steps, Callout } from 'nextra/components'
+
+# Parachain Implementation Guide
+This guide will go over the process for integrating the Saturn XCM configs in a parachain, so that it may receive and correctly interpret multisig calls coming from InvArch/Tinkernet. 
+
+## How does Saturn work?
+
+Saturn executes multisig calls in remote chains through XCM using the same Transact process as usual, the key difference is in how the XCM Origin and it's respective account id are derived.
+
+Since we want to maintain a consistent UX across all connected chains, the main thing we have to tackle is the multisig account address, which should be the same in every chain (except for those that use different account id types).
+
+We achieve this by avoiding hashing the account id and deriving a new one form that hash, so instead of sending our messages with the multisig account id, we send them with the multisig integer id, which is the source for deriving the account id.
+
+By doing that, the message receiver chains are then able to derive the exact same account id on their side, avoiding rehashing and avoiding account impersonation concerns.
+
+## How to implement this custom derivation process?
+
+This process consists of two simple XCM configs, one for the MultiLocation to Origin converter and one for the MultiLocation to AccountId converter, let's go over how to add them to a parachain:
+
+<Steps>
+### 1. Getting the XCM configs
+
+You have two options for doing this: using a crate or defining them in your own runtime:
+
+<Tabs items={['Using a Rust crate', 'Defining the configs in your runtime']}>
+	<Tabs.Tab>
+		This is the easier method, but requires you to introduce another crate to your runtime.
+		The XCM configs needed for Saturn are defined in the [ORML XCM Builder crate](https://github.com/open-web3-stack/orml-xcm-builder) under the Open Web3 Stack GitHub Organization, here's how to set it all up:
+		
+		This step should be fairly simple, just add the crate to your Cargo.toml and point it to the correct Substrate version for your runtime.
+		
+		```toml
+		# For Kusama parachains
+		orml-xcm-builder-kusama = { git = "https://github.com/open-web3-stack/orml-xcm-builder", default-features = false, branch = "polkadot-v0.9.43" } # Or the Substrate version you'r runtime is on.
+		
+		# For Polkadot parachains
+		# Soon!
+		```
+	</Tabs.Tab>
+
+	<Tabs.Tab>
+		If you would rather not add another dependency to your runtime, you can simply define the Saturn Multisig configs locally.
+		Since they are static they should only change in case XCM and it's traits change, but the logic itself should always remain the same!
+		
+		This should be pretty much just copy-paste, however this guide will provide the configs according to Substrate version 0.9.43, newer versions might change XCM traits requiring some adjusting.
+		
+		```rust
+		use frame_support::traits::OriginTrait;
+		use sp_core::H256;
+		use sp_io::hashing::blake2_256;
+		use sp_runtime::traits::TrailingZeroInput;
+		use sp_std::{borrow::Borrow, marker::PhantomData};
+		use xcm_executor::traits::{Convert as XcmConvert, ConvertOrigin};
+		
+		/// Tinkernet Multisig Multilocation for XCM barriers.
+		pub struct TinkernetMultisigMultiLocation;
+		impl Contains<MultiLocation> for TinkernetMultisigMultiLocation {
+		    fn contains(t: &MultiLocation) -> bool {
+		        matches!(
+		            t,
+		            MultiLocation {
+		                parents: 1,
+		                interior: Junctions::X3(
+		                    Junction::Parachain(2125),
+		                    Junction::PalletInstance(71),
+		                    Junction::GeneralIndex(_)
+		                )
+		            }
+		        )
+		    }
+		}
+		
+		/// Constant derivation function for Tinkernet Multisigs.
+		/// Uses the Tinkernet genesis hash as a salt.
+		pub fn derive_tinkernet_multisig<AccountId: Decode>(id: u128) -> Result<AccountId, ()> {
+		    AccountId::decode(&mut TrailingZeroInput::new(
+		        &(
+		            // The constant salt used to derive Tinkernet Multisigs, this is Tinkernet's genesis hash.
+		            H256([
+		                212, 46, 150, 6, 169, 149, 223, 228, 51, 220, 121, 85, 220, 42, 112, 244, 149, 243, 80, 243, 115, 218,
+		                162, 0, 9, 138, 232, 68, 55, 129, 106, 210,
+		            ]),
+		            // The actual multisig integer id.
+		            u32::try_from(id).map_err(|_| ())?,
+		        )
+		            .using_encoded(blake2_256),
+		    ))
+		    .map_err(|_| ())
+		}
+		
+		/// Convert a Tinkernet Multisig `MultiLocation` value into a local `AccountId`.
+		pub struct TinkernetMultisigAsAccountId<AccountId>(PhantomData<AccountId>);
+		impl<AccountId: Decode + Clone> XcmConvert<MultiLocation, AccountId> for TinkernetMultisigAsAccountId<AccountId> {
+		    fn convert_ref(location: impl Borrow<MultiLocation>) -> Result<AccountId, ()> {
+		        match location.borrow() {
+		            MultiLocation {
+		                parents: 1,
+		                interior:
+		                    X3(
+		                        Parachain(2125),
+		                        PalletInstance(71),
+		                        // Index from which the multisig account is derived.
+		                        GeneralIndex(id),
+		                    ),
+		            } => derive_tinkernet_multisig(*id),
+		            _ => Err(()),
+		        }
+		    }
+		}
+		
+		/// Convert a Tinkernet Multisig `MultiLocation` value into a `Signed` origin.
+		pub struct TinkernetMultisigAsNativeOrigin<RuntimeOrigin>(PhantomData<RuntimeOrigin>);
+		impl<RuntimeOrigin: OriginTrait> ConvertOrigin<RuntimeOrigin> for TinkernetMultisigAsNativeOrigin<RuntimeOrigin>
+		where
+		    RuntimeOrigin::AccountId: Decode,
+		{
+		    fn convert_origin(origin: impl Into<MultiLocation>, kind: OriginKind) -> Result<RuntimeOrigin, MultiLocation> {
+		        let origin = origin.into();
+		        match (kind, origin) {
+		            (
+		                OriginKind::Native,
+		                MultiLocation {
+		                    parents: 1,
+		                    interior:
+		                        X3(
+		                            Junction::Parachain(2125),
+		                            Junction::PalletInstance(71),
+		                            // Index from which the multisig account is derived.
+		                            Junction::GeneralIndex(id),
+		                        ),
+		                },
+		            ) => Ok(RuntimeOrigin::signed(
+		                derive_tinkernet_multisig(id).map_err(|_| origin)?,
+		            )),
+		            (_, origin) => Err(origin),
+		        }
+		    }
+		}
+		```
+	</Tabs.Tab>
+</Tabs>
+
+### 2. Adding the converters to your XCM configs
+		
+Now all you have to do is add the configs for both the MultiLocation to AccountId and the MultiLocation to Origin converters in their respective type declarations.
+
+<Callout type="warning" emoji="⚠️">
+	Make sure to have them **above** any converter that might match with any MultiLocation, like `XcmPassthrough` for example.
+</Callout>
+
+<Callout type="info" emoji="ℹ️">
+The example will have the types prefixed with the crate path (`orml_xcm_builder_kusama::`), if you defined them manually in your runtime you should use the path where they were defined.
+</Callout>
+
+```diff
+pub type LocationToAccountId = (
+	ParentIsPreset<AccountId>,
+	SiblingParachainConvertsVia<Sibling, AccountId>,
+	AccountId32Aliases<RelayNetwork, AccountId>,
++	// Mapping Tinkernet multisig to the correctly derived AccountId32.
++	orml_xcm_builder_kusama::TinkernetMultisigAsAccountId<AccountId>,
+);
+
+...
+
+pub type XcmOriginToTransactDispatchOrigin = (
+	SovereignSignedViaLocation<LocationToAccountId, RuntimeOrigin>,
+	RelayChainAsNative<RelayOrigin, RuntimeOrigin>,
+	SiblingParachainAsNative<cumulus_pallet_xcm::Origin, RuntimeOrigin>,
+	SignedAccountId32AsNative<RelayNetwork, RuntimeOrigin>,
++	// Derives signed AccountId32 origins for Tinkernet multisigs.
++	orml_xcm_builder_kusama::TinkernetMultisigAsNativeOrigin<RuntimeOrigin>,
+	XcmPassthrough<RuntimeOrigin>,
+);
+```
+
+#### 3. Setting up your barriers
+
+It might be the case that your XCM config has strict barriers, in which case you might want to add a new barrier to allow Saturn Multisigs rather than allowing everything.
+
+If you do want to safely allow everything, you would set up your barriers like this:
+
+```diff
+pub type Barrier = (
+	AllowKnownQueryResponses<PolkadotXcm>,
+	AllowSubscriptionsFrom<ParentOrSiblings>,
+	AllowTopLevelPaidExecutionFrom<Everything>,
+	TakeWeightCredit,
+	WithComputedOrigin<
++		AllowTopLevelPaidExecutionFrom<Everything>,
+		UniversalLocation,
+		ConstU32<8>,
+	>,
+);
+```
+
+But if you want to restrict this barrier to only match Saturn Multisigs, simply change the `Everything` like so:
+
+```diff
+pub type Barrier = (
+	AllowKnownQueryResponses<PolkadotXcm>,
+	AllowSubscriptionsFrom<ParentOrSiblings>,
+	AllowTopLevelPaidExecutionFrom<Everything>,
+	TakeWeightCredit,
+	WithComputedOrigin<
+-		AllowTopLevelPaidExecutionFrom<Everything>,
++		AllowTopLevelPaidExecutionFrom<orml_xcm_builder_kusama::TinkernetMultisigMultiLocation>,
+		UniversalLocation,
+		ConstU32<8>,
+	>,
+);
+```
+</Steps>
+
+And that's everything you need to set up in your XCM configs, your parachain should now be able to receive and interpret Saturn Multisig calls through XCM!

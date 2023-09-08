@@ -7,5 +7,6 @@
   "voting": "Voting",
   "making-calls": "Making Multisig Calls",
   "rings": "XCM operations",
-  "implementation-guide": "Implementation Guide"
+  "implementation-guide": "Implementation Guide",
+  "parachain-integration": "Parachain Implementation Guide"
 }
