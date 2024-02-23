@@ -20,7 +20,7 @@ import {
   burnTokenMultisig,
   transferExternalAssetMultisigCall,
   sendExternalMultisigCall,
-  getMultisigsForAccount,
+  getAccountAssets,
   getMultisigMembers,
   bridgeExternalMultisigAssetCall,
   getTotalIssuance,
@@ -569,7 +569,7 @@ class Saturn {
   }: {
     account: string | AccountId;
   }) => {
-    return getMultisigsForAccount({ api: this.api, account });
+    return getAccountAssets({ api: this.api, account });
   };
 
   private _voteMultisigCall = ({

@@ -1,10 +1,7 @@
 import { GetMultisigsForAccountParams } from "../../../types";
 
-const getMultisigsForAccount = ({
-  api,
-  account,
-}: GetMultisigsForAccountParams) => {
+const getAccountAssets = ({ api, account }: GetMultisigsForAccountParams) => {
   return api.query.coreAssets.accounts.entries(account);
 };
 
-export { getMultisigsForAccount };
+export { getAccountAssets };
