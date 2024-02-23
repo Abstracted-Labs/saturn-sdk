@@ -6,6 +6,9 @@ import { u32 } from "@polkadot/types-codec/primitive";
 import { Option } from "@polkadot/types-codec";
 import { PalletInv4MultisigMultisigOperation } from "@polkadot/types/lookup";
 
+import "./typegen/augment-api";
+import "./typegen/augment-types";
+
 import {
   createMultisigCall,
   getMultisig,
@@ -40,7 +43,7 @@ import {
 } from "./types";
 
 import { StorageKey } from "@polkadot/types";
-import { XcmV1MultiLocation } from "@polkadot/types/lookup";
+import { XcmV3MultiLocation } from "@polkadot/types/lookup";
 
 const PARACHAINS_KEY = "TinkernetRuntimeRingsChains";
 const PARACHAINS_ASSETS = "TinkernetRuntimeRingsChainAssets";
@@ -208,23 +211,25 @@ class Saturn {
   public getPendingCalls = async (
     id: number
   ): Promise<CallDetailsWithHash[]> => {
-      const pendingCalls: [
-          StorageKey<[u32, Hash]>,
-          PalletInv4MultisigMultisigOperation
-      ][] = await this._getPendingMultisigCalls(id);
+    const pendingCalls: [
+      StorageKey<[u32, Hash]>,
+      PalletInv4MultisigMultisigOperation
+    ][] = await this._getPendingMultisigCalls(id);
 
-      const oc = pendingCalls.map(([hash, call]) => {
+    const oc = pendingCalls.map(([hash, call]) => {
+      const c = call.toPrimitive() as unknown as ParsedCallDetails;
 
-          const c = call.toPrimitive() as unknown as ParsedCallDetails;
+      return {
+        callHash: hash.args[1],
+        details: new CallDetails({
+          id,
+          details: c,
+          registry: this.api.registry,
+        }),
+      };
+    });
 
-          return {
-              callHash: hash.args[1],
-              details: new CallDetails({ id, details: c, registry: this.api.registry, }),
-          };
-
-      });
-
-      return oc;
+    return oc;
   };
 
   public getPendingCall = async ({
@@ -241,9 +246,13 @@ class Saturn {
 
     if (!call) return null;
 
-      const c = call.toPrimitive() as unknown as ParsedCallDetails;
+    const c = call.toPrimitive() as unknown as ParsedCallDetails;
 
-      const details = new CallDetails({ id, details: c, registry: this.api.registry, });
+    const details = new CallDetails({
+      id,
+      details: c,
+      registry: this.api.registry,
+    });
 
     return details;
   };
@@ -495,7 +504,7 @@ class Saturn {
     const chains = await this._getChainsUnderMaintenance();
 
     const chainStatus: {
-      chainMultilocation: XcmV1MultiLocation;
+      chainMultilocation: XcmV3MultiLocation;
       isUnderMaintenance: boolean;
     }[] = chains.map(([chainMultilocation, isUnderMaintenance]) => {
       return {

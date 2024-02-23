@@ -4,22 +4,18 @@
     "module": "esnext",
     "outDir": "./dist",
     "moduleResolution": "node",
-      "skipLibCheck": true,
+    "skipLibCheck": true,
     "declaration": true,
     "declarationMap": true,
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
     "baseUrl": ".",
-      "paths": {
-          "@polkadot/api/augment": ["src/typegen/augment-api.ts"],
-          "@polkadot/types/augment": ["src/typegen/augment-types.ts"],
-          "@polkadot/types/lookup": ["src/typegen/types-lookup.ts"],
-          "@invarch/saturn-sdk/*": ["src/*"]
-      }
+    "paths": {
+      "@invarch/saturn-sdk/*": ["src/*"],
+      "@polkadot/api/augment": ["src/typegen/augment-api.ts"],
+      "@polkadot/types/augment": ["src/typegen/augment-types.ts"]
+    }
   },
-    "ts-node": {
-        "experimentalSpecifierResolution": "node"
-    },
-    "include": ["src/**/*"],
-    "exclude": ["node_modules", "docs", "typedocs", "examples"]
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "docs", "typedocs", "examples"]
 }

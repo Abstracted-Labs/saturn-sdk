@@ -34,67 +34,45 @@ declare module '@polkadot/api-base/types/errors' {
        **/
       InvalidAssetId: AugmentedError<ApiType>;
     };
-    authorship: {
-      /**
-       * The uncle is genesis.
-       **/
-      GenesisUncle: AugmentedError<ApiType>;
-      /**
-       * The uncle parent not in the chain.
-       **/
-      InvalidUncleParent: AugmentedError<ApiType>;
-      /**
-       * The uncle isn't recent enough to be included.
-       **/
-      OldUncle: AugmentedError<ApiType>;
-      /**
-       * The uncle is too high in chain.
-       **/
-      TooHighUncle: AugmentedError<ApiType>;
-      /**
-       * Too many uncles.
-       **/
-      TooManyUncles: AugmentedError<ApiType>;
-      /**
-       * The uncle is already included.
-       **/
-      UncleAlreadyIncluded: AugmentedError<ApiType>;
-      /**
-       * Uncles already set in the block.
-       **/
-      UnclesAlreadySet: AugmentedError<ApiType>;
-    };
     balances: {
       /**
-       * Beneficiary account must pre-exist
+       * Beneficiary account must pre-exist.
        **/
       DeadAccount: AugmentedError<ApiType>;
       /**
-       * Value too low to create account due to existential deposit
+       * Value too low to create account due to existential deposit.
        **/
       ExistentialDeposit: AugmentedError<ApiType>;
       /**
-       * A vesting schedule already exists for this account
+       * A vesting schedule already exists for this account.
        **/
       ExistingVestingSchedule: AugmentedError<ApiType>;
+      /**
+       * Transfer/payment would kill account.
+       **/
+      Expendability: AugmentedError<ApiType>;
       /**
        * Balance too low to send value.
        **/
       InsufficientBalance: AugmentedError<ApiType>;
       /**
-       * Transfer/payment would kill account
-       **/
-      KeepAlive: AugmentedError<ApiType>;
-      /**
-       * Account liquidity restrictions prevent withdrawal
+       * Account liquidity restrictions prevent withdrawal.
        **/
       LiquidityRestrictions: AugmentedError<ApiType>;
       /**
-       * Number of named reserves exceed MaxReserves
+       * Number of freezes exceed `MaxFreezes`.
+       **/
+      TooManyFreezes: AugmentedError<ApiType>;
+      /**
+       * Number of holds exceed `MaxHolds`.
+       **/
+      TooManyHolds: AugmentedError<ApiType>;
+      /**
+       * Number of named reserves exceed `MaxReserves`.
        **/
       TooManyReserves: AugmentedError<ApiType>;
       /**
-       * Vesting balance too high to send value
+       * Vesting balance too high to send value.
        **/
       VestingBalance: AugmentedError<ApiType>;
     };
@@ -404,6 +382,7 @@ declare module '@polkadot/api-base/types/errors' {
       MaxImageExceeded: AugmentedError<ApiType>;
       MaxNameExceeded: AugmentedError<ApiType>;
       MaxStakersReached: AugmentedError<ApiType>;
+      MoveStakeToSameCore: AugmentedError<ApiType>;
       NoHaltChange: AugmentedError<ApiType>;
       NoPermission: AugmentedError<ApiType>;
       NoStakeAvailable: AugmentedError<ApiType>;
@@ -439,7 +418,7 @@ declare module '@polkadot/api-base/types/errors' {
     };
     parachainSystem: {
       /**
-       * The inherent which supplies the host configuration did not run this block
+       * The inherent which supplies the host configuration did not run this block.
        **/
       HostConfigurationNotAvailable: AugmentedError<ApiType>;
       /**
@@ -451,16 +430,16 @@ declare module '@polkadot/api-base/types/errors' {
        **/
       NotScheduled: AugmentedError<ApiType>;
       /**
-       * Attempt to upgrade validation function while existing upgrade pending
+       * Attempt to upgrade validation function while existing upgrade pending.
        **/
       OverlappingUpgrades: AugmentedError<ApiType>;
       /**
-       * Polkadot currently prohibits this parachain from upgrading its validation function
+       * Polkadot currently prohibits this parachain from upgrading its validation function.
        **/
       ProhibitedByPolkadot: AugmentedError<ApiType>;
       /**
        * The supplied validation function has compiled into a blob larger than Polkadot is
-       * willing to run
+       * willing to run.
        **/
       TooBig: AugmentedError<ApiType>;
       /**
@@ -468,11 +447,15 @@ declare module '@polkadot/api-base/types/errors' {
        **/
       Unauthorized: AugmentedError<ApiType>;
       /**
-       * The inherent which supplies the validation data did not run this block
+       * The inherent which supplies the validation data did not run this block.
        **/
       ValidationDataNotAvailable: AugmentedError<ApiType>;
     };
     polkadotXcm: {
+      /**
+       * The given account is not an identifiable sovereign account for any location.
+       **/
+      AccountNotSovereign: AugmentedError<ApiType>;
       /**
        * The location is invalid since it already has a subscription from us.
        **/
@@ -499,13 +482,33 @@ declare module '@polkadot/api-base/types/errors' {
        **/
       Empty: AugmentedError<ApiType>;
       /**
+       * The operation required fees to be paid which the initiator could not meet.
+       **/
+      FeesNotMet: AugmentedError<ApiType>;
+      /**
        * The message execution fails the filter.
        **/
       Filtered: AugmentedError<ApiType>;
       /**
+       * The unlock operation cannot succeed because there are still consumers of the lock.
+       **/
+      InUse: AugmentedError<ApiType>;
+      /**
+       * Invalid asset for the operation.
+       **/
+      InvalidAsset: AugmentedError<ApiType>;
+      /**
        * Origin is invalid for sending.
        **/
       InvalidOrigin: AugmentedError<ApiType>;
+      /**
+       * A remote lock with the corresponding data could not be found.
+       **/
+      LockNotFound: AugmentedError<ApiType>;
+      /**
+       * The owner does not own (all) of the asset that they wish to do the operation on.
+       **/
+      LowBalance: AugmentedError<ApiType>;
       /**
        * The referenced subscription could not be found.
        **/
@@ -519,6 +522,10 @@ declare module '@polkadot/api-base/types/errors' {
        * Too many assets have been attempted for transfer.
        **/
       TooManyAssets: AugmentedError<ApiType>;
+      /**
+       * The asset owner has too many locks on the asset.
+       **/
+      TooManyLocks: AugmentedError<ApiType>;
       /**
        * The desired destination was unreachable, generally because there is a no way of routing
        * to it.

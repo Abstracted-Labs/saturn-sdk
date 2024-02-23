@@ -1,6 +1,11 @@
 import type { ApiPromise } from "@polkadot/api";
 import { SubmittableExtrinsic, ApiTypes } from "@polkadot/api/types";
-import { ISubmittableResult, AnyJson, Signer, Registry } from "@polkadot/types/types";
+import {
+  ISubmittableResult,
+  AnyJson,
+  Signer,
+  Registry,
+} from "@polkadot/types/types";
 import {
   AccountId,
   DispatchResult,
@@ -12,11 +17,7 @@ import {
 import { BN } from "@polkadot/util";
 import { u32 } from "@polkadot/types-codec/primitive";
 import { Text } from "@polkadot/types-codec/native";
-import {
-  Enum,
-  Struct,
-  BTreeMap,
-} from "@polkadot/types-codec";
+import { Enum, Struct, BTreeMap } from "@polkadot/types-codec";
 import type {
   AddressOrPair,
   SignerOptions,
@@ -24,8 +25,8 @@ import type {
 } from "@polkadot/api-base/types";
 import {
   PalletInv4MultisigMultisigOperation,
-    PalletInv4VotingTally,
-    PalletInv4VotingVote,
+  PalletInv4VotingTally,
+  PalletInv4VotingVote,
 } from "@polkadot/types/lookup";
 import { createCore, getTotalIssuance, getMultisig } from "./rpc";
 import { u8aToString } from "@polkadot/util";
@@ -103,30 +104,30 @@ type BurnTokenMultisigParams = DefaultMultisigParams & {
 };
 
 type TransferExternalAssetMultisigCallParams = {
-    api: ApiPromise;
-    asset: XcmAssetRepresentation;
-    amount: BN;
-    to: string | AccountId;
-    xcmFeeAsset: XcmAssetRepresentation;
-    xcmFee: BN;
+  api: ApiPromise;
+  asset: XcmAssetRepresentation;
+  amount: BN;
+  to: string | AccountId;
+  xcmFeeAsset: XcmAssetRepresentation;
+  xcmFee: BN;
 };
 
 type SendExternalMultisigCallParams = {
-    api: ApiPromise;
-    destination: string;
-    weight: BN;
-    callData: `0x{string}` | Uint8Array;
-    xcmFeeAsset: XcmAssetRepresentation;
-    xcmFee: BN;
+  api: ApiPromise;
+  destination: string;
+  weight: BN;
+  callData: `0x{string}` | Uint8Array;
+  xcmFeeAsset: XcmAssetRepresentation;
+  xcmFee: BN;
 };
 
 type BridgeExternalMultisigAssetParams = {
-    api: ApiPromise;
-    asset: XcmAssetRepresentation;
-    destination: string;
-    xcmFee: BN;
-    amount: BN;
-    to?: string | AccountId;
+  api: ApiPromise;
+  asset: XcmAssetRepresentation;
+  destination: string;
+  xcmFee: BN;
+  amount: BN;
+  to?: string | AccountId;
 };
 
 type XcmAssetRepresentation = { [key: string]: any };
@@ -248,9 +249,9 @@ export class MultisigCall {
   readonly call: SubmittableExtrinsic<ApiTypes>;
   readonly feeAsset: FeeAsset;
 
-    constructor(call: SubmittableExtrinsic<ApiTypes>, feeAsset: FeeAsset) {
-        this.call = call;
-        this.feeAsset = feeAsset;
+  constructor(call: SubmittableExtrinsic<ApiTypes>, feeAsset: FeeAsset) {
+    this.call = call;
+    this.feeAsset = feeAsset;
   }
 
   public paymentInfo(
@@ -267,62 +268,72 @@ export class MultisigCall {
   ): Promise<MultisigCallResult> {
     return new Promise((resolve, reject) => {
       try {
-          this.call.signAndSend(address, { signer, assetId: processFeeAssetAsHex(this.call.registry, feeAsset || this.feeAsset) }, ({ events, status }) => {
-          if (status.isInBlock || status.isFinalized) {
-            const event = events.find(
-              ({ event }) =>
-                event.method == "MultisigExecuted" ||
-                event.method == "MultisigVoteStarted"
-            )?.event;
+        this.call.signAndSend(
+          address,
+          {
+            signer,
+            assetId: processFeeAssetAsHex(
+              this.call.registry,
+              feeAsset || this.feeAsset
+            ),
+          },
+          ({ events, status }) => {
+            if (status.isInBlock || status.isFinalized) {
+              const event = events.find(
+                ({ event }) =>
+                  event.method == "MultisigExecuted" ||
+                  event.method == "MultisigVoteStarted"
+              )?.event;
 
-            if (!event) {
-              throw new Error("SOMETHING_WENT_WRONG");
-            }
-
-            const method = event.method;
-
-            switch (method) {
-              case "MultisigExecuted": {
-                const args = event.data;
-
-                const result = new MultisigCallResult({
-                  isExecuted: true,
-                  isVoteStarted: false,
-                  id: args[0] as u32,
-                  account: args[1] as AccountId,
-                  voter: args[2] as AccountId,
-                  callHash: args[3] as Hash,
-                  call: args[4] as Call,
-                  executionResult: args[5] as DispatchResult,
-                });
-
-                resolve(result);
-
-                break;
+              if (!event) {
+                throw new Error("SOMETHING_WENT_WRONG");
               }
-              case "MultisigVoteStarted": {
-                const args = event.data;
 
-                const result = new MultisigCallResult({
-                  isVoteStarted: true,
-                  isExecuted: false,
-                  id: args[0] as u32,
-                  account: args[1] as AccountId,
-                  voter: args[2] as AccountId,
-                  votesAdded: args[3] as Vote,
-                  callHash: args[4] as Hash,
-                  call: args[5] as Call,
-                });
+              const method = event.method;
 
-                resolve(result);
+              switch (method) {
+                case "MultisigExecuted": {
+                  const args = event.data;
 
-                break;
+                  const result = new MultisigCallResult({
+                    isExecuted: true,
+                    isVoteStarted: false,
+                    id: args[0] as u32,
+                    account: args[1] as AccountId,
+                    voter: args[2] as AccountId,
+                    callHash: args[3] as Hash,
+                    call: args[4] as Call,
+                    executionResult: args[5] as DispatchResult,
+                  });
+
+                  resolve(result);
+
+                  break;
+                }
+                case "MultisigVoteStarted": {
+                  const args = event.data;
+
+                  const result = new MultisigCallResult({
+                    isVoteStarted: true,
+                    isExecuted: false,
+                    id: args[0] as u32,
+                    account: args[1] as AccountId,
+                    voter: args[2] as AccountId,
+                    votesAdded: args[3] as Vote,
+                    callHash: args[4] as Hash,
+                    call: args[5] as Call,
+                  });
+
+                  resolve(result);
+
+                  break;
+                }
+                default:
+                  break;
               }
-              default:
-                break;
             }
           }
-        });
+        );
       } catch (e) {
         reject(e);
       }
@@ -362,49 +373,64 @@ export class MultisigCreator {
 
   public paymentInfo(
     account: AddressOrPair,
-    feeAsset?: FeeAsset,
+    feeAsset?: FeeAsset
   ): SubmittablePaymentResult<ApiTypes> {
-      return this.call.paymentInfo(account, {assetId: processFeeAssetAsNumber(this.call.registry, feeAsset || this.feeAsset)});
+    return this.call.paymentInfo(account, {
+      assetId: processFeeAssetAsNumber(
+        this.call.registry,
+        feeAsset || this.feeAsset
+      ),
+    });
   }
 
   public async signAndSend(
     address: string,
     signer: Signer,
-    feeAsset?: FeeAsset,
+    feeAsset?: FeeAsset
   ): Promise<MultisigCreateResult> {
     return new Promise((resolve, reject) => {
       try {
-          this.call.signAndSend(address, { signer, assetId: processFeeAssetAsHex(this.call.registry, feeAsset || this.feeAsset) }, ({ events, status }) => {
-              console.log("status: ", status.toHuman());
-              console.log("events: ", events);
+        this.call.signAndSend(
+          address,
+          {
+            signer,
+            assetId: processFeeAssetAsHex(
+              this.call.registry,
+              feeAsset || this.feeAsset
+            ),
+          },
+          ({ events, status }) => {
+            console.log("status: ", status.toHuman());
+            console.log("events: ", events);
 
-          if (status.isInBlock || status.isFinalized) {
-            const event = events.find(
-              ({ event }) => event.method === "CoreCreated"
-            )?.event.data;
+            if (status.isInBlock || status.isFinalized) {
+              const event = events.find(
+                ({ event }) => event.method === "CoreCreated"
+              )?.event.data;
 
-            const assetsEvent = events.find(
-              ({ event }) =>
-                event.section === "coreAssets" && event.method === "Endowed"
-            )?.event.data;
+              const assetsEvent = events.find(
+                ({ event }) =>
+                  event.section === "coreAssets" && event.method === "Endowed"
+              )?.event.data;
 
-            if (!event || !assetsEvent) {
-              throw new Error("SOMETHING_WENT_WRONG");
+              if (!event || !assetsEvent) {
+                throw new Error("SOMETHING_WENT_WRONG");
+              }
+
+              const result = new MultisigCreateResult({
+                id: (event[1] as u32).toNumber(),
+                account: event[0] as AccountId,
+                metadata: event[2] as Text,
+                minimumSupport: event[3] as Perbill,
+                requiredApproval: event[4] as Perbill,
+                creator: this.call.registry.createType("AccountId", address),
+                tokenSupply: assetsEvent[2] as Balance,
+              });
+
+              resolve(result);
             }
-
-            const result = new MultisigCreateResult({
-              id: (event[1] as u32).toNumber(),
-              account: event[0] as AccountId,
-              metadata: event[2] as Text,
-              minimumSupport: event[3] as Perbill,
-              requiredApproval: event[4] as Perbill,
-              creator: this.call.registry.createType("AccountId", address),
-              tokenSupply: assetsEvent[2] as Balance,
-            });
-
-            resolve(result);
           }
-        });
+        );
       } catch (e) {
         reject(e);
       }
@@ -412,35 +438,37 @@ export class MultisigCreator {
   }
 }
 
-export type ParsedTallyRecordsVote = {
-    aye?: BN;
-    nay?: undefined
-} | {
-    aye?: undefined;
-    nay?: BN
-};
+export type ParsedTallyRecordsVote =
+  | {
+      aye?: BN;
+      nay?: undefined;
+    }
+  | {
+      aye?: undefined;
+      nay?: BN;
+    };
 
 export type ParsedTallyRecords = {
-    [voter: string]: ParsedTallyRecordsVote,
+  [voter: string]: ParsedTallyRecordsVote;
 };
 
 export type ParsedTally = {
-    ayes: BN,
-    nays: BN,
-    records: ParsedTallyRecords,
+  ayes: BN;
+  nays: BN;
+  records: ParsedTallyRecords;
 };
 
 export type ParsedCallDetails = {
-    originalCaller: string,
-    metadata?: string,
-    feeAsset: string,
-    actualCall: `0x${string}`,
-    tally: ParsedTally,
+  originalCaller: string;
+  metadata?: string;
+  feeAsset: string;
+  actualCall: `0x${string}`;
+  tally: ParsedTally;
 };
 
 export class CallDetails {
   readonly id: number;
-    readonly tally: ParsedTally;
+  readonly tally: ParsedTally;
   readonly originalCaller: string;
   readonly actualCall: Call;
   readonly proposalMetadata?: string | Uint8Array;
@@ -448,22 +476,19 @@ export class CallDetails {
   constructor({
     id,
     details,
-      registry,
+    registry,
   }: {
     id: number;
     details: ParsedCallDetails;
-      registry: Registry;
+    registry: Registry;
   }) {
     this.id = id;
-      this.tally = details.tally;
+    this.tally = details.tally;
     this.originalCaller = details.originalCaller;
-    this.actualCall = registry.createType(
-      "Call",
-        details.actualCall
-    );
-      const meta = details.metadata?.toString();
+    this.actualCall = registry.createType("Call", details.actualCall);
+    const meta = details.metadata?.toString();
 
-      if (meta) this.proposalMetadata = meta;
+    if (meta) this.proposalMetadata = meta;
   }
 
   public async canExecute(api: ApiPromise, votes: BN): Promise<boolean> {
@@ -489,14 +514,17 @@ export class CallDetails {
       //  tally: this.tally,
       originalCaller: this.originalCaller,
       actualCall: this.actualCall.toHuman(),
-      proposalMetadata: typeof this.proposalMetadata == "string" ? this.proposalMetadata : u8aToString(this.proposalMetadata),
+      proposalMetadata:
+        typeof this.proposalMetadata == "string"
+          ? this.proposalMetadata
+          : u8aToString(this.proposalMetadata),
     };
   }
 }
 
 export type CallDetailsWithHash = {
-    callHash: Hash;
-    details: CallDetails;
+  callHash: Hash;
+  details: CallDetails;
 };
 
 export interface Tally extends Struct {
@@ -571,35 +599,41 @@ type GetMemberBalance = DefaultMultisigParams & {
 };
 
 export enum FeeAsset {
-    TNKR,
-    KSM
+  TNKR,
+  KSM,
 }
 
-function processFeeAssetAsHex(registry: Registry, feeAsset: FeeAsset): `0x${string}` | null {
-    switch (feeAsset) {
-        case FeeAsset.TNKR:
-            return null;
-        case FeeAsset.KSM:
-            return registry.createType("Option<u32>", 1).toHex();
-    }
+function processFeeAssetAsHex(
+  registry: Registry,
+  feeAsset: FeeAsset
+): `0x${string}` | null {
+  switch (feeAsset) {
+    case FeeAsset.TNKR:
+      return null;
+    case FeeAsset.KSM:
+      return registry.createType("Option<u32>", 1).toHex();
+  }
 }
 
-function processFeeAssetAsNumber(registry: Registry, feeAsset: FeeAsset): number | null {
-    switch (feeAsset) {
-        case FeeAsset.TNKR:
-            return null;
-        case FeeAsset.KSM:
-            return 1;
-    }
+function processFeeAssetAsNumber(
+  registry: Registry,
+  feeAsset: FeeAsset
+): number | null {
+  switch (feeAsset) {
+    case FeeAsset.TNKR:
+      return null;
+    case FeeAsset.KSM:
+      return 1;
+  }
 }
 
 function processFeeAssetAsName(feeAsset: FeeAsset): "TNKR" | "KSM" {
-    switch (feeAsset) {
-        case FeeAsset.TNKR:
-            return "TNKR";
-        case FeeAsset.KSM:
-            return "KSM";
-    }
+  switch (feeAsset) {
+    case FeeAsset.TNKR:
+      return "TNKR";
+    case FeeAsset.KSM:
+      return "KSM";
+  }
 }
 
 export type {

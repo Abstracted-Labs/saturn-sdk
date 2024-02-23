@@ -9,25 +9,32 @@ import type { ApiTypes, AugmentedConst } from '@polkadot/api-base/types';
 import type { Option, u128, u16, u32, u64, u8 } from '@polkadot/types-codec';
 import type { ITuple } from '@polkadot/types-codec/types';
 import type { H256, Permill } from '@polkadot/types/interfaces/runtime';
-import type { FrameSupportPalletId, FrameSystemLimitsBlockLength, FrameSystemLimitsBlockWeights, PalletCheckedInflationInflationInflationMethod, SpVersionRuntimeVersion, SpWeightsRuntimeDbWeight, SpWeightsWeightV2Weight, XcmV1MultiLocation } from '@polkadot/types/lookup';
+import type { FrameSupportPalletId, FrameSystemLimitsBlockLength, FrameSystemLimitsBlockWeights, PalletCheckedInflationInflationInflationMethod, SpVersionRuntimeVersion, SpWeightsRuntimeDbWeight, SpWeightsWeightV2Weight, XcmV3MultiLocation } from '@polkadot/types/lookup';
 
 export type __AugmentedConst<ApiType extends ApiTypes> = AugmentedConst<ApiType>;
 
 declare module '@polkadot/api-base/types/consts' {
   interface AugmentedConsts<ApiType extends ApiTypes> {
-    authorship: {
-      /**
-       * The number of blocks back we should accept uncles.
-       * This means that we will deal with uncle-parents that are
-       * `UncleGenerations + 1` before `now`.
-       **/
-      uncleGenerations: u32 & AugmentedConst<ApiType>;
-    };
     balances: {
       /**
-       * The minimum amount required to keep an account open.
+       * The minimum amount required to keep an account open. MUST BE GREATER THAN ZERO!
+       * 
+       * If you *really* need it to be zero, you can enable the feature `insecure_zero_ed` for
+       * this pallet. However, you do so at your own risk: this will open up a major DoS vector.
+       * In case you have multiple sources of provider references, you may also get unexpected
+       * behaviour if you set this to zero.
+       * 
+       * Bottom line: Do yourself a favour and make it at least one!
        **/
       existentialDeposit: u128 & AugmentedConst<ApiType>;
+      /**
+       * The maximum number of individual freeze locks that can exist on an account at any time.
+       **/
+      maxFreezes: u32 & AugmentedConst<ApiType>;
+      /**
+       * The maximum number of holds that can exist on an account at any time.
+       **/
+      maxHolds: u32 & AugmentedConst<ApiType>;
       /**
        * The maximum number of locks that should exist on an account.
        * Not strictly enforced, but used for weight estimation.
@@ -93,6 +100,7 @@ declare module '@polkadot/api-base/types/consts' {
        * The maximum numbers of caller accounts on a single Multisig call
        **/
       maxCallers: u32 & AugmentedConst<ApiType>;
+      maxCallSize: u32 & AugmentedConst<ApiType>;
       maxMetadata: u32 & AugmentedConst<ApiType>;
       maxSubAssets: u32 & AugmentedConst<ApiType>;
     };
@@ -135,7 +143,7 @@ declare module '@polkadot/api-base/types/consts' {
     };
     rings: {
       inv4PalletIndex: u8 & AugmentedConst<ApiType>;
-      maxWeightedLength: u32 & AugmentedConst<ApiType>;
+      maxXCMCallLength: u32 & AugmentedConst<ApiType>;
       paraId: u32 & AugmentedConst<ApiType>;
     };
     scheduler: {
@@ -145,6 +153,10 @@ declare module '@polkadot/api-base/types/consts' {
       maximumWeight: SpWeightsWeightV2Weight & AugmentedConst<ApiType>;
       /**
        * The maximum number of scheduled calls in the queue for a single block.
+       * 
+       * NOTE:
+       * + Dependent pallets' benchmarks might require a higher limit for the setting. Set a
+       * higher limit under `runtime-benchmarks` feature.
        **/
       maxScheduledPerBlock: u32 & AugmentedConst<ApiType>;
     };
@@ -307,11 +319,11 @@ declare module '@polkadot/api-base/types/consts' {
        * The actually weight for an XCM message is `T::BaseXcmWeight +
        * T::Weigher::weight(&msg)`.
        **/
-      baseXcmWeight: u64 & AugmentedConst<ApiType>;
+      baseXcmWeight: SpWeightsWeightV2Weight & AugmentedConst<ApiType>;
       /**
        * Self chain location.
        **/
-      selfLocation: XcmV1MultiLocation & AugmentedConst<ApiType>;
+      selfLocation: XcmV3MultiLocation & AugmentedConst<ApiType>;
     };
   } // AugmentedConsts
 } // declare module
