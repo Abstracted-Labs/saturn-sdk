@@ -1,4 +1,3 @@
-import { ApiPromise } from "@polkadot/api";
 import { SubmittableExtrinsic, ApiTypes } from "@polkadot/api/types";
 import { AccountId, Call, Hash, Perbill } from "@polkadot/types/interfaces";
 import type { BN } from "@polkadot/util";
@@ -44,6 +43,7 @@ import {
 
 import { StorageKey } from "@polkadot/types";
 import { XcmV3MultiLocation } from "@polkadot/types/lookup";
+import { ApiPromise } from "@polkadot/api/promise";
 
 const PARACHAINS_KEY = "TinkernetRuntimeRingsChains";
 const PARACHAINS_ASSETS = "TinkernetRuntimeRingsChainAssets";
@@ -61,11 +61,11 @@ const setupTypes = ({
 }[] => {
   const parachainsTypeId = api.registry.getDefinition(
     PARACHAINS_KEY
-  ) as `Lookup${number}`;
+  ) as `Lookup${ number }`;
 
   const parachainsAssetsTypeId = api.registry.getDefinition(
     PARACHAINS_ASSETS
-  ) as `Lookup${number}`;
+  ) as `Lookup${ number }`;
 
   const parachainAssets = JSON.parse(
     api.registry.lookup.getTypeDef(parachainsAssetsTypeId).type
@@ -98,7 +98,7 @@ const setupTypes = ({
       api.registry.getDefinition(newValue) as any
     ).type;
 
-    kt.types = Object.assign(JSON.parse(`{"${newValue}": ${typ}}`), kt.types);
+    kt.types = Object.assign(JSON.parse(`{"${ newValue }": ${ typ }}`), kt.types);
 
     const assets = (
       Array.isArray(JSON.parse(typ)._enum)
@@ -108,7 +108,7 @@ const setupTypes = ({
       .filter((item: string) => item != "Custom")
       .map((item: string) => ({
         label: item,
-        registerType: JSON.parse(`{"${key}": "${item}"}`),
+        registerType: JSON.parse(`{"${ key }": "${ item }"}`),
       }));
 
     chains.push({ chain: key, assets });
@@ -137,7 +137,7 @@ class Saturn {
   }[];
   feeAsset: FeeAsset;
 
-  constructor({ api }: { api: ApiPromise }) {
+  constructor({ api }: { api: ApiPromise; }) {
     if (!api.tx.inv4) {
       throw new Error("API_PROMISE_DOES_NOT_CONTAIN_INV4_MODULE");
     }
@@ -267,7 +267,7 @@ class Saturn {
 
   public getMultisigsForAccount = async (
     account: string | AccountId
-  ): Promise<{ multisigId: number; tokens: BN }[]> => {
+  ): Promise<{ multisigId: number; tokens: BN; }[]> => {
     const entries = await this._getMultisigsForAccount({ account });
 
     const mapped = entries.map(
@@ -560,7 +560,7 @@ class Saturn {
     return getPendingMultisigCall({ api: this.api, id, callHash });
   };
 
-  private _getMultisigMembers = ({ id }: { id: number }) => {
+  private _getMultisigMembers = ({ id }: { id: number; }) => {
     return getMultisigMembers({ api: this.api, id });
   };
 
