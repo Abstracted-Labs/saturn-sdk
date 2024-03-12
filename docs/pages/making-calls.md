@@ -21,7 +21,7 @@ These are convenience functions that are frequently used in Saturn, you'll find 
 
 ## General call builder
 
-For anything that's not necessarily related with maagement of the multisig itself, you'll want to build calls externally and propose them through Saturn, for that we have a call builder method:
+For anything that's not necessarily related with management of the multisig itself, you'll want to build calls externally and propose them through Saturn, for that we have a call builder method:
 
 ```typescript
 // For Tinkernet calls, use .buildMultisigCall
