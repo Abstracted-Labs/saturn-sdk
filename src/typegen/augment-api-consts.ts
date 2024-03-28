@@ -8,7 +8,7 @@ import '@polkadot/api-base/types/consts';
 import type { ApiTypes, AugmentedConst } from '@polkadot/api-base/types';
 import type { Option, u128, u16, u32, u64, u8 } from '@polkadot/types-codec';
 import type { ITuple } from '@polkadot/types-codec/types';
-import type { H256, Permill } from '@polkadot/types/interfaces/runtime';
+import type { Permill } from '@polkadot/types/interfaces/runtime';
 import type { FrameSupportPalletId, FrameSystemLimitsBlockLength, FrameSystemLimitsBlockWeights, PalletCheckedInflationInflationInflationMethod, SpVersionRuntimeVersion, SpWeightsRuntimeDbWeight, SpWeightsWeightV2Weight, XcmV3MultiLocation } from '@polkadot/types/lookup';
 
 export type __AugmentedConst<ApiType extends ApiTypes> = AugmentedConst<ApiType>;
@@ -46,8 +46,17 @@ declare module '@polkadot/api-base/types/consts' {
       maxReserves: u32 & AugmentedConst<ApiType>;
     };
     checkedInflation: {
+      /**
+       * Number of blocks per era.
+       **/
       blocksPerEra: u32 & AugmentedConst<ApiType>;
+      /**
+       * Number of eras per year.
+       **/
       erasPerYear: u32 & AugmentedConst<ApiType>;
+      /**
+       * The inflation method and its amount.
+       **/
       inflation: PalletCheckedInflationInflationInflationMethod & AugmentedConst<ApiType>;
     };
     coreAssets: {
@@ -91,18 +100,34 @@ declare module '@polkadot/api-base/types/consts' {
       subAccountDeposit: u128 & AugmentedConst<ApiType>;
     };
     inv4: {
-      coreCreationFee: u128 & AugmentedConst<ApiType>;
-      coreSeedBalance: u128 & AugmentedConst<ApiType>;
-      genesisHash: H256 & AugmentedConst<ApiType>;
-      ksmAssetId: u32 & AugmentedConst<ApiType>;
-      ksmCoreCreationFee: u128 & AugmentedConst<ApiType>;
       /**
-       * The maximum numbers of caller accounts on a single Multisig call
+       * Fee for creating a core in the native token
+       **/
+      coreCreationFee: u128 & AugmentedConst<ApiType>;
+      /**
+       * Base voting token balance to give callers when creating a core
+       **/
+      coreSeedBalance: u128 & AugmentedConst<ApiType>;
+      /**
+       * The maximum numbers of caller accounts on a single multisig proposal
        **/
       maxCallers: u32 & AugmentedConst<ApiType>;
+      /**
+       * Maximum size of a multisig proposal call
+       **/
       maxCallSize: u32 & AugmentedConst<ApiType>;
+      /**
+       * The maximum length of the core metadata and the metadata of multisig proposals
+       **/
       maxMetadata: u32 & AugmentedConst<ApiType>;
-      maxSubAssets: u32 & AugmentedConst<ApiType>;
+      /**
+       * Relay token asset id in the runtime
+       **/
+      relayAssetId: u32 & AugmentedConst<ApiType>;
+      /**
+       * Fee for creating a core in the relay token
+       **/
+      relayCoreCreationFee: u128 & AugmentedConst<ApiType>;
     };
     multisig: {
       /**
@@ -126,25 +151,77 @@ declare module '@polkadot/api-base/types/consts' {
       maxSignatories: u32 & AugmentedConst<ApiType>;
     };
     ocifStaking: {
+      /**
+       * Number of blocks per era.
+       **/
       blocksPerEra: u32 & AugmentedConst<ApiType>;
+      /**
+       * The minimum amount required to keep an account open.
+       **/
       existentialDeposit: u128 & AugmentedConst<ApiType>;
+      /**
+       * Maximum length of a core's description.
+       **/
       maxDescriptionLength: u32 & AugmentedConst<ApiType>;
+      /**
+       * Max number of unique `EraStake` values that can exist for a `(staker, core)` pairing.
+       * 
+       * When stakers claims rewards, they will either keep the number of `EraStake` values the same or they will reduce them by one.
+       * Stakers cannot add an additional `EraStake` value by calling `bond&stake` or `unbond&unstake` if they've reached the max number of values.
+       * 
+       * This ensures that history doesn't grow indefinitely - if there are too many chunks, stakers should first claim their former rewards
+       * before adding additional `EraStake` values.
+       **/
       maxEraStakeValues: u32 & AugmentedConst<ApiType>;
+      /**
+       * Maximum length of a core's image URL.
+       **/
       maxImageUrlLength: u32 & AugmentedConst<ApiType>;
+      /**
+       * Maximum length of a core's name.
+       **/
       maxNameLength: u32 & AugmentedConst<ApiType>;
+      /**
+       * Maximum number of unique stakers per core.
+       **/
       maxStakersPerCore: u32 & AugmentedConst<ApiType>;
+      /**
+       * Max number of unlocking chunks per account Id <-> core Id pairing.
+       * If value is zero, unlocking becomes impossible.
+       **/
       maxUnlocking: u32 & AugmentedConst<ApiType>;
+      /**
+       * Minimum amount user must have staked on a core.
+       * User can stake less if they already have the minimum staking amount staked.
+       **/
       minimumStakingAmount: u128 & AugmentedConst<ApiType>;
+      /**
+       * Account Identifier from which the internal Pot is generated.
+       **/
       potId: FrameSupportPalletId & AugmentedConst<ApiType>;
+      /**
+       * Deposit amount that will be reserved as part of new core registration.
+       **/
       registerDeposit: u128 & AugmentedConst<ApiType>;
+      /**
+       * Reward ratio of the pot to be distributed between the core and stakers, respectively.
+       **/
       rewardRatio: ITuple<[u32, u32]> & AugmentedConst<ApiType>;
+      /**
+       * Threshold of staked tokens necessary for a core to become active.
+       **/
       stakeThresholdForActiveCore: u128 & AugmentedConst<ApiType>;
+      /**
+       * Number of eras that need to pass until unstaked value can be withdrawn.
+       * When set to `0`, it's equal to having no unbonding period.
+       **/
       unbondingPeriod: u32 & AugmentedConst<ApiType>;
     };
     rings: {
-      inv4PalletIndex: u8 & AugmentedConst<ApiType>;
+      /**
+       * Max length of an XCM call.
+       **/
       maxXCMCallLength: u32 & AugmentedConst<ApiType>;
-      paraId: u32 & AugmentedConst<ApiType>;
     };
     scheduler: {
       /**

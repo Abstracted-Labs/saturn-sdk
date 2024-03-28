@@ -148,7 +148,7 @@ class Saturn {
 
     this.api = api;
     this.chains = setupTypes({ api });
-    this.feeAsset = FeeAsset.TNKR;
+    this.feeAsset = FeeAsset.Native;
   }
 
   public setFeeAsset = (feeAsset: FeeAsset) => {

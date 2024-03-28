@@ -9,7 +9,7 @@ To generate a new multisig, call the `createMultisig` method on the `Saturn` cla
 - `metadata`: An arbitrary vector of bytes, can be used as a string or as raw bytes. This metadata can later be leveraged in your decentralized application (dApp).
 - `minimumSupport`: The minimum ratio of positive votes to the total supply of vote tokens. Accepts values in `Perbill`, `BN`, or number formats.
 - `requiredApproval`: The minimum ratio of positive to negative votes. Accepts `Perbill`, `BN`, or number.
-- `feeAsset`: Imported from the multisig as `FeeAsset`, this enum can be used as `FeeAsset.TNKR` or `FeeAsset.KSM`.
+- `feeAsset`: Imported from the multisig as `FeeAsset`, this enum can be used as `FeeAsset.Native` or `FeeAsset.Relay`.
 
 Below is a sample code block demonstrating the creation of a multisig:
 
@@ -17,7 +17,7 @@ Below is a sample code block demonstrating the creation of a multisig:
 const metadata = JSON.stringify({ name: "Super Multisig" });
 const minimumSupport = 500000000; // Corresponding to 50% support;
 const requiredApproval = 600000000; // Corresponding to 60% approval;
-const feeAsset = FeeAsset.TNKR;
+const feeAsset = FeeAsset.Native;
 
 const injector = await web3FromAddress(selectedAccount.address);
 
@@ -55,7 +55,7 @@ const multisig = await saturn
     // metadata is optional
     minimumSupport: 510000000, // This corresponds to 51% support
     requiredApproval: 510000000, // This corresponds to 51% approval
-    feeAsset: FeeAsset.TNKR,
+    feeAsset: FeeAsset.Native,
   })
   .signAndSend(selectedAccount.address, injector.signer);
 

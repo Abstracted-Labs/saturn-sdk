@@ -77,6 +77,9 @@ declare module '@polkadot/api-base/types/errors' {
       VestingBalance: AugmentedError<ApiType>;
     };
     checkedInflation: {
+      /**
+       * The pallet is already in the state that the user is trying to change it to.
+       **/
       NoHaltChange: AugmentedError<ApiType>;
     };
     collatorSelection: {
@@ -254,11 +257,11 @@ declare module '@polkadot/api-base/types/errors' {
     };
     inv4: {
       /**
-       * Multisig fee payment failed, probably due to lack of funds to pay for fees.
+       * Multisig fee payment failed, probably due to lack of funds to pay for fees
        **/
       CallFeePaymentFailed: AugmentedError<ApiType>;
       /**
-       * Failed to extract metadata from a `Call`
+       * Failed to extract metadata from a call
        **/
       CallHasTooFewBytes: AugmentedError<ApiType>;
       /**
@@ -266,28 +269,31 @@ declare module '@polkadot/api-base/types/errors' {
        **/
       CoreNotFound: AugmentedError<ApiType>;
       /**
-       * Failed to decode stored multisig call.
+       * Failed to decode stored multisig call
        **/
       FailedDecodingCall: AugmentedError<ApiType>;
       /**
-       * Incomplete vote cleanup.
+       * Incomplete vote cleanup
        **/
       IncompleteVoteCleanup: AugmentedError<ApiType>;
       /**
-       * Failed because the multisig call has been voted by more than the limit amount of members.
+       * Maximum amount of callers exceeded
        **/
       MaxCallersExceeded: AugmentedError<ApiType>;
+      /**
+       * Call is too long
+       **/
       MaxCallLengthExceeded: AugmentedError<ApiType>;
       /**
-       * Failed because the Maximum amount of metadata was exceeded
+       * Maximum metadata length exceeded
        **/
       MaxMetadataExceeded: AugmentedError<ApiType>;
       /**
-       * Multisig operation already exists and is available for voting.
+       * Multisig proposal already exists and is being voted on
        **/
       MultisigCallAlreadyExists: AugmentedError<ApiType>;
       /**
-       * Multisig call not found.
+       * Multisig call not found
        **/
       MultisigCallNotFound: AugmentedError<ApiType>;
       /**
@@ -295,12 +301,11 @@ declare module '@polkadot/api-base/types/errors' {
        **/
       NoAvailableCoreId: AugmentedError<ApiType>;
       /**
-       * The operator has no permission
-       * Ex: Attempting to add a file owned by another account to your IP set
+       * The caller has no permissions in the core
        **/
       NoPermission: AugmentedError<ApiType>;
       /**
-       * Cannot withdraw a vote on a multisig transaction you have not voted on.
+       * Cannot withdraw a vote on a multisig transaction you have not voted on
        **/
       NotAVoter: AugmentedError<ApiType>;
     };
@@ -373,30 +378,105 @@ declare module '@polkadot/api-base/types/errors' {
       WrongTimepoint: AugmentedError<ApiType>;
     };
     ocifStaking: {
+      /**
+       * Core already registered.
+       **/
       CoreAlreadyRegistered: AugmentedError<ApiType>;
+      /**
+       * Core not found.
+       **/
       CoreNotFound: AugmentedError<ApiType>;
+      /**
+       * Halted.
+       **/
       Halted: AugmentedError<ApiType>;
+      /**
+       * Incorrect era.
+       **/
       IncorrectEra: AugmentedError<ApiType>;
+      /**
+       * Attempted to stake less than the minimum amount.
+       **/
       InsufficientBalance: AugmentedError<ApiType>;
+      /**
+       * Description exceeds maximum length.
+       **/
       MaxDescriptionExceeded: AugmentedError<ApiType>;
+      /**
+       * Image URL exceeds maximum length.
+       **/
       MaxImageExceeded: AugmentedError<ApiType>;
+      /**
+       * Name exceeds maximum length.
+       **/
       MaxNameExceeded: AugmentedError<ApiType>;
+      /**
+       * Maximum number of stakers reached.
+       **/
       MaxStakersReached: AugmentedError<ApiType>;
+      /**
+       * Attempted to move stake to the same core.
+       **/
       MoveStakeToSameCore: AugmentedError<ApiType>;
+      /**
+       * No halt change.
+       **/
       NoHaltChange: AugmentedError<ApiType>;
+      /**
+       * No permission.
+       **/
       NoPermission: AugmentedError<ApiType>;
+      /**
+       * No stake available for withdrawal.
+       **/
       NoStakeAvailable: AugmentedError<ApiType>;
+      /**
+       * Not a staker.
+       **/
       NotAStaker: AugmentedError<ApiType>;
+      /**
+       * Nothing available for withdrawal.
+       **/
       NothingToWithdraw: AugmentedError<ApiType>;
+      /**
+       * Core not registered.
+       **/
       NotRegistered: AugmentedError<ApiType>;
+      /**
+       * Core is not unregistered.
+       **/
       NotUnregisteredCore: AugmentedError<ApiType>;
+      /**
+       * Reward already claimed.
+       **/
       RewardAlreadyClaimed: AugmentedError<ApiType>;
+      /**
+       * Staking nothing.
+       **/
       StakingNothing: AugmentedError<ApiType>;
+      /**
+       * Too many era stake values.
+       **/
       TooManyEraStakeValues: AugmentedError<ApiType>;
+      /**
+       * Too many unlocking chunks.
+       **/
       TooManyUnlockingChunks: AugmentedError<ApiType>;
+      /**
+       * Unclaimed rewards available.
+       **/
       UnclaimedRewardsAvailable: AugmentedError<ApiType>;
+      /**
+       * Unexpected stake info for era.
+       **/
       UnexpectedStakeInfoEra: AugmentedError<ApiType>;
+      /**
+       * Unknown rewards for era.
+       **/
       UnknownEraReward: AugmentedError<ApiType>;
+      /**
+       * Unstaking nothing.
+       **/
       UnstakingNothing: AugmentedError<ApiType>;
     };
     ormlXcm: {
@@ -563,12 +643,33 @@ declare module '@polkadot/api-base/types/errors' {
       TooBig: AugmentedError<ApiType>;
     };
     rings: {
+      /**
+       * Chain is under maintenance.
+       **/
       ChainUnderMaintenance: AugmentedError<ApiType>;
+      /**
+       * Asset is not supported in the destination chain.
+       **/
       DifferentChains: AugmentedError<ApiType>;
+      /**
+       * Failed to calculate XCM fee.
+       **/
       FailedToCalculateXcmFee: AugmentedError<ApiType>;
+      /**
+       * Failed to invert location.
+       **/
       FailedToInvertLocation: AugmentedError<ApiType>;
+      /**
+       * Failed to reanchor asset.
+       **/
       FailedToReanchorAsset: AugmentedError<ApiType>;
+      /**
+       * Failed to send XCM.
+       **/
       SendingFailed: AugmentedError<ApiType>;
+      /**
+       * Weight exceeds `MaxXCMCallLength`.
+       **/
       WeightTooHigh: AugmentedError<ApiType>;
     };
     scheduler: {

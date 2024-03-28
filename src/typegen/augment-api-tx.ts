@@ -105,7 +105,19 @@ declare module '@polkadot/api-base/types/submittable' {
       upgradeAccounts: AugmentedSubmittable<(who: Vec<AccountId32> | (AccountId32 | string | Uint8Array)[]) => SubmittableExtrinsic<ApiType>, [Vec<AccountId32>]>;
     };
     checkedInflation: {
+      /**
+       * Halts or unhalts the inflation process.
+       * 
+       * The origin has to have `root` access.
+       * 
+       * - `halt`: `true` to halt the inflation process, `false` to unhalt it.
+       **/
       haltUnhaltPallet: AugmentedSubmittable<(halt: bool | boolean | Uint8Array) => SubmittableExtrinsic<ApiType>, [bool]>;
+      /**
+       * This call is used for configuring the inflation mechanism and sets the token's `YearStartIssuance` to its current total issuance.
+       * 
+       * The origin has to have `root` access.
+       **/
       setFirstYearSupply: AugmentedSubmittable<() => SubmittableExtrinsic<ApiType>, []>;
     };
     collatorSelection: {
@@ -478,22 +490,61 @@ declare module '@polkadot/api-base/types/submittable' {
       setSubs: AugmentedSubmittable<(subs: Vec<ITuple<[AccountId32, Data]>> | ([AccountId32 | string | Uint8Array, Data | { None: any } | { Raw: any } | { BlakeTwo256: any } | { Sha256: any } | { Keccak256: any } | { ShaThree256: any } | string | Uint8Array])[]) => SubmittableExtrinsic<ApiType>, [Vec<ITuple<[AccountId32, Data]>>]>;
     };
     inv4: {
+      /**
+       * Cancel an existing multisig proposal (called by a core origin)
+       * - `call_hash`: Hash of the call identifying the proposal
+       **/
       cancelMultisigProposal: AugmentedSubmittable<(callHash: H256 | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [H256]>;
       /**
-       * Create IP (Intellectual Property) Set (IPS)
+       * Create a new core
+       * - `metadata`: Arbitrary byte vec to be attached to the core info
+       * - `minimum_support`: Minimum amount of positive votes out of total token supply required to approve a proposal
+       * - `required_approval`: Minimum amount of positive votes out of current positive + negative votes required to approve a proposal
+       * - `creation_fee_asset`: Token to be used to pay the core creation fee
        **/
-      createCore: AugmentedSubmittable<(metadata: Bytes | string | Uint8Array, minimumSupport: Perbill | AnyNumber | Uint8Array, requiredApproval: Perbill | AnyNumber | Uint8Array, creationFeeAsset: PalletInv4FeeHandlingFeeAsset | 'TNKR' | 'KSM' | number | Uint8Array) => SubmittableExtrinsic<ApiType>, [Bytes, Perbill, Perbill, PalletInv4FeeHandlingFeeAsset]>;
-      operateMultisig: AugmentedSubmittable<(coreId: u32 | AnyNumber | Uint8Array, metadata: Option<Bytes> | null | Uint8Array | Bytes | string, feeAsset: PalletInv4FeeHandlingFeeAsset | 'TNKR' | 'KSM' | number | Uint8Array, call: Call | IMethod | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [u32, Option<Bytes>, PalletInv4FeeHandlingFeeAsset, Call]>;
+      createCore: AugmentedSubmittable<(metadata: Bytes | string | Uint8Array, minimumSupport: Perbill | AnyNumber | Uint8Array, requiredApproval: Perbill | AnyNumber | Uint8Array, creationFeeAsset: PalletInv4FeeHandlingFeeAsset | 'Native' | 'Relay' | number | Uint8Array) => SubmittableExtrinsic<ApiType>, [Bytes, Perbill, Perbill, PalletInv4FeeHandlingFeeAsset]>;
+      /**
+       * Create a new multisig proposal, auto-executing if caller passes execution threshold requirements
+       * Fees are calculated using the length of the metadata and the call
+       * The proposed call's weight is used internally to charge the multisig instead of the user proposing the call
+       * - `core_id`: Id of the core to propose the call in
+       * - `metadata`: Arbitrary byte vec to be attached to the proposal
+       * - `fee_asset`: Token to be used by the multisig to pay for call fees
+       * - `call`: The actual call to be proposed
+       **/
+      operateMultisig: AugmentedSubmittable<(coreId: u32 | AnyNumber | Uint8Array, metadata: Option<Bytes> | null | Uint8Array | Bytes | string, feeAsset: PalletInv4FeeHandlingFeeAsset | 'Native' | 'Relay' | number | Uint8Array, call: Call | IMethod | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [u32, Option<Bytes>, PalletInv4FeeHandlingFeeAsset, Call]>;
+      /**
+       * Change core parameters incl. voting thresholds and token freeze state (called by a core origin)
+       * - `metadata`: Arbitrary byte vec to be attached to the core info
+       * - `minimum_support`: Minimum amount of positive votes out of total token supply required to approve a proposal
+       * - `required_approval`: Minimum amount of positive votes out of current positive + negative votes required to approve a proposal
+       * - `frozen_tokens`: Wheter or not the core's voting token should be transferable by the holders
+       **/
       setParameters: AugmentedSubmittable<(metadata: Option<Bytes> | null | Uint8Array | Bytes | string, minimumSupport: Option<Perbill> | null | Uint8Array | Perbill | AnyNumber, requiredApproval: Option<Perbill> | null | Uint8Array | Perbill | AnyNumber, frozenTokens: Option<bool> | null | Uint8Array | bool | boolean) => SubmittableExtrinsic<ApiType>, [Option<Bytes>, Option<Perbill>, Option<Perbill>, Option<bool>]>;
       /**
-       * Burn `amount` of specified token from `target` account
+       * Burn the core's voting token from a target (called by a core origin)
+       * - `amount`: Balance amount
+       * - `target`: Account having tokens burned
        **/
       tokenBurn: AugmentedSubmittable<(amount: u128 | AnyNumber | Uint8Array, target: AccountId32 | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [u128, AccountId32]>;
       /**
-       * Mint `amount` of specified token to `target` account
+       * Mint the core's voting token to a target (called by a core origin)
+       * - `amount`: Balance amount
+       * - `target`: Account receiving the minted tokens
        **/
       tokenMint: AugmentedSubmittable<(amount: u128 | AnyNumber | Uint8Array, target: AccountId32 | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [u128, AccountId32]>;
+      /**
+       * Vote on an existing multisig proposal, auto-executing if caller puts vote tally past execution threshold requirements
+       * - `core_id`: Id of the core where the proposal is
+       * - `call_hash`: Hash of the call identifying the proposal
+       * - `aye`: Wheter or not to vote positively
+       **/
       voteMultisig: AugmentedSubmittable<(coreId: u32 | AnyNumber | Uint8Array, callHash: H256 | string | Uint8Array, aye: bool | boolean | Uint8Array) => SubmittableExtrinsic<ApiType>, [u32, H256, bool]>;
+      /**
+       * Remove caller's vote from an existing multisig proposal
+       * - `core_id`: Id of the core where the proposal is
+       * - `call_hash`: Hash of the call identifying the proposal
+       **/
       withdrawVoteMultisig: AugmentedSubmittable<(coreId: u32 | AnyNumber | Uint8Array, callHash: H256 | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [u32, H256]>;
     };
     maintenanceMode: {
@@ -631,15 +682,109 @@ declare module '@polkadot/api-base/types/submittable' {
       cancelAsMulti: AugmentedSubmittable<(threshold: u16 | AnyNumber | Uint8Array, otherSignatories: Vec<AccountId32> | (AccountId32 | string | Uint8Array)[], timepoint: PalletMultisigTimepoint | { height?: any; index?: any } | string | Uint8Array, callHash: U8aFixed | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [u16, Vec<AccountId32>, PalletMultisigTimepoint, U8aFixed]>;
     };
     ocifStaking: {
+      /**
+       * Used to change the metadata of a core.
+       * 
+       * The origin has to be the core origin.
+       * 
+       * - `name`: Name of the core.
+       * - `description`: Description of the core.
+       * - `image`: Image URL of the core.
+       **/
       changeCoreMetadata: AugmentedSubmittable<(name: Bytes | string | Uint8Array, description: Bytes | string | Uint8Array, image: Bytes | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [Bytes, Bytes, Bytes]>;
+      /**
+       * Claim core reward for the specified era.
+       * 
+       * In case reward cannot be claimed or was already claimed, an error is raised.
+       * 
+       * - `core_id`: Id of the core to claim rewards from.
+       * - `era`: Era for which rewards are to be claimed.
+       **/
       coreClaimRewards: AugmentedSubmittable<(coreId: u32 | AnyNumber | Uint8Array, era: Compact<u32> | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>, [u32, Compact<u32>]>;
+      /**
+       * Halt or unhalt the pallet.
+       * 
+       * The dispatch origin for this call must be _Root_.
+       * 
+       * - `halt`: `true` to halt, `false` to unhalt.
+       **/
       haltUnhaltPallet: AugmentedSubmittable<(halt: bool | boolean | Uint8Array) => SubmittableExtrinsic<ApiType>, [bool]>;
+      /**
+       * Move stake from one core to another.
+       * 
+       * The dispatch origin for this call must be _Signed_ by the staker's account.
+       * 
+       * - `from_core`: Id of the core to move stake from.
+       * - `amount`: Amount to move.
+       * - `to_core`: Id of the core to move stake to.
+       **/
       moveStake: AugmentedSubmittable<(fromCore: u32 | AnyNumber | Uint8Array, amount: Compact<u128> | AnyNumber | Uint8Array, toCore: u32 | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>, [u32, Compact<u128>, u32]>;
+      /**
+       * Used to register core for staking.
+       * 
+       * The origin has to be the core origin.
+       * 
+       * As part of this call, `RegisterDeposit` will be reserved from the core account.
+       * 
+       * - `name`: Name of the core.
+       * - `description`: Description of the core.
+       * - `image`: Image URL of the core.
+       **/
       registerCore: AugmentedSubmittable<(name: Bytes | string | Uint8Array, description: Bytes | string | Uint8Array, image: Bytes | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [Bytes, Bytes, Bytes]>;
+      /**
+       * Lock up and stake balance of the origin account.
+       * 
+       * `value` must be more than the `minimum_stake` specified by `MinimumStakingAmount`
+       * unless account already has bonded value equal or more than 'minimum_stake'.
+       * 
+       * The dispatch origin for this call must be _Signed_ by the staker's account.
+       * 
+       * - `core_id`: Id of the core to stake towards.
+       * - `value`: Amount to stake.
+       **/
       stake: AugmentedSubmittable<(coreId: u32 | AnyNumber | Uint8Array, value: Compact<u128> | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>, [u32, Compact<u128>]>;
+      /**
+       * Claim the staker's rewards.
+       * 
+       * In case reward cannot be claimed or was already claimed, an error is raised.
+       * 
+       * The dispatch origin for this call must be _Signed_ by the staker's account.
+       * 
+       * - `core_id`: Id of the core to claim rewards from.
+       **/
       stakerClaimRewards: AugmentedSubmittable<(coreId: u32 | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>, [u32]>;
+      /**
+       * Unregister existing core for staking, making it ineligible for rewards from current era onwards and
+       * starts the unbonding period for the stakers.
+       * 
+       * The origin has to be the core origin.
+       * 
+       * Deposit is returned to the core account.
+       * 
+       * - `core_id`: Id of the core to be unregistered.
+       **/
       unregisterCore: AugmentedSubmittable<() => SubmittableExtrinsic<ApiType>, []>;
+      /**
+       * Start unbonding process and unstake balance from the core.
+       * 
+       * The unstaked amount will no longer be eligible for rewards but still won't be unlocked.
+       * User needs to wait for the unbonding period to finish before being able to withdraw
+       * the funds via `withdraw_unstaked` call.
+       * 
+       * In case remaining staked balance is below minimum staking amount,
+       * entire stake will be unstaked.
+       * 
+       * - `core_id`: Id of the core to unstake from.
+       **/
       unstake: AugmentedSubmittable<(coreId: u32 | AnyNumber | Uint8Array, value: Compact<u128> | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>, [u32, Compact<u128>]>;
+      /**
+       * Withdraw all funds that have completed the unbonding process.
+       * 
+       * If there are unbonding chunks which will be fully unbonded in future eras,
+       * they will remain and can be withdrawn later.
+       * 
+       * The dispatch origin for this call must be _Signed_ by the staker's account.
+       **/
       withdrawUnstaked: AugmentedSubmittable<() => SubmittableExtrinsic<ApiType>, []>;
     };
     ormlXcm: {
@@ -853,10 +998,53 @@ declare module '@polkadot/api-base/types/submittable' {
       unrequestPreimage: AugmentedSubmittable<(hash: H256 | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [H256]>;
     };
     rings: {
-      bridgeAssets: AugmentedSubmittable<(asset: TinkernetRuntimeRingsChainAssets | { Basilisk: any } | { Picasso: any } | string | Uint8Array, destination: TinkernetRuntimeRingsChains | 'Basilisk' | 'Picasso' | number | Uint8Array, fee: u128 | AnyNumber | Uint8Array, amount: u128 | AnyNumber | Uint8Array, to: Option<AccountId32> | null | Uint8Array | AccountId32 | string) => SubmittableExtrinsic<ApiType>, [TinkernetRuntimeRingsChainAssets, TinkernetRuntimeRingsChains, u128, u128, Option<AccountId32>]>;
-      sendCall: AugmentedSubmittable<(destination: TinkernetRuntimeRingsChains | 'Basilisk' | 'Picasso' | number | Uint8Array, weight: SpWeightsWeightV2Weight | { refTime?: any; proofSize?: any } | string | Uint8Array, feeAsset: TinkernetRuntimeRingsChainAssets | { Basilisk: any } | { Picasso: any } | string | Uint8Array, fee: u128 | AnyNumber | Uint8Array, call: Bytes | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [TinkernetRuntimeRingsChains, SpWeightsWeightV2Weight, TinkernetRuntimeRingsChainAssets, u128, Bytes]>;
-      setMaintenanceStatus: AugmentedSubmittable<(chain: TinkernetRuntimeRingsChains | 'Basilisk' | 'Picasso' | number | Uint8Array, underMaintenance: bool | boolean | Uint8Array) => SubmittableExtrinsic<ApiType>, [TinkernetRuntimeRingsChains, bool]>;
-      transferAssets: AugmentedSubmittable<(asset: TinkernetRuntimeRingsChainAssets | { Basilisk: any } | { Picasso: any } | string | Uint8Array, amount: u128 | AnyNumber | Uint8Array, to: AccountId32 | string | Uint8Array, feeAsset: TinkernetRuntimeRingsChainAssets | { Basilisk: any } | { Picasso: any } | string | Uint8Array, fee: u128 | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>, [TinkernetRuntimeRingsChainAssets, u128, AccountId32, TinkernetRuntimeRingsChainAssets, u128]>;
+      /**
+       * Bridge fungible assets to another chain.
+       * 
+       * The origin has to be a core.
+       * 
+       * - `asset`: asset to bridge and the chain to bridge from.
+       * - `destination`: destination chain.
+       * - `fee`: fee amount.
+       * - `amount`: amount to bridge.
+       * - `to`: account receiving the asset, None defaults to core account.
+       **/
+      bridgeAssets: AugmentedSubmittable<(asset: TinkernetRuntimeRingsChainAssets | { Basilisk: any } | { Picasso: any } | { AssetHub: any } | { Shiden: any } | { Karura: any } | { Moonriver: any } | { Kusama: any } | string | Uint8Array, destination: TinkernetRuntimeRingsChains | 'Basilisk' | 'Picasso' | 'AssetHub' | 'Shiden' | 'Karura' | 'Moonriver' | 'Kusama' | number | Uint8Array, fee: u128 | AnyNumber | Uint8Array, amount: u128 | AnyNumber | Uint8Array, to: Option<AccountId32> | null | Uint8Array | AccountId32 | string) => SubmittableExtrinsic<ApiType>, [TinkernetRuntimeRingsChainAssets, TinkernetRuntimeRingsChains, u128, u128, Option<AccountId32>]>;
+      /**
+       * Send a XCM call to a destination chain.
+       * 
+       * The origin has to be a core.
+       * 
+       * - `destination`: destination chain.
+       * - `weight`: weight of the call.
+       * - `fee_asset`: asset used to pay the fee.
+       * - `fee`: fee amount.
+       * - `call`: XCM call.
+       **/
+      sendCall: AugmentedSubmittable<(destination: TinkernetRuntimeRingsChains | 'Basilisk' | 'Picasso' | 'AssetHub' | 'Shiden' | 'Karura' | 'Moonriver' | 'Kusama' | number | Uint8Array, weight: SpWeightsWeightV2Weight | { refTime?: any; proofSize?: any } | string | Uint8Array, feeAsset: TinkernetRuntimeRingsChainAssets | { Basilisk: any } | { Picasso: any } | { AssetHub: any } | { Shiden: any } | { Karura: any } | { Moonriver: any } | { Kusama: any } | string | Uint8Array, fee: u128 | AnyNumber | Uint8Array, call: Bytes | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [TinkernetRuntimeRingsChains, SpWeightsWeightV2Weight, TinkernetRuntimeRingsChainAssets, u128, Bytes]>;
+      /**
+       * Set the maintenance status of a chain.
+       * 
+       * The origin has to be `MaintenanceOrigin`.
+       * 
+       * - `chain`: referred chain.
+       * - `under_maintenance`: maintenance status.
+       **/
+      setMaintenanceStatus: AugmentedSubmittable<(chain: TinkernetRuntimeRingsChains | 'Basilisk' | 'Picasso' | 'AssetHub' | 'Shiden' | 'Karura' | 'Moonriver' | 'Kusama' | number | Uint8Array, underMaintenance: bool | boolean | Uint8Array) => SubmittableExtrinsic<ApiType>, [TinkernetRuntimeRingsChains, bool]>;
+      /**
+       * Transfer fungible assets to another account in the destination chain.
+       * 
+       * Both asset and fee_asset have to be in the same chain.
+       * 
+       * The origin has to be a core.
+       * 
+       * - `asset`: asset to transfer.
+       * - `amount`: amount to transfer.
+       * - `to`: account receiving the asset.
+       * - `fee_asset`: asset used to pay the fee.
+       * - `fee`: fee amount.
+       **/
+      transferAssets: AugmentedSubmittable<(asset: TinkernetRuntimeRingsChainAssets | { Basilisk: any } | { Picasso: any } | { AssetHub: any } | { Shiden: any } | { Karura: any } | { Moonriver: any } | { Kusama: any } | string | Uint8Array, amount: u128 | AnyNumber | Uint8Array, to: AccountId32 | string | Uint8Array, feeAsset: TinkernetRuntimeRingsChainAssets | { Basilisk: any } | { Picasso: any } | { AssetHub: any } | { Shiden: any } | { Karura: any } | { Moonriver: any } | { Kusama: any } | string | Uint8Array, fee: u128 | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>, [TinkernetRuntimeRingsChainAssets, u128, AccountId32, TinkernetRuntimeRingsChainAssets, u128]>;
     };
     scheduler: {
       /**

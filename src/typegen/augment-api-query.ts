@@ -124,7 +124,7 @@ declare module '@polkadot/api-base/types/storage' {
        **/
       currentEra: AugmentedQuery<ApiType, () => Observable<u32>, []>;
       /**
-       * Wheter or not the inflation process should be halted.
+       * Whether the inflation process is halted.
        **/
       halted: AugmentedQuery<ApiType, () => Observable<bool>, []>;
       /**
@@ -241,6 +241,9 @@ declare module '@polkadot/api-base/types/storage' {
       superOf: AugmentedQuery<ApiType, (arg: AccountId32 | string | Uint8Array) => Observable<Option<ITuple<[AccountId32, Data]>>>, [AccountId32]>;
     };
     inv4: {
+      /**
+       * Mapping of account id -> core id.
+       **/
       coreByAccount: AugmentedQuery<ApiType, (arg: AccountId32 | string | Uint8Array) => Observable<Option<u32>>, [AccountId32]>;
       /**
        * Stores a list of members for each Core.
@@ -248,11 +251,11 @@ declare module '@polkadot/api-base/types/storage' {
        **/
       coreMembers: AugmentedQuery<ApiType, (arg1: u32 | AnyNumber | Uint8Array, arg2: AccountId32 | string | Uint8Array) => Observable<Option<Null>>, [u32, AccountId32]>;
       /**
-       * Store Core info.
+       * Core info storage.
        **/
       coreStorage: AugmentedQuery<ApiType, (arg: u32 | AnyNumber | Uint8Array) => Observable<Option<InvarchPrimitivesCoreInfo>>, [u32]>;
       /**
-       * Details of a multisig call. Only holds data for calls while they are in the voting stage.
+       * Details of a multisig call.
        * 
        * Key: (Core ID, call hash)
        **/
@@ -275,14 +278,41 @@ declare module '@polkadot/api-base/types/storage' {
       multisigs: AugmentedQuery<ApiType, (arg1: AccountId32 | string | Uint8Array, arg2: U8aFixed | string | Uint8Array) => Observable<Option<PalletMultisigMultisig>>, [AccountId32, U8aFixed]>;
     };
     ocifStaking: {
+      /**
+       * Staking information about a core in a particular era.
+       **/
       coreEraStake: AugmentedQuery<ApiType, (arg1: u32 | AnyNumber | Uint8Array, arg2: u32 | AnyNumber | Uint8Array) => Observable<Option<PalletOcifStakingPrimitivesCoreStakeInfo>>, [u32, u32]>;
+      /**
+       * The current era index.
+       **/
       currentEra: AugmentedQuery<ApiType, () => Observable<u32>, []>;
+      /**
+       * General information about an era.
+       **/
       generalEraInfo: AugmentedQuery<ApiType, (arg: u32 | AnyNumber | Uint8Array) => Observable<Option<PalletOcifStakingPrimitivesEraInfo>>, [u32]>;
+      /**
+       * Info about staker's stakes on a particular core.
+       **/
       generalStakerInfo: AugmentedQuery<ApiType, (arg1: u32 | AnyNumber | Uint8Array, arg2: AccountId32 | string | Uint8Array) => Observable<PalletOcifStakingPrimitivesStakerInfo>, [u32, AccountId32]>;
+      /**
+       * Denotes whether the pallet is halted (disabled).
+       **/
       halted: AugmentedQuery<ApiType, () => Observable<bool>, []>;
+      /**
+       * General information about the staker.
+       **/
       ledger: AugmentedQuery<ApiType, (arg: AccountId32 | string | Uint8Array) => Observable<PalletOcifStakingPrimitivesAccountLedger>, [AccountId32]>;
+      /**
+       * Stores the block number of when the next era starts.
+       **/
       nextEraStartingBlock: AugmentedQuery<ApiType, () => Observable<u32>, []>;
+      /**
+       * Simple map where CoreId points to the respective core information.
+       **/
       registeredCore: AugmentedQuery<ApiType, (arg: u32 | AnyNumber | Uint8Array) => Observable<Option<PalletOcifStakingPrimitivesCoreInfo>>, [u32]>;
+      /**
+       * Accumulator for block rewards during an era. It is reset at every new era.
+       **/
       rewardAccumulator: AugmentedQuery<ApiType, () => Observable<PalletOcifStakingPrimitivesRewardInfo>, []>;
     };
     parachainInfo: {
@@ -434,6 +464,9 @@ declare module '@polkadot/api-base/types/storage' {
       statusFor: AugmentedQuery<ApiType, (arg: H256 | string | Uint8Array) => Observable<Option<PalletPreimageRequestStatus>>, [H256]>;
     };
     rings: {
+      /**
+       * Maps chain's and their maintenance status.
+       **/
       chainsUnderMaintenance: AugmentedQuery<ApiType, (arg: XcmV3MultiLocation | { parents?: any; interior?: any } | string | Uint8Array) => Observable<Option<bool>>, [XcmV3MultiLocation]>;
     };
     scheduler: {

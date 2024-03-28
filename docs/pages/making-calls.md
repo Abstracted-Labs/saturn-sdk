@@ -34,7 +34,7 @@ saturn.buildMultisigCall({
   // The call to execute in Tinkernet
   call: stakeCall,
   // The asset to pay the transaction fee in Tinkernet.
-  feeAsset: FeeAsset.TNKR,
+  feeAsset: FeeAsset.Native,
   // Optional proposal metadata.
   proposalMetadata: "This is optional, but can be rather useful!"
 });
@@ -83,7 +83,7 @@ address,
 signer
 // Optional FeeAsset used to pay for this transaction in Tinkernet.
 // Will use the one set in the Saturn class if not provided.
-FeeAsset.KSM
+FeeAsset.Relay
 )
 ```
 

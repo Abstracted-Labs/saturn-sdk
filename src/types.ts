@@ -72,7 +72,7 @@ type CreateMultisigParams = {
   metadata?: string | Uint8Array;
   minimumSupport: Perbill | BN | number;
   requiredApproval: Perbill | BN | number;
-  creationFeeAsset: "TNKR" | "KSM";
+  creationFeeAsset: "Native" | "Relay";
 };
 
 type CreateMultisigCallParams = DefaultMultisigParams & {
@@ -599,8 +599,8 @@ type GetMemberBalance = DefaultMultisigParams & {
 };
 
 export enum FeeAsset {
-  TNKR,
-  KSM,
+  Native,
+  Relay,
 }
 
 function processFeeAssetAsHex(
@@ -608,9 +608,9 @@ function processFeeAssetAsHex(
   feeAsset: FeeAsset
 ): `0x${string}` | null {
   switch (feeAsset) {
-    case FeeAsset.TNKR:
+    case FeeAsset.Native:
       return null;
-    case FeeAsset.KSM:
+    case FeeAsset.Relay:
       return registry.createType("Option<u32>", 1).toHex();
   }
 }
@@ -620,19 +620,19 @@ function processFeeAssetAsNumber(
   feeAsset: FeeAsset
 ): number | null {
   switch (feeAsset) {
-    case FeeAsset.TNKR:
+    case FeeAsset.Native:
       return null;
-    case FeeAsset.KSM:
+    case FeeAsset.Relay:
       return 1;
   }
 }
 
-function processFeeAssetAsName(feeAsset: FeeAsset): "TNKR" | "KSM" {
+function processFeeAssetAsName(feeAsset: FeeAsset): "Native" | "Relay" {
   switch (feeAsset) {
-    case FeeAsset.TNKR:
-      return "TNKR";
-    case FeeAsset.KSM:
-      return "KSM";
+    case FeeAsset.Native:
+      return "Native";
+    case FeeAsset.Relay:
+      return "Relay";
   }
 }
 

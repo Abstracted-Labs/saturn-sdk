@@ -115,10 +115,25 @@ declare module '@polkadot/api-base/types/events' {
       Withdraw: AugmentedEvent<ApiType, [who: AccountId32, amount: u128], { who: AccountId32, amount: u128 }>;
     };
     checkedInflation: {
+      /**
+       * Halt status changed.
+       **/
       HaltChanged: AugmentedEvent<ApiType, [isHalted: bool], { isHalted: bool }>;
+      /**
+       * Tokens minted due to inflation.
+       **/
       InflationMinted: AugmentedEvent<ApiType, [yearStartIssuance: u128, currentIssuance: u128, expectedNewIssuance: u128, minted: u128], { yearStartIssuance: u128, currentIssuance: u128, expectedNewIssuance: u128, minted: u128 }>;
+      /**
+       * Beginning of a new era.
+       **/
       NewEra: AugmentedEvent<ApiType, [era: u32, nextEraStartingBlock: u32], { era: u32, nextEraStartingBlock: u32 }>;
+      /**
+       * Beginning of a new year.
+       **/
       NewYear: AugmentedEvent<ApiType, [startingIssuance: u128, nextEraStartingBlock: u32], { startingIssuance: u128, nextEraStartingBlock: u32 }>;
+      /**
+       * Total supply of the token is higher than expected by Checked Inflation.
+       **/
       OverInflationDetected: AugmentedEvent<ApiType, [expectedIssuance: u128, currentIssuance: u128], { expectedIssuance: u128, currentIssuance: u128 }>;
     };
     collatorSelection: {
@@ -286,40 +301,40 @@ declare module '@polkadot/api-base/types/events' {
     };
     inv4: {
       /**
-       * IP Tokens were burned
+       * A core's voting token was burned
        **/
       Burned: AugmentedEvent<ApiType, [coreId: u32, target: AccountId32, amount: u128], { coreId: u32, target: AccountId32, amount: u128 }>;
       /**
-       * An IP Set was created
+       * A core was created
        **/
       CoreCreated: AugmentedEvent<ApiType, [coreAccount: AccountId32, coreId: u32, metadata: Bytes, minimumSupport: Perbill, requiredApproval: Perbill], { coreAccount: AccountId32, coreId: u32, metadata: Bytes, minimumSupport: Perbill, requiredApproval: Perbill }>;
       /**
-       * IP Tokens were minted
+       * A core's voting token was minted
        **/
       Minted: AugmentedEvent<ApiType, [coreId: u32, target: AccountId32, amount: u128], { coreId: u32, target: AccountId32, amount: u128 }>;
       /**
-       * A multisig call was cancelled
+       * A multisig proposal was cancelled
        **/
       MultisigCanceled: AugmentedEvent<ApiType, [coreId: u32, callHash: H256], { coreId: u32, callHash: H256 }>;
       /**
-       * Multisig call was executed.
-       * 
-       * Params: caller derived account ID, OpaqueCall, dispatch result is ok
+       * A multisig proposal passed and it's call was executed
        **/
       MultisigExecuted: AugmentedEvent<ApiType, [coreId: u32, executorAccount: AccountId32, voter: AccountId32, callHash: H256, call: Call, result: Result<Null, SpRuntimeDispatchError>], { coreId: u32, executorAccount: AccountId32, voter: AccountId32, callHash: H256, call: Call, result: Result<Null, SpRuntimeDispatchError> }>;
       /**
-       * Voting weight was added towards the vote threshold, but not enough to execute the `Call`
-       * 
-       * Params: caller derived account ID, caller weighted balance, IPT0 token supply, the call hash, the `Call`
+       * A vote was added to an existing multisig proposal
        **/
       MultisigVoteAdded: AugmentedEvent<ApiType, [coreId: u32, executorAccount: AccountId32, voter: AccountId32, votesAdded: PalletInv4VotingVote, currentVotes: PalletInv4VotingTally, callHash: H256], { coreId: u32, executorAccount: AccountId32, voter: AccountId32, votesAdded: PalletInv4VotingVote, currentVotes: PalletInv4VotingTally, callHash: H256 }>;
       /**
-       * A vote to execute a call has begun. The call needs more votes to pass.
-       * 
-       * Params: caller derived account ID, caller weighted balance, IPT0 token supply, the call hash, the `Call`
+       * A multisig proposal has started, it needs more votes to pass
        **/
       MultisigVoteStarted: AugmentedEvent<ApiType, [coreId: u32, executorAccount: AccountId32, voter: AccountId32, votesAdded: PalletInv4VotingVote, callHash: H256], { coreId: u32, executorAccount: AccountId32, voter: AccountId32, votesAdded: PalletInv4VotingVote, callHash: H256 }>;
+      /**
+       * A vote was removed from an existing multisig proposal
+       **/
       MultisigVoteWithdrawn: AugmentedEvent<ApiType, [coreId: u32, executorAccount: AccountId32, voter: AccountId32, votesRemoved: PalletInv4VotingVote, callHash: H256], { coreId: u32, executorAccount: AccountId32, voter: AccountId32, votesRemoved: PalletInv4VotingVote, callHash: H256 }>;
+      /**
+       * A core had parameters changed
+       **/
       ParametersSet: AugmentedEvent<ApiType, [coreId: u32, metadata: Option<Bytes>, minimumSupport: Option<Perbill>, requiredApproval: Option<Perbill>, frozenTokens: Option<bool>], { coreId: u32, metadata: Option<Bytes>, minimumSupport: Option<Perbill>, requiredApproval: Option<Perbill>, frozenTokens: Option<bool> }>;
     };
     maintenanceMode: {
@@ -359,10 +374,25 @@ declare module '@polkadot/api-base/types/events' {
       NewMultisig: AugmentedEvent<ApiType, [approving: AccountId32, multisig: AccountId32, callHash: U8aFixed], { approving: AccountId32, multisig: AccountId32, callHash: U8aFixed }>;
     };
     ocifStaking: {
+      /**
+       * Rewards claimed for core.
+       **/
       CoreClaimed: AugmentedEvent<ApiType, [core: u32, destinationAccount: AccountId32, era: u32, amount: u128], { core: u32, destinationAccount: AccountId32, era: u32, amount: u128 }>;
+      /**
+       * New core registered for staking.
+       **/
       CoreRegistered: AugmentedEvent<ApiType, [core: u32], { core: u32 }>;
+      /**
+       * Core unregistered.
+       **/
       CoreUnregistered: AugmentedEvent<ApiType, [core: u32], { core: u32 }>;
+      /**
+       * Halt status changed.
+       **/
       HaltChanged: AugmentedEvent<ApiType, [isHalted: bool], { isHalted: bool }>;
+      /**
+       * Core metadata changed.
+       **/
       MetadataChanged: AugmentedEvent<ApiType, [core: u32, oldMetadata: {
     readonly name: Bytes;
     readonly description: Bytes;
@@ -380,11 +410,29 @@ declare module '@polkadot/api-base/types/events' {
     readonly description: Bytes;
     readonly image: Bytes;
   } & Struct }>;
+      /**
+       * Beginning of a new era.
+       **/
       NewEra: AugmentedEvent<ApiType, [era: u32], { era: u32 }>;
+      /**
+       * Account has staked funds to a core.
+       **/
       Staked: AugmentedEvent<ApiType, [staker: AccountId32, core: u32, amount: u128], { staker: AccountId32, core: u32, amount: u128 }>;
+      /**
+       * Staker moved an amount of stake to another core.
+       **/
       StakeMoved: AugmentedEvent<ApiType, [staker: AccountId32, fromCore: u32, toCore: u32, amount: u128], { staker: AccountId32, fromCore: u32, toCore: u32, amount: u128 }>;
+      /**
+       * Staker claimed rewards.
+       **/
       StakerClaimed: AugmentedEvent<ApiType, [staker: AccountId32, core: u32, era: u32, amount: u128], { staker: AccountId32, core: u32, era: u32, amount: u128 }>;
+      /**
+       * Account has unstaked funds from a core.
+       **/
       Unstaked: AugmentedEvent<ApiType, [staker: AccountId32, core: u32, amount: u128], { staker: AccountId32, core: u32, amount: u128 }>;
+      /**
+       * Account has withdrawn unbonded funds.
+       **/
       Withdrawn: AugmentedEvent<ApiType, [staker: AccountId32, amount: u128], { staker: AccountId32, amount: u128 }>;
     };
     ormlXcm: {
@@ -609,9 +657,21 @@ declare module '@polkadot/api-base/types/events' {
       Requested: AugmentedEvent<ApiType, [hash_: H256], { hash_: H256 }>;
     };
     rings: {
-      AssetsBridged: AugmentedEvent<ApiType, [originChainAsset: TinkernetRuntimeRingsChainAssets, amount: u128, from: u32, to: AccountId32], { originChainAsset: TinkernetRuntimeRingsChainAssets, amount: u128, from: u32, to: AccountId32 }>;
+      /**
+       * Assets were bridged.
+       **/
+      AssetsBridged: AugmentedEvent<ApiType, [originChainAsset: TinkernetRuntimeRingsChainAssets, amount: u128, from: u32, to: Option<AccountId32>], { originChainAsset: TinkernetRuntimeRingsChainAssets, amount: u128, from: u32, to: Option<AccountId32> }>;
+      /**
+       * Assets were transferred.
+       **/
       AssetsTransferred: AugmentedEvent<ApiType, [chain: TinkernetRuntimeRingsChains, asset: TinkernetRuntimeRingsChainAssets, amount: u128, from: u32, to: AccountId32], { chain: TinkernetRuntimeRingsChains, asset: TinkernetRuntimeRingsChainAssets, amount: u128, from: u32, to: AccountId32 }>;
+      /**
+       * A XCM call was sent.
+       **/
       CallSent: AugmentedEvent<ApiType, [sender: u32, destination: TinkernetRuntimeRingsChains, call: Bytes], { sender: u32, destination: TinkernetRuntimeRingsChains, call: Bytes }>;
+      /**
+       * A Chain's maintenance status changed.
+       **/
       ChainMaintenanceStatusChanged: AugmentedEvent<ApiType, [chain: TinkernetRuntimeRingsChains, underMaintenance: bool], { chain: TinkernetRuntimeRingsChains, underMaintenance: bool }>;
     };
     scheduler: {
