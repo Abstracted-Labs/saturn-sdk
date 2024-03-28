@@ -1,6 +1,6 @@
 {
   "name": "@invarch/saturn-sdk",
-  "version": "1.0.12",
+  "version": "1.0.13",
   "description": "",
   "type": "module",
   "main": "./dist/index.js",

@@ -44,6 +44,7 @@ import {
 
 import { StorageKey } from "@polkadot/types";
 import { XcmV3MultiLocation } from "@polkadot/types/lookup";
+import { relayAccountFromMultisigId } from "./utils";
 
 const PARACHAINS_KEY = "TinkernetRuntimeRingsChains";
 const PARACHAINS_ASSETS = "TinkernetRuntimeRingsChainAssets";
@@ -137,6 +138,8 @@ class Saturn {
   }[];
   feeAsset: FeeAsset;
 
+  private paraId: number;
+
   constructor({ api }: { api: ApiPromise }) {
     if (!api.tx.inv4) {
       throw new Error("API_PROMISE_DOES_NOT_CONTAIN_INV4_MODULE");
@@ -149,6 +152,9 @@ class Saturn {
     this.api = api;
     this.chains = setupTypes({ api });
     this.feeAsset = FeeAsset.Native;
+
+    this.paraId =
+      api.runtimeChain.toString() == "InvArch Tinker Network" ? 2125 : 3340;
   }
 
   public setFeeAsset = (feeAsset: FeeAsset) => {
@@ -191,7 +197,8 @@ class Saturn {
 
     const details = new MultisigDetails({
       id,
-      account: multisig.account,
+      parachainAccount: multisig.account,
+      relayAccount: relayAccountFromMultisigId(this.paraId, id),
       metadata: multisig.metadata.toString(),
       minimumSupport: multisig.minimumSupport,
       requiredApproval: multisig.requiredApproval,

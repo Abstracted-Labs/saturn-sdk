@@ -543,7 +543,8 @@ export interface Vote extends Enum {
 
 export class MultisigDetails {
   readonly id: number;
-  readonly account: AccountId;
+  readonly parachainAccount: AccountId;
+  readonly relayAccount: AccountId;
   readonly metadata: string;
   readonly minimumSupport: Perbill;
   readonly requiredApproval: Perbill;
@@ -552,7 +553,8 @@ export class MultisigDetails {
 
   constructor({
     id,
-    account,
+    parachainAccount,
+    relayAccount,
     metadata,
     minimumSupport,
     requiredApproval,
@@ -560,7 +562,8 @@ export class MultisigDetails {
     totalIssuance,
   }: {
     id: number;
-    account: AccountId;
+    parachainAccount: AccountId;
+    relayAccount: AccountId;
     metadata: string;
     minimumSupport: Perbill;
     requiredApproval: Perbill;
@@ -568,7 +571,8 @@ export class MultisigDetails {
     totalIssuance: BN;
   }) {
     this.id = id;
-    this.account = account;
+    this.parachainAccount = parachainAccount;
+    this.relayAccount = relayAccount;
     this.metadata = metadata;
     this.minimumSupport = minimumSupport;
     this.requiredApproval = requiredApproval;
@@ -579,7 +583,8 @@ export class MultisigDetails {
   public toHuman(): AnyJson {
     return {
       id: this.id,
-      account: this.account.toHuman(),
+      parachainAccount: this.parachainAccount.toHuman(),
+      relayAccount: this.relayAccount.toHuman(),
       metadata: this.metadata,
       minimumSupport: this.minimumSupport.toHuman(),
       requiredApproval: this.requiredApproval.toHuman(),
