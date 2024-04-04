@@ -8,6 +8,7 @@ import {
 } from "@polkadot/types/types";
 import {
   AccountId,
+  AccountId20,
   DispatchResult,
   Call,
   Hash,
@@ -545,6 +546,7 @@ export class MultisigDetails {
   readonly id: number;
   readonly parachainAccount: AccountId;
   readonly relayAccount: AccountId;
+  readonly evmAccount: AccountId20;
   readonly metadata: string;
   readonly minimumSupport: Perbill;
   readonly requiredApproval: Perbill;
@@ -555,6 +557,7 @@ export class MultisigDetails {
     id,
     parachainAccount,
     relayAccount,
+    evmAccount,
     metadata,
     minimumSupport,
     requiredApproval,
@@ -564,6 +567,7 @@ export class MultisigDetails {
     id: number;
     parachainAccount: AccountId;
     relayAccount: AccountId;
+    evmAccount: AccountId20;
     metadata: string;
     minimumSupport: Perbill;
     requiredApproval: Perbill;
@@ -573,6 +577,7 @@ export class MultisigDetails {
     this.id = id;
     this.parachainAccount = parachainAccount;
     this.relayAccount = relayAccount;
+    this.evmAccount = evmAccount;
     this.metadata = metadata;
     this.minimumSupport = minimumSupport;
     this.requiredApproval = requiredApproval;
@@ -585,6 +590,7 @@ export class MultisigDetails {
       id: this.id,
       parachainAccount: this.parachainAccount.toHuman(),
       relayAccount: this.relayAccount.toHuman(),
+      evmAccount: this.evmAccount.toHuman(),
       metadata: this.metadata,
       minimumSupport: this.minimumSupport.toHuman(),
       requiredApproval: this.requiredApproval.toHuman(),

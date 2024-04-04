@@ -44,7 +44,7 @@ import {
 
 import { StorageKey } from "@polkadot/types";
 import { XcmV3MultiLocation } from "@polkadot/types/lookup";
-import { relayAccountFromMultisigId } from "./utils";
+import { evmAccountFromMultisigId, relayAccountFromMultisigId } from "./utils";
 
 const PARACHAINS_KEY = "TinkernetRuntimeRingsChains";
 const PARACHAINS_ASSETS = "TinkernetRuntimeRingsChainAssets";
@@ -199,6 +199,7 @@ class Saturn {
       id,
       parachainAccount: multisig.account,
       relayAccount: relayAccountFromMultisigId(this.paraId, id),
+      evmAccount: evmAccountFromMultisigId(this.paraId, id),
       metadata: multisig.metadata.toString(),
       minimumSupport: multisig.minimumSupport,
       requiredApproval: multisig.requiredApproval,
