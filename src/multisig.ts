@@ -239,7 +239,7 @@ class Saturn {
             details: callDetails,
           };
         } catch (error) {
-          console.error("Error creating CallDetails:", hash.args[1].toHuman(), error.message);
+          console.warn("Error creating CallDetails:", hash.args[1].toHuman(), error.message);
           return null;
         }
       }).filter(item => item !== null);

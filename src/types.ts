@@ -490,8 +490,7 @@ export class CallDetails {
     try {
       this.actualCall = registry.createType("Call", details.actualCall);
     } catch (error) {
-      console.error("Failed to create Call type:", details.actualCall.toString(), error);
-      throw new Error("Invalid call data or metadata missing.");
+      console.warn("Failed to create Call type:", details.actualCall.toString(), error);
     }
 
     const meta = details.metadata?.toString();
