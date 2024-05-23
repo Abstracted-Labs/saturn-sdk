@@ -62,11 +62,11 @@ const setupTypes = ({
 }[] => {
   const parachainsTypeId = api.registry.getDefinition(
     PARACHAINS_KEY
-  ) as `Lookup${number}`;
+  ) as `Lookup${ number }`;
 
   const parachainsAssetsTypeId = api.registry.getDefinition(
     PARACHAINS_ASSETS
-  ) as `Lookup${number}`;
+  ) as `Lookup${ number }`;
 
   const parachainAssets = JSON.parse(
     api.registry.lookup.getTypeDef(parachainsAssetsTypeId).type
@@ -99,7 +99,7 @@ const setupTypes = ({
       api.registry.getDefinition(newValue) as any
     ).type;
 
-    kt.types = Object.assign(JSON.parse(`{"${newValue}": ${typ}}`), kt.types);
+    kt.types = Object.assign(JSON.parse(`{"${ newValue }": ${ typ }}`), kt.types);
 
     const assets = (
       Array.isArray(JSON.parse(typ)._enum)
@@ -109,7 +109,7 @@ const setupTypes = ({
       .filter((item: string) => item != "Custom")
       .map((item: string) => ({
         label: item,
-        registerType: JSON.parse(`{"${key}": "${item}"}`),
+        registerType: JSON.parse(`{"${ key }": "${ item }"}`),
       }));
 
     chains.push({ chain: key, assets });
@@ -140,7 +140,7 @@ class Saturn {
 
   private paraId: number;
 
-  constructor({ api }: { api: ApiPromise }) {
+  constructor({ api }: { api: ApiPromise; }) {
     if (!api.tx.inv4) {
       throw new Error("API_PROMISE_DOES_NOT_CONTAIN_INV4_MODULE");
     }
@@ -219,25 +219,36 @@ class Saturn {
   public getPendingCalls = async (
     id: number
   ): Promise<CallDetailsWithHash[]> => {
-    const pendingCalls: [
-      StorageKey<[u32, Hash]>,
-      PalletInv4MultisigMultisigOperation
-    ][] = await this._getPendingMultisigCalls(id);
+    try {
+      const pendingCalls: [
+        StorageKey<[u32, Hash]>,
+        PalletInv4MultisigMultisigOperation
+      ][] = await this._getPendingMultisigCalls(id);
 
-    const oc = pendingCalls.map(([hash, call]) => {
-      const c = call.toPrimitive() as unknown as ParsedCallDetails;
+      const oc = pendingCalls.map(([hash, call]) => {
+        const c = call.toPrimitive() as unknown as ParsedCallDetails;
 
-      return {
-        callHash: hash.args[1],
-        details: new CallDetails({
-          id,
-          details: c,
-          registry: this.api.registry,
-        }),
-      };
-    });
+        try {
+          const callDetails = new CallDetails({
+            id,
+            details: c,
+            registry: this.api.registry,
+          });
+          return {
+            callHash: hash.args[1],
+            details: callDetails,
+          };
+        } catch (error) {
+          console.warn("Error creating CallDetails:", hash.args[1].toHuman(), error.message);
+          return null;
+        }
+      }).filter(item => item !== null);
 
-    return oc;
+      return oc;
+    } catch (error) {
+      console.error("Failed to retrieve or process pending calls:", error);
+      throw new Error("Error retrieving or processing pending multisig calls.");
+    }
   };
 
   public getPendingCall = async ({
@@ -275,7 +286,7 @@ class Saturn {
 
   public getMultisigsForAccount = async (
     account: string | AccountId
-  ): Promise<{ multisigId: number; tokens: BN }[]> => {
+  ): Promise<{ multisigId: number; tokens: BN; }[]> => {
     const entries = await this._getMultisigsForAccount({ account });
 
     const mapped = entries.map(
@@ -568,7 +579,7 @@ class Saturn {
     return getPendingMultisigCall({ api: this.api, id, callHash });
   };
 
-  private _getMultisigMembers = ({ id }: { id: number }) => {
+  private _getMultisigMembers = ({ id }: { id: number; }) => {
     return getMultisigMembers({ api: this.api, id });
   };
 

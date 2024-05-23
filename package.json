@@ -1,10 +1,12 @@
 {
   "name": "@invarch/saturn-sdk",
-  "version": "1.0.14",
+  "version": "1.0.15",
   "description": "",
   "type": "module",
   "main": "./dist/index.js",
-  "files": ["dist/**/*"],
+  "files": [
+    "dist/**/*"
+  ],
   "scripts": {
     "build": "tsc --outDir ./dist",
     "generate:defs": "node --experimental-specifier-resolution=node --loader ts-node/esm node_modules/.bin/polkadot-types-from-defs --package @invarch/saturn-sdk/typegen --input ./src/typegen --endpoint ./src/typegen/tinkernet.json",
@@ -13,15 +15,15 @@
     "typedocs": "typedoc --excludePrivate --exclude \"**/rpc/**\" --exclude \"**/typegen/**\" --out typedocs/ src/index.ts"
   },
   "devDependencies": {
-    "@polkadot/typegen": "10.11.2",
+    "@polkadot/typegen": "11.0.3",
     "@types/node": "^18.15.13",
     "prettier": "2.8.7",
     "ts-node": "10.9.1",
-    "typedoc": "^0.24.7",
+    "typedoc": "^0.25.13",
     "typescript": "^5.0.4"
   },
   "dependencies": {
-    "@polkadot/api": "10.11.2"
+    "@polkadot/api": "11.0.3"
   },
   "author": "InvArch Team",
   "license": "GPL-3.0",

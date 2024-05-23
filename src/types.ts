@@ -131,7 +131,7 @@ type BridgeExternalMultisigAssetParams = {
   to?: string | AccountId;
 };
 
-type XcmAssetRepresentation = { [key: string]: any };
+type XcmAssetRepresentation = { [key: string]: any; };
 
 export class MultisigCreateResult {
   readonly id: number;
@@ -441,13 +441,13 @@ export class MultisigCreator {
 
 export type ParsedTallyRecordsVote =
   | {
-      aye?: BN;
-      nay?: undefined;
-    }
+    aye?: BN;
+    nay?: undefined;
+  }
   | {
-      aye?: undefined;
-      nay?: BN;
-    };
+    aye?: undefined;
+    nay?: BN;
+  };
 
 export type ParsedTallyRecords = {
   [voter: string]: ParsedTallyRecordsVote;
@@ -463,7 +463,7 @@ export type ParsedCallDetails = {
   originalCaller: string;
   metadata?: string;
   feeAsset: string;
-  actualCall: `0x${string}`;
+  actualCall: `0x${ string }`;
   tally: ParsedTally;
 };
 
@@ -486,16 +486,21 @@ export class CallDetails {
     this.id = id;
     this.tally = details.tally;
     this.originalCaller = details.originalCaller;
-    this.actualCall = registry.createType("Call", details.actualCall);
-    const meta = details.metadata?.toString();
 
+    try {
+      this.actualCall = registry.createType("Call", details.actualCall);
+    } catch (error) {
+      console.warn("Failed to create Call type:", details.actualCall.toString(), error.message);
+      throw new Error("Invalid call data.");
+    }
+
+    const meta = details.metadata?.toString();
     if (meta) this.proposalMetadata = meta;
   }
 
   public async canExecute(api: ApiPromise, votes: BN): Promise<boolean> {
     const totalIssuance: BN = await getTotalIssuance({ api, id: this.id });
     const details = (await getMultisig({ api, id: this.id })).unwrap();
-
     if (!details) return false;
 
     const { minimumSupport, requiredApproval } = details;
@@ -617,7 +622,7 @@ export enum FeeAsset {
 function processFeeAssetAsHex(
   registry: Registry,
   feeAsset: FeeAsset
-): `0x${string}` | null {
+): `0x${ string }` | null {
   switch (feeAsset) {
     case FeeAsset.Native:
       return null;
