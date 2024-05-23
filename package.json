@@ -15,7 +15,7 @@
     "typedocs": "typedoc --excludePrivate --exclude \"**/rpc/**\" --exclude \"**/typegen/**\" --out typedocs/ src/index.ts"
   },
   "devDependencies": {
-    "@polkadot/typegen": "11.1.1",
+    "@polkadot/typegen": "11.0.3",
     "@types/node": "^18.15.13",
     "prettier": "2.8.7",
     "ts-node": "10.9.1",
@@ -23,7 +23,7 @@
     "typescript": "^5.0.4"
   },
   "dependencies": {
-    "@polkadot/api": "11.1.1"
+    "@polkadot/api": "11.0.3"
   },
   "author": "InvArch Team",
   "license": "GPL-3.0",
