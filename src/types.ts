@@ -25,9 +25,9 @@ import type {
   SubmittablePaymentResult,
 } from "@polkadot/api-base/types";
 import {
-  PalletInv4MultisigMultisigOperation,
-  PalletInv4VotingTally,
-  PalletInv4VotingVote,
+  PalletDaoManagerMultisigMultisigOperation,
+  PalletDaoManagerVotingTally,
+  PalletDaoManagerVotingVote,
 } from "@polkadot/types/lookup";
 import { createCore, getTotalIssuance, getMultisig } from "./rpc";
 import { u8aToString } from "@polkadot/util";

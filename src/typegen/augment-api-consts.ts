@@ -9,12 +9,18 @@ import type { ApiTypes, AugmentedConst } from '@polkadot/api-base/types';
 import type { Option, u128, u16, u32, u64, u8 } from '@polkadot/types-codec';
 import type { ITuple } from '@polkadot/types-codec/types';
 import type { Permill } from '@polkadot/types/interfaces/runtime';
-import type { FrameSupportPalletId, FrameSystemLimitsBlockLength, FrameSystemLimitsBlockWeights, PalletCheckedInflationInflationInflationMethod, SpVersionRuntimeVersion, SpWeightsRuntimeDbWeight, SpWeightsWeightV2Weight, XcmV3MultiLocation } from '@polkadot/types/lookup';
+import type { FrameSupportPalletId, FrameSystemLimitsBlockLength, FrameSystemLimitsBlockWeights, PalletCheckedInflationInflationInflationMethod, SpVersionRuntimeVersion, SpWeightsRuntimeDbWeight, SpWeightsWeightV2Weight, StagingXcmV3MultiLocation } from '@polkadot/types/lookup';
 
 export type __AugmentedConst<ApiType extends ApiTypes> = AugmentedConst<ApiType>;
 
 declare module '@polkadot/api-base/types/consts' {
   interface AugmentedConsts<ApiType extends ApiTypes> {
+    assetRegistry: {
+      /**
+       * The maximum length of a name or symbol.
+       **/
+      stringLimit: u32 & AugmentedConst<ApiType>;
+    };
     balances: {
       /**
        * The minimum amount required to keep an account open. MUST BE GREATER THAN ZERO!
@@ -71,18 +77,13 @@ declare module '@polkadot/api-base/types/consts' {
     };
     identity: {
       /**
-       * The amount held on deposit for a registered identity
+       * The amount held on deposit for a registered identity.
        **/
       basicDeposit: u128 & AugmentedConst<ApiType>;
       /**
-       * The amount held on deposit per additional field for a registered identity.
+       * The amount held on deposit per encoded byte for a registered identity.
        **/
-      fieldDeposit: u128 & AugmentedConst<ApiType>;
-      /**
-       * Maximum number of additional fields that may be stored in an ID. Needed to bound the I/O
-       * required to access an identity, but can be pretty high.
-       **/
-      maxAdditionalFields: u32 & AugmentedConst<ApiType>;
+      byteDeposit: u128 & AugmentedConst<ApiType>;
       /**
        * Maxmimum number of registrars allowed in the system. Needed to bound the complexity
        * of, e.g., updating judgements.
@@ -93,6 +94,18 @@ declare module '@polkadot/api-base/types/consts' {
        **/
       maxSubAccounts: u32 & AugmentedConst<ApiType>;
       /**
+       * The maximum length of a suffix.
+       **/
+      maxSuffixLength: u32 & AugmentedConst<ApiType>;
+      /**
+       * The maximum length of a username, including its suffix and any system-added delimiters.
+       **/
+      maxUsernameLength: u32 & AugmentedConst<ApiType>;
+      /**
+       * The number of blocks within which a username grant must be accepted.
+       **/
+      pendingUsernameExpiration: u32 & AugmentedConst<ApiType>;
+      /**
        * The amount held on deposit for a registered subaccount. This should account for the fact
        * that one storage item's value will increase by the size of an account ID, and there will
        * be another trie item whose value is the size of an account ID plus 32 bytes.
@@ -101,13 +114,13 @@ declare module '@polkadot/api-base/types/consts' {
     };
     inv4: {
       /**
-       * Fee for creating a core in the native token
+       * Fee for creating a dao in the native token
        **/
-      coreCreationFee: u128 & AugmentedConst<ApiType>;
+      daoCreationFee: u128 & AugmentedConst<ApiType>;
       /**
-       * Base voting token balance to give callers when creating a core
+       * Base voting token balance to give callers when creating a DAO
        **/
-      coreSeedBalance: u128 & AugmentedConst<ApiType>;
+      daoSeedBalance: u128 & AugmentedConst<ApiType>;
       /**
        * The maximum numbers of caller accounts on a single multisig proposal
        **/
@@ -117,7 +130,7 @@ declare module '@polkadot/api-base/types/consts' {
        **/
       maxCallSize: u32 & AugmentedConst<ApiType>;
       /**
-       * The maximum length of the core metadata and the metadata of multisig proposals
+       * The maximum length of the dao metadata and the metadata of multisig proposals
        **/
       maxMetadata: u32 & AugmentedConst<ApiType>;
       /**
@@ -125,9 +138,33 @@ declare module '@polkadot/api-base/types/consts' {
        **/
       relayAssetId: u32 & AugmentedConst<ApiType>;
       /**
-       * Fee for creating a core in the relay token
+       * Fee for creating a dao in the relay token
        **/
-      relayCoreCreationFee: u128 & AugmentedConst<ApiType>;
+      relayDaoCreationFee: u128 & AugmentedConst<ApiType>;
+    };
+    messageQueue: {
+      /**
+       * The size of the page; this implies the maximum message size which can be sent.
+       * 
+       * A good value depends on the expected message sizes, their weights, the weight that is
+       * available for processing them and the maximal needed message size. The maximal message
+       * size is slightly lower than this as defined by [`MaxMessageLenOf`].
+       **/
+      heapSize: u32 & AugmentedConst<ApiType>;
+      /**
+       * The maximum number of stale pages (i.e. of overweight messages) allowed before culling
+       * can happen. Once there are more stale pages than this, then historical pages may be
+       * dropped, even if they contain unprocessed overweight messages.
+       **/
+      maxStale: u32 & AugmentedConst<ApiType>;
+      /**
+       * The amount of weight (if any) which should be provided to the message queue for
+       * servicing enqueued items.
+       * 
+       * This may be legitimately `None` in the case that you will call
+       * `ServiceQueues::service_queues` manually.
+       **/
+      serviceWeight: Option<SpWeightsWeightV2Weight> & AugmentedConst<ApiType>;
     };
     multisig: {
       /**
@@ -160,11 +197,11 @@ declare module '@polkadot/api-base/types/consts' {
        **/
       existentialDeposit: u128 & AugmentedConst<ApiType>;
       /**
-       * Maximum length of a core's description.
+       * Maximum length of a dao's description.
        **/
       maxDescriptionLength: u32 & AugmentedConst<ApiType>;
       /**
-       * Max number of unique `EraStake` values that can exist for a `(staker, core)` pairing.
+       * Max number of unique `EraStake` values that can exist for a `(staker, dao)` pairing.
        * 
        * When stakers claims rewards, they will either keep the number of `EraStake` values the same or they will reduce them by one.
        * Stakers cannot add an additional `EraStake` value by calling `bond&stake` or `unbond&unstake` if they've reached the max number of values.
@@ -174,24 +211,24 @@ declare module '@polkadot/api-base/types/consts' {
        **/
       maxEraStakeValues: u32 & AugmentedConst<ApiType>;
       /**
-       * Maximum length of a core's image URL.
+       * Maximum length of a dao's image URL.
        **/
       maxImageUrlLength: u32 & AugmentedConst<ApiType>;
       /**
-       * Maximum length of a core's name.
+       * Maximum length of a dao's name.
        **/
       maxNameLength: u32 & AugmentedConst<ApiType>;
       /**
-       * Maximum number of unique stakers per core.
+       * Maximum number of unique stakers per dao.
        **/
-      maxStakersPerCore: u32 & AugmentedConst<ApiType>;
+      maxStakersPerDao: u32 & AugmentedConst<ApiType>;
       /**
-       * Max number of unlocking chunks per account Id <-> core Id pairing.
+       * Max number of unlocking chunks per account Id <-> dao Id pairing.
        * If value is zero, unlocking becomes impossible.
        **/
       maxUnlocking: u32 & AugmentedConst<ApiType>;
       /**
-       * Minimum amount user must have staked on a core.
+       * Minimum amount user must have staked on a dao.
        * User can stake less if they already have the minimum staking amount staked.
        **/
       minimumStakingAmount: u128 & AugmentedConst<ApiType>;
@@ -200,17 +237,17 @@ declare module '@polkadot/api-base/types/consts' {
        **/
       potId: FrameSupportPalletId & AugmentedConst<ApiType>;
       /**
-       * Deposit amount that will be reserved as part of new core registration.
+       * Deposit amount that will be reserved as part of new dao registration.
        **/
       registerDeposit: u128 & AugmentedConst<ApiType>;
       /**
-       * Reward ratio of the pot to be distributed between the core and stakers, respectively.
+       * Reward ratio of the pot to be distributed between the dao and stakers, respectively.
        **/
       rewardRatio: ITuple<[u32, u32]> & AugmentedConst<ApiType>;
       /**
-       * Threshold of staked tokens necessary for a core to become active.
+       * Threshold of staked tokens necessary for a dao to become active.
        **/
-      stakeThresholdForActiveCore: u128 & AugmentedConst<ApiType>;
+      stakeThresholdForActiveDao: u128 & AugmentedConst<ApiType>;
       /**
        * Number of eras that need to pass until unstaked value can be withdrawn.
        * When set to `0`, it's equal to having no unbonding period.
@@ -269,10 +306,12 @@ declare module '@polkadot/api-base/types/consts' {
     };
     timestamp: {
       /**
-       * The minimum period between blocks. Beware that this is different to the *expected*
-       * period that the block production apparatus provides. Your chosen consensus system will
-       * generally work with this to determine a sensible block time. e.g. For Aura, it will be
-       * double this period on default settings.
+       * The minimum period between blocks.
+       * 
+       * Be aware that this is different to the *expected* period that the block production
+       * apparatus provides. Your chosen consensus system will generally work with this to
+       * determine a sensible block time. For example, in the Aura pallet it will be double this
+       * period on default settings.
        **/
       minimumPeriod: u64 & AugmentedConst<ApiType>;
     };
@@ -285,10 +324,10 @@ declare module '@polkadot/api-base/types/consts' {
     };
     transactionPayment: {
       /**
-       * A fee mulitplier for `Operational` extrinsics to compute "virtual tip" to boost their
+       * A fee multiplier for `Operational` extrinsics to compute "virtual tip" to boost their
        * `priority`
        * 
-       * This value is multipled by the `final_fee` to obtain a "virtual tip" that is later
+       * This value is multiplied by the `final_fee` to obtain a "virtual tip" that is later
        * added to a tip component in regular `priority` calculations.
        * It means that a `Normal` transaction can front-run a similarly-sized `Operational`
        * extrinsic (with no tip), by including a tip value greater than the virtual tip.
@@ -324,6 +363,10 @@ declare module '@polkadot/api-base/types/consts' {
        * The treasury's pallet id, used for deriving its sovereign account ID.
        **/
       palletId: FrameSupportPalletId & AugmentedConst<ApiType>;
+      /**
+       * The period during which an approved treasury spend has to be claimed.
+       **/
+      payoutPeriod: u32 & AugmentedConst<ApiType>;
       /**
        * Fraction of a proposal's value that should be bonded in order to place the proposal.
        * An accepted proposal gets these back. A rejected proposal does not.
@@ -389,6 +432,16 @@ declare module '@polkadot/api-base/types/consts' {
        **/
       minVestedTransfer: u128 & AugmentedConst<ApiType>;
     };
+    xcmpQueue: {
+      /**
+       * The maximum number of inbound XCMP channels that can be suspended simultaneously.
+       * 
+       * Any further channel suspensions will fail and messages may get dropped without further
+       * notice. Choosing a high value (1000) is okay; the trade-off that is described in
+       * [`InboundXcmpSuspended`] still applies at that scale.
+       **/
+      maxInboundSuspended: u32 & AugmentedConst<ApiType>;
+    };
     xTokens: {
       /**
        * Base XCM weight.
@@ -400,7 +453,7 @@ declare module '@polkadot/api-base/types/consts' {
       /**
        * Self chain location.
        **/
-      selfLocation: XcmV3MultiLocation & AugmentedConst<ApiType>;
+      selfLocation: StagingXcmV3MultiLocation & AugmentedConst<ApiType>;
     };
   } // AugmentedConsts
 } // declare module

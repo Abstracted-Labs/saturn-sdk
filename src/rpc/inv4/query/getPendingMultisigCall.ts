@@ -1,4 +1,4 @@
-import { PalletInv4MultisigMultisigOperation } from "@polkadot/types/lookup";
+import { PalletDaoManagerMultisigMultisigOperation } from "@polkadot/types/lookup";
 import { GetPendingMultisigCallParams } from "../../../types";
 import { Option } from "@polkadot/types-codec";
 
@@ -7,12 +7,12 @@ const getPendingMultisigCall = async ({
   id,
   callHash,
 }: GetPendingMultisigCallParams): Promise<
-  Option<PalletInv4MultisigMultisigOperation>
+  Option<PalletDaoManagerMultisigMultisigOperation>
 > => {
   const cd = (await api.query.inv4.multisig(
     id,
     callHash
-  )) as Option<PalletInv4MultisigMultisigOperation>;
+  )) as Option<PalletDaoManagerMultisigMultisigOperation>;
 
   return cd;
 };

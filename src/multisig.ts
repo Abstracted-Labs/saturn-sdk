@@ -4,7 +4,7 @@ import { AccountId, Call, Hash, Perbill } from "@polkadot/types/interfaces";
 import type { BN } from "@polkadot/util";
 import { u32 } from "@polkadot/types-codec/primitive";
 import { Option } from "@polkadot/types-codec";
-import { PalletInv4MultisigMultisigOperation } from "@polkadot/types/lookup";
+import { PalletDaoManagerMultisigMultisigOperation } from "@polkadot/types/lookup";
 
 import "./typegen/augment-api";
 import "./typegen/augment-types";
@@ -43,7 +43,7 @@ import {
 } from "./types";
 
 import { StorageKey } from "@polkadot/types";
-import { XcmV3MultiLocation } from "@polkadot/types/lookup";
+import { StagingXcmV3MultiLocation } from "@polkadot/types/lookup";
 import { evmAccountFromMultisigId, relayAccountFromMultisigId } from "./utils";
 
 const PARACHAINS_KEY = "TinkernetRuntimeRingsChains";
@@ -221,7 +221,7 @@ class Saturn {
   ): Promise<CallDetailsWithHash[]> => {
     const pendingCalls: [
       StorageKey<[u32, Hash]>,
-      PalletInv4MultisigMultisigOperation
+      PalletDaoManagerMultisigMultisigOperation
     ][] = await this._getPendingMultisigCalls(id);
 
     const oc = pendingCalls.map(([hash, call]) => {
@@ -247,10 +247,10 @@ class Saturn {
     id: number;
     callHash: string | Hash;
   }): Promise<CallDetails | null> => {
-    const maybeCall: Option<PalletInv4MultisigMultisigOperation> =
+    const maybeCall: Option<PalletDaoManagerMultisigMultisigOperation> =
       await this._getPendingMultisigCall({ id, callHash });
 
-    const call: PalletInv4MultisigMultisigOperation = maybeCall.unwrap();
+    const call: PalletDaoManagerMultisigMultisigOperation = maybeCall.unwrap();
 
     if (!call) return null;
 
@@ -281,11 +281,11 @@ class Saturn {
     const mapped = entries.map(
       ([
         {
-          args: [_, coreId],
+          args: [_, daoId],
         },
         tokens,
       ]) => {
-        const id = coreId.toNumber();
+        const id = daoId.toNumber();
         const free = tokens.free;
         return { multisigId: id, tokens: free };
       }
@@ -512,7 +512,7 @@ class Saturn {
     const chains = await this._getChainsUnderMaintenance();
 
     const chainStatus: {
-      chainMultilocation: XcmV3MultiLocation;
+      chainMultilocation: StagingXcmV3MultiLocation;
       isUnderMaintenance: boolean;
     }[] = chains.map(([chainMultilocation, isUnderMaintenance]) => {
       return {
@@ -553,7 +553,7 @@ class Saturn {
   private _getPendingMultisigCalls = (
     id: number
   ): Promise<
-    [StorageKey<[u32, Hash]>, PalletInv4MultisigMultisigOperation][]
+    [StorageKey<[u32, Hash]>, PalletDaoManagerMultisigMultisigOperation][]
   > => {
     return getPendingMultisigCalls({ api: this.api, id });
   };
@@ -564,7 +564,7 @@ class Saturn {
   }: {
     id: number;
     callHash: string | Hash;
-  }): Promise<Option<PalletInv4MultisigMultisigOperation>> => {
+  }): Promise<Option<PalletDaoManagerMultisigMultisigOperation>> => {
     return getPendingMultisigCall({ api: this.api, id, callHash });
   };
 

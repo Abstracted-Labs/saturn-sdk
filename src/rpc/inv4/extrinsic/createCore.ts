@@ -1,13 +1,13 @@
 import type { CreateMultisigParams } from "../../../types";
 
-const createCore = ({
+const createDao = ({
   api,
   metadata,
   minimumSupport,
   requiredApproval,
   creationFeeAsset,
 }: CreateMultisigParams) => {
-  return api.tx.inv4.createCore(
+  return api.tx.inv4.createDao(
     JSON.stringify(metadata),
     minimumSupport,
     requiredApproval,
@@ -15,4 +15,4 @@ const createCore = ({
   );
 };
 
-export { createCore };
+export { createDao as createCore };
